@@ -4,38 +4,42 @@
     <meta charset="UTF-8">
     <title>Falafel Kingdom - Farida</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #2c3e50; user-select: none; }
+        body { margin: 0; overflow: hidden; font-family: 'Comic Sans MS', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 100%); user-select: none; }
         #game-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         
         /* UI */
         #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; }
-        .hud { padding: 20px; color: white; text-shadow: 2px 2px 0 #000; font-weight: bold; font-size: 20px; display: flex; justify-content: space-between; align-items: flex-start; }
-        .controls { text-align: center; color: white; text-shadow: 1px 1px 0 #000; padding-bottom: 20px; font-size: 16px; }
-        .key { background: rgba(255,255,255,0.9); color: #333; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin: 0 2px; }
+        .hud { padding: 20px; color: #ff69b4; text-shadow: 2px 2px 0 #fff; font-weight: bold; font-size: 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .controls { text-align: center; color: #ff69b4; text-shadow: 1px 1px 0 #fff; padding-bottom: 20px; font-size: 16px; }
+        .key { background: rgba(255,182,193,0.9); color: #ff1493; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin: 0 2px; border: 2px solid #ffb6c1; }
         
         /* Menus */
-        .menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(44, 62, 80, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; z-index: 20; color: white; }
+        .menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,182,193,0.95) 0%, rgba(255,223,237,0.95) 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; z-index: 20; color: #ff1493; }
         .hidden { display: none !important; }
         
-        h1 { font-size: 60px; color: #d35400; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; text-shadow: 3px 3px 0 #000; }
-        h2 { font-size: 24px; color: #ecf0f1; margin: 0 0 30px 0; text-shadow: 2px 2px 0 #000; }
+        h1 { font-size: 60px; color: #ff69b4; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; text-shadow: 3px 3px 0 #fff; }
+        h2 { font-size: 24px; color: #ff1493; margin: 0 0 30px 0; text-shadow: 2px 2px 0 #fff; }
         
-        button { background: #d35400; border: 4px solid #ecf0f1; color: white; padding: 15px 40px; font-size: 24px; border-radius: 50px; cursor: pointer; margin: 10px; font-weight: bold; text-transform: uppercase; box-shadow: 0 6px 0 #a04000; transition: transform 0.1s; }
-        button:active { transform: translateY(4px); box-shadow: 0 2px 0 #a04000; }
-        button:hover { background: #e67e22; }
+        button { background: linear-gradient(180deg, #ff69b4 0%, #ff1493 100%); border: 4px solid #ffb6c1; color: white; padding: 15px 40px; font-size: 24px; border-radius: 50px; cursor: pointer; margin: 10px; font-weight: bold; text-transform: uppercase; box-shadow: 0 6px 0 #c71585; transition: transform 0.1s; }
+        button:active { transform: translateY(4px); box-shadow: 0 2px 0 #c71585; }
+        button:hover { background: linear-gradient(180deg, #ff87c4 0%, #ff69b4 100%); }
         
-        .info-box { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center; line-height: 1.6; border: 1px solid rgba(255,255,255,0.2); }
+        .info-box { background: rgba(255,255,255,0.8); padding: 20px; border-radius: 20px; margin-top: 20px; text-align: center; line-height: 1.6; border: 3px solid #ffb6c1; }
         
         /* Certificate */
-        .cert { background: #fdfefe; color: #2c3e50; padding: 40px; border: 10px double #d35400; border-radius: 10px; text-align: center; max-width: 500px; position: relative; }
-        .cert h2 { color: #d35400; font-size: 32px; margin-bottom: 10px; }
-        .cert-name { font-size: 40px; color: #e67e22; border-bottom: 2px dashed #d35400; display: inline-block; padding: 0 20px; margin: 20px 0; font-weight: bold; }
-        .stamp { position: absolute; bottom: 20px; right: 20px; border: 4px solid #c0392b; color: #c0392b; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; transform: rotate(-15deg); font-weight: bold; font-size: 14px; }
+        .cert { background: #fff0f5; color: #ff1493; padding: 40px; border: 10px double #ff69b4; border-radius: 20px; text-align: center; max-width: 500px; position: relative; box-shadow: 0 10px 30px rgba(255,105,180,0.3); }
+        .cert h2 { color: #ff69b4; font-size: 32px; margin-bottom: 10px; }
+        .cert-name { font-size: 40px; color: #ff69b4; border-bottom: 3px dashed #ffb6c1; display: inline-block; padding: 0 20px; margin: 20px 0; font-weight: bold; }
+        .stamp { position: absolute; bottom: 20px; right: 20px; border: 4px solid #ff69b4; color: #ff69b4; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; transform: rotate(-15deg); font-weight: bold; font-size: 14px; background: #fff; }
         
-        #msg { position: absolute; top: 20%; width: 100%; text-align: center; font-size: 32px; color: #f1c40f; text-shadow: 2px 2px 0 #000; display: none; font-weight: bold; pointer-events: none; }
-        .footer { position: absolute; bottom: 5px; width: 100%; text-align: center; color: #bdc3c7; font-size: 12px; pointer-events: none; }
+        #msg { position: absolute; top: 20%; width: 100%; text-align: center; font-size: 32px; color: #ff69b4; text-shadow: 2px 2px 0 #fff; display: none; font-weight: bold; pointer-events: none; }
+        .footer { position: absolute; bottom: 5px; width: 100%; text-align: center; color: #ffb6c1; font-size: 12px; pointer-events: none; }
         
-        #load-status { color: #e74c3c; font-weight: bold; margin-top: 10px; display: none; }
+        #load-status { color: #ff1493; font-weight: bold; margin-top: 10px; display: none; }
+        
+        /* Cute animations */
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        @keyframes sparkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
     <!-- Using unpkg which is very reliable -->
     <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
@@ -54,60 +58,61 @@
     </div>
     <div class="controls">
         <span class="key">WASD</span> Move &nbsp;|&nbsp; <span class="key">SPACE</span> Jump / Share &nbsp;|&nbsp; <span class="key">P</span> Pause
-        <div id="ability-txt" style="color: #f1c40f; margin-top: 5px; font-weight: bold;"></div>
+        <div id="ability-txt" style="color: #ff69b4; margin-top: 5px; font-weight: bold;"></div>
     </div>
-    <div class="footer">made with love, for farida</div>
-    <div id="msg">MEGA HUMMUS UNLOCKED!</div>
+    <div class="footer">💕 made with love, for farida 💕</div>
+    <div id="msg">✨ GOLDEN HUMMUS POWER! ✨</div>
 </div>
 
 <!-- Main Menu -->
 <div id="main-menu" class="menu">
-    <h1>Falafel Kingdom</h1>
-    <h2>spread hummus · spread happiness</h2>
-    <button id="play-btn" onclick="startGame()">▶ Play Adventure</button>
+    <h1>🧆 Falafel Kingdom 🧆</h1>
+    <h2>climb the mountain · make falafels happy 💕</h2>
+    <button id="play-btn" onclick="startGame()">💖 Start Adventure 💖</button>
     <div id="load-status">Error: Game engine failed to load. Check internet.</div>
     <div class="info-box">
         <p><span class="key">WASD</span> to Move</p>
-        <p><span class="key">SPACE</span> to Jump</p>
-        <p>Go near a <b>Sad Falafel</b> and press <span class="key">SPACE</span> to Share!</p>
-        <p>Avoid the <b>Burnt Bullies</b>!</p>
+        <p><span class="key">SPACE</span> to Jump / Share Hummus</p>
+        <p>🌟 Find sad falafels and share hummus to make them happy!</p>
+        <p>😈 Avoid the mean Burnt Bullies!</p>
+        <p>🪜 Climb ladders and ride moving platforms to reach the summit!</p>
     </div>
 </div>
 
 <!-- Pause -->
 <div id="pause-menu" class="menu hidden">
-    <h1>Paused</h1>
-    <button onclick="togglePause()">Resume</button>
-    <button onclick="location.reload()" style="background:#c0392b; box-shadow: 0 6px 0 #922b21;">Quit</button>
+    <h1>⏸️ Paused ⏸️</h1>
+    <button onclick="togglePause()">💕 Resume 💕</button>
+    <button onclick="location.reload()" style="background:#ff69b4; box-shadow: 0 6px 0 #c71585;">🚪 Quit</button>
 </div>
 
 <!-- Level Clear -->
 <div id="level-menu" class="menu hidden">
-    <h1>Level Clear!</h1>
-    <h2 id="lvl-msg">Great Job!</h2>
-    <button onclick="nextLevel()">Next Level →</button>
+    <h1>🎉 Level Complete! 🎉</h1>
+    <h2 id="lvl-msg">Amazing!</h2>
+    <button onclick="nextLevel()">💖 Next Level 💖</button>
 </div>
 
 <!-- Retry -->
 <div id="retry-menu" class="menu hidden">
-    <h1>Oh No!</h1>
-    <h2>The hummus spilled...</h2>
-    <button onclick="retryLevel()">Try Again</button>
-    <button onclick="location.reload()" style="background:#c0392b; box-shadow: 0 6px 0 #922b21;">Menu</button>
+    <h1>😢 Oh No! 😢</h1>
+    <h2>The hummus spilled... Try again!</h2>
+    <button onclick="retryLevel()">🔄 Try Again 🔄</button>
+    <button onclick="location.reload()" style="background:#ff69b4; box-shadow: 0 6px 0 #c71585;">🏠 Menu</button>
 </div>
 
 <!-- Certificate -->
-<div id="cert-menu" class="menu hidden" style="background: rgba(0,0,0,0.8);">
+<div id="cert-menu" class="menu hidden" style="background: rgba(255,182,193,0.9);">
     <div class="cert">
-        <h2>Certificate of Mastery</h2>
+        <h2>🏆 Certificate of Mastery 🏆</h2>
         <p>This certifies that</p>
         <div class="cert-name">Farida</div>
-        <p>Has conquered the Falafel Kingdom,<br>unlocked Mega Hummus, and made everyone happy!</p>
-        <div style="font-size: 40px; margin: 20px;">★ ★ ★</div>
+        <p>Has conquered the Falafel Mountain,<br>maded all falafels happy, and reached the summit!</p>
+        <div style="font-size: 40px; margin: 20px;">🧆 💕 🌟</div>
         <div class="stamp">OFFICIAL</div>
     </div>
-    <button onclick="window.print()" style="margin-top: 20px; background: #27ae60; box-shadow: 0 6px 0 #1e8449;">Print Certificate</button>
-    <button onclick="location.reload()" style="background: #7f8c8d; box-shadow: 0 6px 0 #566573;">Back to Menu</button>
+    <button onclick="window.print()" style="margin-top: 20px; background: #ff69b4; box-shadow: 0 6px 0 #c71585;">🖨️ Print Certificate</button>
+    <button onclick="location.reload()" style="background: #ffb6c1; box-shadow: 0 6px 0 #ff69b4;">🏠 Back to Menu</button>
 </div>
 
 <script>
@@ -121,7 +126,7 @@
     }
 
     let scene, camera, renderer, player;
-    let platforms = [], jars = [], falafels = [], bullies = [];
+    let platforms = [], jars = [], falafels = [], bullies = [], movingPlatforms = [];
     let velocity = { x: 0, y: 0, z: 0 };
     let keys = { w: false, a: false, s: false, d: false, space: false };
     let canJump = false;
@@ -144,18 +149,22 @@
         g.connect(audioCtx.destination);
         const n = audioCtx.currentTime;
         
-        if(type==='jump') { o.type='sine'; o.frequency.setValueAtTime(300,n); o.frequency.exponentialRampToValueAtTime(600,n+0.1); g.gain.setValueAtTime(0.3,n); g.gain.exponentialRampToValueAtTime(0.01,n+0.1); o.start(n); o.stop(n+0.1); }
-        else if(type==='collect') { o.type='triangle'; o.frequency.setValueAtTime(800,n); o.frequency.setValueAtTime(1200,n+0.1); g.gain.setValueAtTime(0.3,n); g.gain.linearRampToValueAtTime(0.01,n+0.2); o.start(n); o.stop(n+0.2); }
-        else if(type==='share') { o.type='sine'; o.frequency.setValueAtTime(400,n); o.frequency.linearRampToValueAtTime(600,n+0.1); g.gain.setValueAtTime(0.3,n); g.gain.linearRampToValueAtTime(0.01,n+0.3); o.start(n); o.stop(n+0.3); }
-        else if(type==='win') { o.type='square'; o.frequency.setValueAtTime(400,n); o.frequency.setValueAtTime(800,n+0.4); g.gain.setValueAtTime(0.2,n); g.gain.linearRampToValueAtTime(0.01,n+0.8); o.start(n); o.stop(n+0.8); }
-        else if(type==='unlock') { o.type='sawtooth'; o.frequency.setValueAtTime(300,n); o.frequency.linearRampToValueAtTime(800,n+0.5); g.gain.setValueAtTime(0.2,n); g.gain.linearRampToValueAtTime(0.01,n+0.5); o.start(n); o.stop(n+0.5); }
-        else if(type==='fail') { o.type='sawtooth'; o.frequency.setValueAtTime(200,n); o.frequency.linearRampToValueAtTime(50,n+0.3); g.gain.setValueAtTime(0.3,n); g.gain.linearRampToValueAtTime(0.01,n+0.3); o.start(n); o.stop(n+0.3); }
+        if(type==='jump') { o.type='sine'; o.frequency.setValueAtTime(500,n); o.frequency.exponentialRampToValueAtTime(800,n+0.1); g.gain.setValueAtTime(0.2,n); g.gain.exponentialRampToValueAtTime(0.01,n+0.15); o.start(n); o.stop(n+0.15); }
+        else if(type==='collect') { o.type='sine'; o.frequency.setValueAtTime(800,n); o.frequency.setValueAtTime(1200,n+0.1); g.gain.setValueAtTime(0.2,n); g.gain.linearRampToValueAtTime(0.01,n+0.2); o.start(n); o.stop(n+0.2); }
+        else if(type==='share') { o.type='sine'; o.frequency.setValueAtTime(600,n); o.frequency.linearRampToValueAtTime(1000,n+0.1); o.frequency.linearRampToValueAtTime(1400,n+0.2); g.gain.setValueAtTime(0.2,n); g.gain.linearRampToValueAtTime(0.01,n+0.3); o.start(n); o.stop(n+0.3); }
+        else if(type==='happy') { o.type='sine'; o.frequency.setValueAtTime(523,n); o.frequency.setValueAtTime(659,n+0.1); o.frequency.setValueAtTime(784,n+0.2); g.gain.setValueAtTime(0.2,n); g.gain.linearRampToValueAtTime(0.01,n+0.4); o.start(n); o.stop(n+0.4); }
+        else if(type==='win') { o.type='sine'; o.frequency.setValueAtTime(523,n); o.frequency.setValueAtTime(659,n+0.15); o.frequency.setValueAtTime(784,n+0.3); o.frequency.setValueAtTime(1047,n+0.45); g.gain.setValueAtTime(0.2,n); g.gain.linearRampToValueAtTime(0.01,n+0.8); o.start(n); o.stop(n+0.8); }
+        else if(type==='unlock') { o.type='sine'; o.frequency.setValueAtTime(523,n); o.frequency.linearRampToValueAtTime(1047,n+0.3); g.gain.setValueAtTime(0.2,n); g.gain.linearRampToValueAtTime(0.01,n+0.5); o.start(n); o.stop(n+0.5); }
+        else if(type==='fail') { o.type='sawtooth'; o.frequency.setValueAtTime(300,n); o.frequency.linearRampToValueAtTime(100,n+0.3); g.gain.setValueAtTime(0.2,n); g.gain.linearRampToValueAtTime(0.01,n+0.3); o.start(n); o.stop(n+0.3); }
+        else if(type==='bully') { o.type='square'; o.frequency.setValueAtTime(150,n); o.frequency.linearRampToValueAtTime(100,n+0.2); g.gain.setValueAtTime(0.15,n); g.gain.linearRampToValueAtTime(0.01,n+0.25); o.start(n); o.stop(n+0.25); }
+        else if(type==='ladder') { o.type='sine'; o.frequency.setValueAtTime(400,n); o.frequency.linearRampToValueAtTime(600,n+0.15); g.gain.setValueAtTime(0.15,n); g.gain.linearRampToValueAtTime(0.01,n+0.2); o.start(n); o.stop(n+0.2); }
+        else if(type==='platform') { o.type='triangle'; o.frequency.setValueAtTime(300,n); o.frequency.linearRampToValueAtTime(500,n+0.3); g.gain.setValueAtTime(0.2,n); g.gain.linearRampToValueAtTime(0.01,n+0.4); o.start(n); o.stop(n+0.4); }
     }
 
     function init() {
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x34495e);
-        scene.fog = new THREE.Fog(0x34495e, 20, 60);
+        scene.background = new THREE.Color(0x87CEEB);
+        scene.fog = new THREE.Fog(0x87CEEB, 30, 80);
 
         camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
         renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -163,14 +172,22 @@
         renderer.shadowMap.enabled = true;
         document.getElementById('game-container').appendChild(renderer.domElement);
 
-        const hemi = new THREE.HemisphereLight(0xffffff, 0x2c3e50, 0.6);
+        const hemi = new THREE.HemisphereLight(0xffffff, 0xffb6c1, 0.7);
         scene.add(hemi);
-        const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+        const dir = new THREE.DirectionalLight(0xffffff, 0.9);
         dir.position.set(10, 20, 10);
         dir.castShadow = true;
-        dir.shadow.camera.top = 30; dir.shadow.camera.bottom = -30;
-        dir.shadow.camera.left = -30; dir.shadow.camera.right = 30;
+        dir.shadow.camera.top = 40; dir.shadow.camera.bottom = -40;
+        dir.shadow.camera.left = -40; dir.shadow.camera.right = 40;
         scene.add(dir);
+        
+        // Create water surrounding the island
+        const waterGeo = new THREE.PlaneGeometry(200, 200);
+        const waterMat = new THREE.MeshStandardMaterial({ color: 0x00BFFF, transparent: true, opacity: 0.8 });
+        const water = new THREE.Mesh(waterGeo, waterMat);
+        water.rotation.x = -Math.PI / 2;
+        water.position.y = -5;
+        scene.add(water);
 
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -199,17 +216,33 @@
 
     function createPlayer() {
         if(player) scene.remove(player);
+        // Cute player with pink colors
         const geo = new THREE.SphereGeometry(0.5, 16, 16);
-        const mat = new THREE.MeshStandardMaterial({ color: game.mega ? 0xf1c40f : 0xd35400 });
+        const mat = new THREE.MeshStandardMaterial({ color: game.mega ? 0xffd700 : 0xff69b4 });
         player = new THREE.Mesh(geo, mat);
         player.castShadow = true;
         player.position.set(0, 5, 0);
         
-        const eGeo = new THREE.SphereGeometry(0.1, 8, 8);
+        // Cute eyes with sparkles
+        const eGeo = new THREE.SphereGeometry(0.12, 8, 8);
         const eMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
         const le = new THREE.Mesh(eGeo, eMat); le.position.set(-0.2, 0.2, 0.4);
         const re = new THREE.Mesh(eGeo, eMat); re.position.set(0.2, 0.2, 0.4);
         player.add(le); player.add(re);
+        
+        // Sparkle in eyes
+        const sGeo = new THREE.SphereGeometry(0.05, 4, 4);
+        const sMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const ls = new THREE.Mesh(sGeo, sMat); ls.position.set(-0.15, 0.25, 0.45);
+        const rs = new THREE.Mesh(sGeo, sMat); rs.position.set(0.25, 0.25, 0.45);
+        player.add(ls); player.add(rs);
+        
+        // Cute blush
+        const bGeo = new THREE.SphereGeometry(0.08, 8, 8);
+        const bMat = new THREE.MeshBasicMaterial({ color: 0xffb6c1, transparent: true, opacity: 0.6 });
+        const lb = new THREE.Mesh(bGeo, bMat); lb.position.set(-0.35, 0.1, 0.35);
+        const rb = new THREE.Mesh(bGeo, bMat); rb.position.set(0.35, 0.1, 0.35);
+        player.add(lb); player.add(rb);
         
         scene.add(player);
         velocity = { x: 0, y: 0, z: 0 };
@@ -221,36 +254,99 @@
         jars.forEach(o => scene.remove(o.mesh)); 
         falafels.forEach(o => scene.remove(o.mesh)); 
         bullies.forEach(o => scene.remove(o));
-        platforms = []; jars = []; falafels = []; bullies = [];
+        movingPlatforms.forEach(o => scene.remove(o.mesh));
+        platforms = []; jars = []; falafels = []; bullies = []; movingPlatforms = [];
         game.score = 0; game.total = 0;
         updateHUD();
 
         createPlayer();
         player.position.set(0, 2, 0);
 
-        // Start Platform
-        addPlatform(0, -1, 0, 10, 1, 10);
+        // Start Platform - base of mountain
+        addPlatform(0, 0, 0, 12, 1, 12, 0x98FB98);
 
+        // Mountain levels with different mechanics
         if(lvl === 1) {
-            addPlatform(0, 0, -10, 6, 1, 6); addJar(0, 1, -10);
-            addPlatform(5, 0, -15, 6, 1, 6); addFalafel(5, 1, -15, true);
-            addPlatform(5, 1, -25, 6, 1, 6); addJar(5, 2, -25);
-            addPlatform(-2, 1, -30, 8, 1, 8); addFalafel(-2, 2, -30, true); addFalafel(-5, 2, -30, true); addJar(-2, 2, -30);
-            addPlatform(-2, 2, -40, 8, 1, 8); addFalafel(-2, 3, -40, true);
+            // Level 1: Introduction - simple platforms and one sad falafel
+            addPlatform(0, 1, -12, 8, 1, 8, 0xffb6c1); addJar(0, 2, -12);
+            addPlatform(8, 2, -18, 6, 1, 6, 0xdda0dd); addFalafel(8, 3, -18, true);
+            addPlatform(8, 3, -28, 6, 1, 6, 0xffb6c1); addJar(8, 4, -28);
+            addPlatform(0, 4, -35, 10, 1, 10, 0x98FB98); addFalafel(-3, 5, -35, true); addFalafel(3, 5, -35, true); addJar(0, 5, -35);
         } else if(lvl === 2) {
-            addPlatform(0, 0, -12, 5, 1, 5); addBully(0, 0.5, -12);
-            addPlatform(6, 1, -18, 5, 1, 5); addJar(6, 2, -18);
-            addPlatform(6, 2, -28, 5, 1, 5); addBully(6, 2.5, -28); addFalafel(6, 2, -28, true);
-            addPlatform(-4, 2, -35, 6, 1, 6); addJar(-4, 3, -35); addBully(-4, 2.5, -35);
-            addPlatform(-4, 3, -45, 8, 1, 8); addFalafel(-4, 4, -45, true); addFalafel(-7, 4, -45, true); addFalafel(-1, 4, -45, true);
+            // Level 2: Ladders introduction
+            addPlatform(0, 1, -14, 6, 1, 6, 0xffb6c1); addJar(0, 2, -14);
+            addLadder(0, 1, -20, 4);
+            addPlatform(0, 5, -26, 6, 1, 6, 0xdda0dd); addFalafel(-2, 6, -26, true); addBully(2, 5.5, -26);
+            addLadder(6, 5, -32, 5);
+            addPlatform(6, 10, -38, 8, 1, 8, 0xffb6c1); addFalafel(4, 11, -38, true); addFalafel(8, 11, -38, true); addJar(6, 11, -38);
         } else if(lvl === 3) {
-            addPlatform(0, 0, -10, 4, 1, 4); addBully(0, 0.5, -10);
-            addPlatform(5, 1, -10, 4, 1, 4); addJar(5, 2, -10);
-            addPlatform(5, 2, -20, 4, 1, 4); addBully(5, 2.5, -20);
-            addPlatform(0, 3, -20, 4, 1, 4); addJar(0, 4, -20);
-            addPlatform(0, 4, -30, 4, 1, 4); addBully(0, 4.5, -30);
-            addPlatform(-5, 4, -30, 4, 1, 4); addJar(-5, 5, -30);
-            addPlatform(-5, 5, -40, 8, 1, 8); addFalafel(-5, 6, -40, true); addFalafel(-8, 6, -40, true); addFalafel(-2, 6, -40, true); addBully(-5, 6.5, -40);
+            // Level 3: Moving platforms
+            addPlatform(0, 1, -12, 6, 1, 6, 0xffb6c1); addJar(0, 2, -12);
+            addMovingPlatform(8, 2, -18, 8, 4, -18, 5, 0.5, 5, 1.5);
+            addPlatform(8, 5, -28, 6, 1, 6, 0xdda0dd); addFalafel(8, 6, -28, true); addBully(5, 5.5, -28);
+            addMovingPlatform(0, 6, -36, 0, 9, -36, 5, 0.5, 5, 2);
+            addPlatform(0, 10, -45, 10, 1, 10, 0xffb6c1); addFalafel(-3, 11, -45, true); addFalafel(3, 11, -45, true); addFalafel(0, 11, -45, true); addJar(0, 11, -45);
+        } else if(lvl === 4) {
+            // Level 4: Higher mountain - combination
+            addPlatform(0, 1, -14, 5, 1, 5, 0xffb6c1); addBully(0, 1.5, -14);
+            addLadder(6, 1, -18, 6);
+            addPlatform(6, 7, -24, 6, 1, 6, 0xdda0dd); addJar(6, 8, -24); addFalafel(3, 8, -24, true);
+            addMovingPlatform(-6, 8, -30, -6, 12, -30, 5, 0.5, 5, 1.8);
+            addPlatform(-6, 13, -38, 8, 1, 8, 0xffb6c1); addFalafel(-8, 14, -38, true); addFalafel(-4, 14, -38, true); addJar(-6, 14, -38);
+        } else if(lvl === 5) {
+            // Level 5: Multiple ladders
+            addLadder(0, 0, -12, 5);
+            addPlatform(0, 5, -18, 5, 1, 5, 0xffb6c1); addJar(0, 6, -18);
+            addLadder(8, 5, -22, 7);
+            addPlatform(8, 12, -28, 6, 1, 6, 0xdda0dd); addBully(8, 12.5, -28); addFalafel(5, 13, -28, true);
+            addLadder(0, 12, -34, 8);
+            addPlatform(0, 20, -40, 10, 1, 10, 0xffb6c1); addFalafel(-3, 21, -40, true); addFalafel(3, 21, -40, true); addFalafel(0, 21, -40, true); addJar(0, 21, -40);
+        } else if(lvl === 6) {
+            // Level 6: Tricky moving platforms
+            addPlatform(0, 1, -12, 5, 1, 5, 0xffb6c1); addJar(0, 2, -12);
+            addMovingPlatform(7, 2, -16, 7, 5, -16, 4, 0.5, 4, 2);
+            addMovingPlatform(-7, 6, -24, -7, 9, -24, 4, 0.5, 4, 1.5);
+            addPlatform(-7, 10, -32, 6, 1, 6, 0xdda0dd); addFalafel(-7, 11, -32, true); addBully(-4, 10.5, -32);
+            addMovingPlatform(0, 11, -38, 0, 14, -38, 5, 0.5, 5, 2.5);
+            addPlatform(0, 15, -45, 8, 1, 8, 0xffb6c1); addFalafel(-2, 16, -45, true); addFalafel(2, 16, -45, true); addJar(0, 16, -45);
+        } else if(lvl === 7) {
+            // Level 7: Spiral mountain
+            addPlatform(0, 1, -10, 4, 1, 4, 0xffb6c1); addJar(0, 2, -10);
+            addPlatform(6, 3, -10, 4, 1, 4, 0xdda0dd); addFalafel(6, 4, -10, true);
+            addPlatform(10, 6, -4, 4, 1, 4, 0xffb6c1); addBully(10, 6.5, -4);
+            addPlatform(6, 9, 4, 4, 1, 4, 0xdda0dd); addJar(6, 10, 4);
+            addPlatform(-2, 12, 4, 4, 1, 4, 0xffb6c1); addFalafel(-2, 13, 4, true);
+            addPlatform(-10, 15, -2, 4, 1, 4, 0xdda0dd); addFalafel(-10, 16, -2, true);
+            addPlatform(-10, 18, -10, 8, 1, 8, 0xffb6c1); addFalafel(-12, 19, -10, true); addFalafel(-8, 19, -10, true); addJar(-10, 19, -10);
+        } else if(lvl === 8) {
+            // Level 8: Bullies everywhere
+            addPlatform(0, 1, -14, 5, 1, 5, 0xffb6c1); addBully(0, 1.5, -14);
+            addLadder(8, 1, -18, 5);
+            addPlatform(8, 6, -22, 5, 1, 5, 0xdda0dd); addBully(6, 6.5, -22); addBully(10, 6.5, -22);
+            addMovingPlatform(0, 7, -30, 0, 10, -30, 6, 0.5, 6, 2);
+            addPlatform(0, 11, -38, 6, 1, 6, 0xffb6c1); addFalafel(-2, 12, -38, true); addBully(2, 11.5, -38);
+            addLadder(-8, 11, -42, 6);
+            addPlatform(-8, 17, -46, 8, 1, 8, 0xdda0dd); addFalafel(-10, 18, -46, true); addFalafel(-6, 18, -46, true); addFalafel(-8, 18, -46, true); addJar(-8, 18, -46);
+        } else if(lvl === 9) {
+            // Level 9: The steep climb
+            addMovingPlatform(0, 1, -12, 0, 4, -12, 5, 0.5, 5, 1.5);
+            addPlatform(0, 5, -20, 5, 1, 5, 0xffb6c1); addJar(0, 6, -20);
+            addLadder(10, 5, -24, 8);
+            addPlatform(10, 13, -30, 5, 1, 5, 0xdda0dd); addFalafel(10, 14, -30, true); addBully(7, 13.5, -30);
+            addMovingPlatform(0, 14, -38, 0, 18, -38, 5, 0.5, 5, 2);
+            addPlatform(0, 19, -46, 6, 1, 6, 0xffb6c1); addFalafel(-2, 20, -46, true); addFalafel(2, 20, -46, true);
+            addLadder(0, 19, -52, 7);
+            addPlatform(0, 26, -58, 10, 1, 10, 0xdda0dd); addFalafel(-3, 27, -58, true); addFalafel(3, 27, -58, true); addFalafel(0, 27, -58, true); addJar(0, 27, -58);
+        } else if(lvl === 10) {
+            // Level 10: Summit challenge
+            addLadder(0, 0, -10, 6);
+            addPlatform(0, 6, -16, 5, 1, 5, 0xffb6c1); addBully(0, 6.5, -16); addJar(3, 7, -16);
+            addMovingPlatform(8, 7, -22, 8, 11, -22, 4, 0.5, 4, 2.5);
+            addPlatform(8, 12, -28, 5, 1, 5, 0xdda0dd); addFalafel(8, 13, -28, true); addBully(5, 12.5, -28);
+            addLadder(0, 12, -34, 8);
+            addPlatform(0, 20, -40, 6, 1, 6, 0xffb6c1); addFalafel(-2, 21, -40, true); addFalafel(2, 21, -40, true);
+            addMovingPlatform(-8, 21, -46, -8, 25, -46, 5, 0.5, 5, 2);
+            addPlatform(-8, 26, -52, 12, 1, 12, 0xffd700); addFalafel(-10, 27, -52, true); addFalafel(-6, 27, -52, true); addFalafel(-8, 27, -52, true); addFalafel(-12, 27, -52, true); addFalafel(-4, 27, -52, true); addJar(-8, 27, -52);
         } else {
             showScreen('cert-menu');
             sound('win');
@@ -260,35 +356,103 @@
         updateHUD();
     }
 
-    function addPlatform(x,y,z,w,h,d) {
-        const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), new THREE.MeshStandardMaterial({color: 0xd35400}));
+    function addPlatform(x,y,z,w,h,d, color) {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), new THREE.MeshStandardMaterial({color: color || 0xffb6c1}));
         m.position.set(x,y,z); m.receiveShadow = true; scene.add(m); platforms.push(m);
     }
+    function addLadder(x, y, z, height) {
+        // Create a cute ladder
+        const railGeo = new THREE.CylinderGeometry(0.05, 0.05, height, 8);
+        const railMat = new THREE.MeshStandardMaterial({color: 0x8b4513});
+        const leftRail = new THREE.Mesh(railGeo, railMat);
+        leftRail.position.set(x - 0.5, y + height/2, z);
+        scene.add(leftRail);
+        platforms.push(leftRail);
+        
+        const rightRail = new THREE.Mesh(railGeo, railMat);
+        rightRail.position.set(x + 0.5, y + height/2, z);
+        scene.add(rightRail);
+        platforms.push(rightRail);
+        
+        // Rungs
+        for(let i = 0; i < height; i += 0.8) {
+            const rungGeo = new THREE.CylinderGeometry(0.04, 0.04, 1, 8);
+            const rung = new THREE.Mesh(rungGeo, railMat);
+            rung.rotation.x = Math.PI / 2;
+            rung.position.set(x, y + i + 0.4, z);
+            scene.add(rung);
+            platforms.push(rung);
+        }
+    }
+    function addMovingPlatform(startX, startY, startZ, endX, endY, endZ, w, h, d, speed) {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), new THREE.MeshStandardMaterial({color: 0xdda0dd}));
+        m.position.set(startX, startY, startZ);
+        m.receiveShadow = true;
+        m.castShadow = true;
+        scene.add(m);
+        platforms.push(m);
+        movingPlatforms.push({mesh: m, startX, startY, startZ, endX, endY, endZ, speed, offset: Math.random() * Math.PI * 2});
+    }
     function addJar(x,y,z) {
-        const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.25,0.2,16), new THREE.MeshStandardMaterial({color: 0xecf0f1}));
-        const hum = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.15,16), new THREE.MeshStandardMaterial({color: 0xfdfefe}));
+        const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.25,0.2,16), new THREE.MeshStandardMaterial({color: 0xffb6c1}));
+        const hum = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.15,16), new THREE.MeshStandardMaterial({color: 0xfffacd}));
         hum.position.y = 0.05; bowl.add(hum);
         bowl.position.set(x,y,z); bowl.castShadow = true; scene.add(bowl); 
         jars.push({mesh:bowl, active:true}); game.total++;
     }
     function addFalafel(x,y,z,sad) {
-        const m = new THREE.Mesh(new THREE.SphereGeometry(0.6,16,16), new THREE.MeshStandardMaterial({color: sad?0x5d4037:0x8d6e63}));
+        // Cute falafel with green top (parsley)
+        const m = new THREE.Mesh(new THREE.SphereGeometry(0.5,16,16), new THREE.MeshStandardMaterial({color: sad ? 0x8b7355 : 0xc4a777}));
         m.position.set(x,y,z); m.castShadow = true; scene.add(m);
-        const eGeo = new THREE.SphereGeometry(0.1,8,8); const eMat = new THREE.MeshBasicMaterial({color:0});
-        const le = new THREE.Mesh(eGeo,eMat); le.position.set(-0.2,0.1,0.5);
-        const re = new THREE.Mesh(eGeo,eMat); re.position.set(0.2,0.1,0.5);
+        
+        // Green parsley on top
+        const pGeo = new THREE.SphereGeometry(0.25, 8, 8);
+        const pMat = new THREE.MeshStandardMaterial({color: 0x228b22});
+        const parsley = new THREE.Mesh(pGeo, pMat);
+        parsley.position.y = 0.4;
+        m.add(parsley);
+        
+        const eGeo = new THREE.SphereGeometry(0.08,8,8); const eMat = new THREE.MeshBasicMaterial({color:0});
+        const le = new THREE.Mesh(eGeo,eMat); le.position.set(-0.15,0.1,0.4);
+        const re = new THREE.Mesh(eGeo,eMat); re.position.set(0.15,0.1,0.4);
         m.add(le); m.add(re);
-        const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.15,0.03,8,16,sad?Math.PI:Math.PI), new THREE.MeshBasicMaterial({color:0}));
-        mouth.position.set(0,-0.1,0.45); mouth.rotation.z = sad?0:Math.PI; m.add(mouth);
-        falafels.push({mesh:m, shared:false, mouth:mouth}); game.total++;
+        
+        // Sparkle eyes when happy
+        if(!sad) {
+            const sGeo = new THREE.SphereGeometry(0.03, 4, 4);
+            const sMat = new THREE.MeshBasicMaterial({color: 0xffffff});
+            const ls = new THREE.Mesh(sGeo, sMat); ls.position.set(-0.12, 0.13, 0.43);
+            const rs = new THREE.Mesh(sGeo, sMat); rs.position.set(0.18, 0.13, 0.43);
+            m.add(ls); m.add(rs);
+        }
+        
+        const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.1,0.025,8,16,sad?Math.PI:Math.PI), new THREE.MeshBasicMaterial({color:0}));
+        mouth.position.set(0,-0.08,0.38); mouth.rotation.z = sad?0:Math.PI; m.add(mouth);
+        falafels.push({mesh:m, shared:false, mouth:mouth, parsley:parsley}); game.total++;
     }
     function addBully(x,y,z) {
-        const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.6,0), new THREE.MeshStandardMaterial({color: 0x2c3e50}));
+        // Mean burnt bully with angry eyebrows
+        const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55,0), new THREE.MeshStandardMaterial({color: 0x4a4a4a}));
         m.position.set(x,y,z); m.castShadow = true; scene.add(m);
-        const eGeo = new THREE.BoxGeometry(0.15,0.05,0.1); const eMat = new THREE.MeshBasicMaterial({color:0xe74c3c});
-        const le = new THREE.Mesh(eGeo,eMat); le.position.set(-0.2,0.1,0.5); le.rotation.z=0.3;
-        const re = new THREE.Mesh(eGeo,eMat); re.position.set(0.2,0.1,0.5); re.rotation.z=-0.3;
+        
+        // Angry red eyes
+        const eGeo = new THREE.BoxGeometry(0.12,0.04,0.08); const eMat = new THREE.MeshBasicMaterial({color:0xdc143c});
+        const le = new THREE.Mesh(eGeo,eMat); le.position.set(-0.18,0.1,0.45); le.rotation.z=0.4;
+        const re = new THREE.Mesh(eGeo,eMat); re.position.set(0.18,0.1,0.45); re.rotation.z=-0.4;
         m.add(le); m.add(re);
+        
+        // Angry eyebrows
+        const browGeo = new THREE.BoxGeometry(0.15, 0.03, 0.05);
+        const browMat = new THREE.MeshBasicMaterial({color: 0x2c2c2c});
+        const lb = new THREE.Mesh(browGeo, browMat); lb.position.set(-0.18, 0.2, 0.48); lb.rotation.z = 0.5;
+        const rb = new THREE.Mesh(browGeo, browMat); rb.position.set(0.18, 0.2, 0.48); rb.rotation.z = -0.5;
+        m.add(lb); m.add(rb);
+        
+        // Mean frown
+        const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.02, 8, 16, Math.PI), new THREE.MeshBasicMaterial({color: 0x000000}));
+        mouth.position.set(0, -0.15, 0.42);
+        m.add(mouth);
+        
         bullies.push(m);
     }
 
@@ -307,9 +471,11 @@
 
     function share(f) {
         f.shared = true;
-        f.mesh.material.color.setHex(0xf1c40f);
+        f.mesh.material.color.setHex(0xffd700);
         f.mouth.rotation.z = Math.PI;
-        sound('share');
+        // Make parsley brighter when happy
+        if(f.parsley) f.parsley.material.color.setHex(0x32cd32);
+        sound('happy');
         game.score++; updateHUD();
         f.mesh.scale.set(1.5,1.5,1.5);
         setTimeout(()=> f.mesh.scale.set(1,1,1), 300);
@@ -355,6 +521,14 @@
             }
         });
 
+        // Update moving platforms
+        const time = Date.now() * 0.001;
+        movingPlatforms.forEach(mp => {
+            mp.mesh.position.x = mp.startX + Math.sin(time * mp.speed + mp.offset) * (mp.endX - mp.startX) / 2;
+            mp.mesh.position.y = mp.startY + Math.sin(time * mp.speed + mp.offset) * (mp.endY - mp.startY) / 2;
+            mp.mesh.position.z = mp.startZ + Math.sin(time * mp.speed + mp.offset) * (mp.endZ - mp.startZ) / 2;
+        });
+
         if(player.position.y < -10) gameOver();
 
         camera.position.x += (player.position.x - camera.position.x) * 0.1;
@@ -369,17 +543,17 @@
     }
 
     function updateHUD() {
-        document.getElementById('score-txt').innerText = `Collected: ${game.score}/${game.total}`;
-        document.getElementById('lvl-txt').innerText = `Level ${game.level}`;
+        document.getElementById('score-txt').innerText = `Happy Falafels: ${game.score}/${game.total}`;
+        document.getElementById('lvl-txt').innerText = `Mountain Level ${game.level}`;
         const pct = game.total===0?0:(game.score/game.total)*100;
         document.getElementById('prog-bar').style.width = pct + '%';
         
         if(game.mega) {
-            document.getElementById('ability-txt').innerText = "MEGA HUMMUS ACTIVE";
-            if(player) player.material.color.setHex(0xf1c40f);
+            document.getElementById('ability-txt').innerText = "✨ GOLDEN HUMMUS POWER ✨";
+            if(player) player.material.color.setHex(0xffd700);
         } else {
             document.getElementById('ability-txt').innerText = "";
-            if(player) player.material.color.setHex(0xd35400);
+            if(player) player.material.color.setHex(0xff69b4);
         }
     }
 
@@ -421,18 +595,18 @@
     function levelComplete() {
         sound('win');
         game.active = false;
-        if(game.level === 2 && !game.mega) {
+        if(game.level === 5 && !game.mega) {
             game.mega = true;
             const msg = document.getElementById('msg');
             msg.style.display = 'block';
             sound('unlock');
             setTimeout(()=> msg.style.display = 'none', 3000);
-            document.getElementById('lvl-msg').innerText = "Mega Hummus Unlocked!";
-        } else if(game.level === 3) {
-            // Handled in loadLevel else block
+            document.getElementById('lvl-msg').innerText = "✨ Golden Hummus Power Unlocked! ✨";
+        } else if(game.level === 10) {
+            // Handled in loadLevel else block - certificate
             return;
         } else {
-            document.getElementById('lvl-msg').innerText = "Great Job!";
+            document.getElementById('lvl-msg').innerText = "💕 Amazing! Keep Climbing! 💕";
         }
         showScreen('level-menu');
     }
