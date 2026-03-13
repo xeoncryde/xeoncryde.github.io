@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Falafel Kingdom - Farida</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #2c3e50; user-select: none; }
+        #game-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        
+        /* UI */
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; }
+        .hud { padding: 20px; color: white; text-shadow: 2px 2px 0 #000; font-weight: bold; font-size: 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .controls { text-align: center; color: white; text-shadow: 1px 1px 0 #000; padding-bottom: 20px; font-size: 16px; }
+        .key { background: rgba(255,255,255,0.9); color: #333; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin: 0 2px; }
+        
+        /* Menus */
+        .menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(44, 62, 80, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; z-index: 20; color: white; }
+        .hidden { display: none !important; }
+        
+        h1 { font-size: 60px; color: #d35400; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; text-shadow: 3px 3px 0 #000; }
+        h2 { font-size: 24px; color: #ecf0f1; margin: 0 0 30px 0; text-shadow: 2px 2px 0 #000; }
+        
+        button { background: #d35400; border: 4px solid #ecf0f1; color: white; padding: 15px 40px; font-size: 24px; border-radius: 50px; cursor: pointer; margin: 10px; font-weight: bold; text-transform: uppercase; box-shadow: 0 6px 0 #a04000; transition: transform 0.1s; }
+        button:active { transform: translateY(4px); box-shadow: 0 2px 0 #a04000; }
+        button:hover { background: #e67e22; }
+        
+        .info-box { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin-top: 20px; text-align: center; line-height: 1.6; border: 1px solid rgba(255,255,255,0.2); }
+        
+        /* Certificate */
+        .cert { background: #fdfefe; color: #2c3e50; padding: 40px; border: 10px double #d35400; border-radius: 10px; text-align: center; max-width: 500px; position: relative; }
+        .cert h2 { color: #d35400; font-size: 32px; margin-bottom: 10px; }
+        .cert-name { font-size: 40px; color: #e67e22; border-bottom: 2px dashed #d35400; display: inline-block; padding: 0 20px; margin: 20px 0; font-weight: bold; }
+        .stamp { position: absolute; bottom: 20px; right: 20px; border: 4px solid #c0392b; color: #c0392b; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; transform: rotate(-15deg); font-weight: bold; font-size: 14px; }
+        
+        #msg { position: absolute; top: 20%; width: 100%; text-align: center; font-size: 32px; color: #f1c40f; text-shadow: 2px 2px 0 #000; display: none; font-weight: bold; pointer-events: none; }
+        .footer { position: absolute; bottom: 5px; width: 100%; text-align: center; color: #bdc3c7; font-size: 12px; pointer-events: none; }
+        
+        #load-status { color: #e74c3c; font-weight: bold; margin-top: 10px; display: none; }
+    </style>
+    <!-- Using unpkg which is very reliable -->
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+</head>
+<body>
+
+<div id="game-container"></div>
+
+<div id="ui">
+    <div class="hud">
+        <div id="lvl-txt">Level 1</div>
+        <div id="score-txt">Collected: 0/0</div>
+        <div style="width: 150px; height: 15px; background: rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden; border: 2px solid white;">
+            <div id="prog-bar" style="width: 0%; height: 100%; background: #27ae60;"></div>
+        </div>
+    </div>
+    <div class="controls">
+        <span class="key">WASD</span> Move &nbsp;|&nbsp; <span class="key">SPACE</span> Jump / Share &nbsp;|&nbsp; <span class="key">P</span> Pause
+        <div id="ability-txt" style="color: #f1c40f; margin-top: 5px; font-weight: bold;"></div>
+    </div>
+    <div class="footer">made with love, for farida</div>
+    <div id="msg">MEGA HUMMUS UNLOCKED!</div>
+</div>
+
+<!-- Main Menu -->
+<div id="main-menu" class="menu">
+    <h1>Falafel Kingdom</h1>
+    <h2>spread hummus · spread happiness</h2>
+    <button id="play-btn" onclick="startGame()">▶ Play Adventure</button>
+    <div id="load-status">Error: Game engine failed to load. Check internet.</div>
+    <div class="info-box">
+        <p><span class="key">WASD</span> to Move</p>
+        <p><span class="key">SPACE</span> to Jump</p>
+        <p>Go near a <b>Sad Falafel</b> and press <span class="key">SPACE</span> to Share!</p>
+        <p>Avoid the <b>Burnt Bullies</b>!</p>
+    </div>
+</div>
+
+<!-- Pause -->
+<div id="pause-menu" class="menu hidden">
+    <h1>Paused</h1>
+    <button onclick="togglePause()">Resume</button>
+    <button onclick="location.reload()" style="background:#c0392b; box-shadow: 0 6px 0 #922b21;">Quit</button>
+</div>
+
+<!-- Level Clear -->
+<div id="level-menu" class="menu hidden">
+    <h1>Level Clear!</h1>
+    <h2 id="lvl-msg">Great Job!</h2>
+    <button onclick="nextLevel()">Next Level →</button>
+</div>
+
+<!-- Retry -->
+<div id="retry-menu" class="menu hidden">
+    <h1>Oh No!</h1>
+    <h2>The hummus spilled...</h2>
+    <button onclick="retryLevel()">Try Again</button>
+    <button onclick="location.reload()" style="background:#c0392b; box-shadow: 0 6px 0 #922b21;">Menu</button>
+</div>
+
+<!-- Certificate -->
+<div id="cert-menu" class="menu hidden" style="background: rgba(0,0,0,0.8);">
+    <div class="cert">
+        <h2>Certificate of Mastery</h2>
+        <p>This certifies that</p>
+        <div class="cert-name">Farida</div>
+        <p>Has conquered the Falafel Kingdom,<br>unlocked Mega Hummus, and made everyone happy!</p>
+        <div style="font-size: 40px; margin: 20px;">★ ★ ★</div>
+        <div class="stamp">OFFICIAL</div>
+    </div>
+    <button onclick="window.print()" style="margin-top: 20px; background: #27ae60; box-shadow: 0 6px 0 #1e8449;">Print Certificate</button>
+    <button onclick="location.reload()" style="background: #7f8c8d; box-shadow: 0 6px 0 #566573;">Back to Menu</button>
+</div>
+
+<script>
+    // Check if Three.js loaded
+    if (typeof THREE === 'undefined') {
+        document.getElementById('load-status').style.display = 'block';
+        document.getElementById('play-btn').disabled = true;
+        document.getElementById('play-btn').innerText = "Engine Failed";
+        document.getElementById('play-btn').style.background = "#7f8c8d";
+        document.getElementById('play-btn').style.boxShadow = "none";
+    }
+
+    let scene, camera, renderer, player;
+    let platforms = [], jars = [], falafels = [], bullies = [];
+    let velocity = { x: 0, y: 0, z: 0 };
+    let keys = { w: false, a: false, s: false, d: false, space: false };
+    let canJump = false;
+    
+    let game = {
+        level: 1,
+        score: 0,
+        total: 0,
+        mega: false,
+        active: false,
+        paused: false
+    };
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function sound(type) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        const n = audioCtx.currentTime;
+        
+        if(type==='jump') { o.type='sine'; o.frequency.setValueAtTime(300,n); o.frequency.exponentialRampToValueAtTime(600,n+0.1); g.gain.setValueAtTime(0.3,n); g.gain.exponentialRampToValueAtTime(0.01,n+0.1); o.start(n); o.stop(n+0.1); }
+        else if(type==='collect') { o.type='triangle'; o.frequency.setValueAtTime(800,n); o.frequency.setValueAtTime(1200,n+0.1); g.gain.setValueAtTime(0.3,n); g.gain.linearRampToValueAtTime(0.01,n+0.2); o.start(n); o.stop(n+0.2); }
+        else if(type==='share') { o.type='sine'; o.frequency.setValueAtTime(400,n); o.frequency.linearRampToValueAtTime(600,n+0.1); g.gain.setValueAtTime(0.3,n); g.gain.linearRampToValueAtTime(0.01,n+0.3); o.start(n); o.stop(n+0.3); }
+        else if(type==='win') { o.type='square'; o.frequency.setValueAtTime(400,n); o.frequency.setValueAtTime(800,n+0.4); g.gain.setValueAtTime(0.2,n); g.gain.linearRampToValueAtTime(0.01,n+0.8); o.start(n); o.stop(n+0.8); }
+        else if(type==='unlock') { o.type='sawtooth'; o.frequency.setValueAtTime(300,n); o.frequency.linearRampToValueAtTime(800,n+0.5); g.gain.setValueAtTime(0.2,n); g.gain.linearRampToValueAtTime(0.01,n+0.5); o.start(n); o.stop(n+0.5); }
+        else if(type==='fail') { o.type='sawtooth'; o.frequency.setValueAtTime(200,n); o.frequency.linearRampToValueAtTime(50,n+0.3); g.gain.setValueAtTime(0.3,n); g.gain.linearRampToValueAtTime(0.01,n+0.3); o.start(n); o.stop(n+0.3); }
+    }
+
+    function init() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x34495e);
+        scene.fog = new THREE.Fog(0x34495e, 20, 60);
+
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.getElementById('game-container').appendChild(renderer.domElement);
+
+        const hemi = new THREE.HemisphereLight(0xffffff, 0x2c3e50, 0.6);
+        scene.add(hemi);
+        const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+        dir.position.set(10, 20, 10);
+        dir.castShadow = true;
+        dir.shadow.camera.top = 30; dir.shadow.camera.bottom = -30;
+        dir.shadow.camera.left = -30; dir.shadow.camera.right = 30;
+        scene.add(dir);
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        document.addEventListener('keydown', e => {
+            if(e.code==='KeyW'||e.code==='ArrowUp') keys.w=true;
+            if(e.code==='KeyA'||e.code==='ArrowLeft') keys.a=true;
+            if(e.code==='KeyS'||e.code==='ArrowDown') keys.s=true;
+            if(e.code==='KeyD'||e.code==='ArrowRight') keys.d=true;
+            if(e.code==='Space') { if(!keys.space) handleSpace(); keys.space=true; }
+            if(e.code==='KeyP') togglePause();
+        });
+        document.addEventListener('keyup', e => {
+            if(e.code==='KeyW'||e.code==='ArrowUp') keys.w=false;
+            if(e.code==='KeyA'||e.code==='ArrowLeft') keys.a=false;
+            if(e.code==='KeyS'||e.code==='ArrowDown') keys.s=false;
+            if(e.code==='KeyD'||e.code==='ArrowRight') keys.d=false;
+            if(e.code==='Space') keys.space=false;
+        });
+
+        animate();
+    }
+
+    function createPlayer() {
+        if(player) scene.remove(player);
+        const geo = new THREE.SphereGeometry(0.5, 16, 16);
+        const mat = new THREE.MeshStandardMaterial({ color: game.mega ? 0xf1c40f : 0xd35400 });
+        player = new THREE.Mesh(geo, mat);
+        player.castShadow = true;
+        player.position.set(0, 5, 0);
+        
+        const eGeo = new THREE.SphereGeometry(0.1, 8, 8);
+        const eMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        const le = new THREE.Mesh(eGeo, eMat); le.position.set(-0.2, 0.2, 0.4);
+        const re = new THREE.Mesh(eGeo, eMat); re.position.set(0.2, 0.2, 0.4);
+        player.add(le); player.add(re);
+        
+        scene.add(player);
+        velocity = { x: 0, y: 0, z: 0 };
+    }
+
+    function loadLevel(lvl) {
+        // Clean up
+        platforms.forEach(o => scene.remove(o)); 
+        jars.forEach(o => scene.remove(o.mesh)); 
+        falafels.forEach(o => scene.remove(o.mesh)); 
+        bullies.forEach(o => scene.remove(o));
+        platforms = []; jars = []; falafels = []; bullies = [];
+        game.score = 0; game.total = 0;
+        updateHUD();
+
+        createPlayer();
+        player.position.set(0, 2, 0);
+
+        // Start Platform
+        addPlatform(0, -1, 0, 10, 1, 10);
+
+        if(lvl === 1) {
+            addPlatform(0, 0, -10, 6, 1, 6); addJar(0, 1, -10);
+            addPlatform(5, 0, -15, 6, 1, 6); addFalafel(5, 1, -15, true);
+            addPlatform(5, 1, -25, 6, 1, 6); addJar(5, 2, -25);
+            addPlatform(-2, 1, -30, 8, 1, 8); addFalafel(-2, 2, -30, true); addFalafel(-5, 2, -30, true); addJar(-2, 2, -30);
+            addPlatform(-2, 2, -40, 8, 1, 8); addFalafel(-2, 3, -40, true);
+        } else if(lvl === 2) {
+            addPlatform(0, 0, -12, 5, 1, 5); addBully(0, 0.5, -12);
+            addPlatform(6, 1, -18, 5, 1, 5); addJar(6, 2, -18);
+            addPlatform(6, 2, -28, 5, 1, 5); addBully(6, 2.5, -28); addFalafel(6, 2, -28, true);
+            addPlatform(-4, 2, -35, 6, 1, 6); addJar(-4, 3, -35); addBully(-4, 2.5, -35);
+            addPlatform(-4, 3, -45, 8, 1, 8); addFalafel(-4, 4, -45, true); addFalafel(-7, 4, -45, true); addFalafel(-1, 4, -45, true);
+        } else if(lvl === 3) {
+            addPlatform(0, 0, -10, 4, 1, 4); addBully(0, 0.5, -10);
+            addPlatform(5, 1, -10, 4, 1, 4); addJar(5, 2, -10);
+            addPlatform(5, 2, -20, 4, 1, 4); addBully(5, 2.5, -20);
+            addPlatform(0, 3, -20, 4, 1, 4); addJar(0, 4, -20);
+            addPlatform(0, 4, -30, 4, 1, 4); addBully(0, 4.5, -30);
+            addPlatform(-5, 4, -30, 4, 1, 4); addJar(-5, 5, -30);
+            addPlatform(-5, 5, -40, 8, 1, 8); addFalafel(-5, 6, -40, true); addFalafel(-8, 6, -40, true); addFalafel(-2, 6, -40, true); addBully(-5, 6.5, -40);
+        } else {
+            showScreen('cert-menu');
+            sound('win');
+            return;
+        }
+        game.total = jars.length + falafels.length;
+        updateHUD();
+    }
+
+    function addPlatform(x,y,z,w,h,d) {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), new THREE.MeshStandardMaterial({color: 0xd35400}));
+        m.position.set(x,y,z); m.receiveShadow = true; scene.add(m); platforms.push(m);
+    }
+    function addJar(x,y,z) {
+        const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.25,0.2,16), new THREE.MeshStandardMaterial({color: 0xecf0f1}));
+        const hum = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.15,16), new THREE.MeshStandardMaterial({color: 0xfdfefe}));
+        hum.position.y = 0.05; bowl.add(hum);
+        bowl.position.set(x,y,z); bowl.castShadow = true; scene.add(bowl); 
+        jars.push({mesh:bowl, active:true}); game.total++;
+    }
+    function addFalafel(x,y,z,sad) {
+        const m = new THREE.Mesh(new THREE.SphereGeometry(0.6,16,16), new THREE.MeshStandardMaterial({color: sad?0x5d4037:0x8d6e63}));
+        m.position.set(x,y,z); m.castShadow = true; scene.add(m);
+        const eGeo = new THREE.SphereGeometry(0.1,8,8); const eMat = new THREE.MeshBasicMaterial({color:0});
+        const le = new THREE.Mesh(eGeo,eMat); le.position.set(-0.2,0.1,0.5);
+        const re = new THREE.Mesh(eGeo,eMat); re.position.set(0.2,0.1,0.5);
+        m.add(le); m.add(re);
+        const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.15,0.03,8,16,sad?Math.PI:Math.PI), new THREE.MeshBasicMaterial({color:0}));
+        mouth.position.set(0,-0.1,0.45); mouth.rotation.z = sad?0:Math.PI; m.add(mouth);
+        falafels.push({mesh:m, shared:false, mouth:mouth}); game.total++;
+    }
+    function addBully(x,y,z) {
+        const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.6,0), new THREE.MeshStandardMaterial({color: 0x2c3e50}));
+        m.position.set(x,y,z); m.castShadow = true; scene.add(m);
+        const eGeo = new THREE.BoxGeometry(0.15,0.05,0.1); const eMat = new THREE.MeshBasicMaterial({color:0xe74c3c});
+        const le = new THREE.Mesh(eGeo,eMat); le.position.set(-0.2,0.1,0.5); le.rotation.z=0.3;
+        const re = new THREE.Mesh(eGeo,eMat); re.position.set(0.2,0.1,0.5); re.rotation.z=-0.3;
+        m.add(le); m.add(re);
+        bullies.push(m);
+    }
+
+    function handleSpace() {
+        if(!game.active || game.paused) return;
+        let near = false;
+        falafels.forEach(f => {
+            if(!f.shared && player.position.distanceTo(f.mesh.position) < 2.5) {
+                near = true; share(f);
+            }
+        });
+        if(!near && canJump) {
+            velocity.y = 0.35; canJump = false; sound('jump');
+        }
+    }
+
+    function share(f) {
+        f.shared = true;
+        f.mesh.material.color.setHex(0xf1c40f);
+        f.mouth.rotation.z = Math.PI;
+        sound('share');
+        game.score++; updateHUD();
+        f.mesh.scale.set(1.5,1.5,1.5);
+        setTimeout(()=> f.mesh.scale.set(1,1,1), 300);
+        checkWin();
+    }
+
+    function updatePhysics() {
+        if(!game.active || game.paused) return;
+        let dir = new THREE.Vector3(0,0,0);
+        if(keys.w) dir.z -= 1; if(keys.s) dir.z += 1;
+        if(keys.a) dir.x -= 1; if(keys.d) dir.x += 1;
+        if(dir.length()>0) dir.normalize();
+
+        velocity.x += dir.x * 0.05;
+        velocity.z += dir.z * 0.05;
+        velocity.y -= 0.015;
+
+        player.position.x += velocity.x;
+        player.position.z += velocity.z;
+        player.position.y += velocity.y;
+
+        velocity.x *= 0.85; velocity.z *= 0.85;
+
+        canJump = false;
+        platforms.forEach(p => {
+            const pBox = new THREE.Box3().setFromObject(p);
+            const plBox = new THREE.Box3().setFromObject(player);
+            if(plBox.intersectsBox(pBox)) {
+                if(velocity.y <= 0 && player.position.y >= p.position.y) {
+                    player.position.y = pBox.max.y + 0.5;
+                    velocity.y = 0;
+                    canJump = true;
+                }
+            }
+        });
+
+        bullies.forEach(b => { if(player.position.distanceTo(b.position) < 1.0) gameOver(); });
+        
+        jars.forEach(j => {
+            if(j.active && player.position.distanceTo(j.mesh.position) < 1.5) {
+                j.active = false; j.mesh.visible = false;
+                game.score++; sound('collect'); updateHUD(); checkWin();
+            }
+        });
+
+        if(player.position.y < -10) gameOver();
+
+        camera.position.x += (player.position.x - camera.position.x) * 0.1;
+        camera.position.y += (player.position.y + 5 - camera.position.y) * 0.1;
+        camera.position.z += (player.position.z + 8 - camera.position.z) * 0.1;
+        camera.lookAt(player.position);
+    }
+
+    function checkWin() {
+        const left = jars.filter(j=>j.active).length + falafels.filter(f=>!f.shared).length;
+        if(left === 0) levelComplete();
+    }
+
+    function updateHUD() {
+        document.getElementById('score-txt').innerText = `Collected: ${game.score}/${game.total}`;
+        document.getElementById('lvl-txt').innerText = `Level ${game.level}`;
+        const pct = game.total===0?0:(game.score/game.total)*100;
+        document.getElementById('prog-bar').style.width = pct + '%';
+        
+        if(game.mega) {
+            document.getElementById('ability-txt').innerText = "MEGA HUMMUS ACTIVE";
+            if(player) player.material.color.setHex(0xf1c40f);
+        } else {
+            document.getElementById('ability-txt').innerText = "";
+            if(player) player.material.color.setHex(0xd35400);
+        }
+    }
+
+    function showScreen(id) {
+        document.querySelectorAll('.menu').forEach(m => m.classList.add('hidden'));
+        if(id) document.getElementById(id).classList.remove('hidden');
+    }
+
+    function startGame() {
+        if(typeof THREE === 'undefined') { alert("Engine failed"); return; }
+        game.level = 1; game.mega = false; game.active = true; game.paused = false;
+        loadLevel(1);
+        showScreen(null);
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function togglePause() {
+        if(!game.active) return;
+        game.paused = !game.paused;
+        showScreen(game.paused ? 'pause-menu' : null);
+    }
+
+    function retryLevel() { 
+        loadLevel(game.level); 
+        game.paused = false; 
+        game.active = true; 
+        showScreen(null); 
+    }
+    
+    function nextLevel() { 
+        game.level++; 
+        game.active = true; 
+        loadLevel(game.level); 
+        showScreen(null); 
+    }
+
+    function gameOver() { sound('fail'); game.active = false; showScreen('retry-menu'); }
+    
+    function levelComplete() {
+        sound('win');
+        game.active = false;
+        if(game.level === 2 && !game.mega) {
+            game.mega = true;
+            const msg = document.getElementById('msg');
+            msg.style.display = 'block';
+            sound('unlock');
+            setTimeout(()=> msg.style.display = 'none', 3000);
+            document.getElementById('lvl-msg').innerText = "Mega Hummus Unlocked!";
+        } else if(game.level === 3) {
+            // Handled in loadLevel else block
+            return;
+        } else {
+            document.getElementById('lvl-msg').innerText = "Great Job!";
+        }
+        showScreen('level-menu');
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        updatePhysics();
+        renderer.render(scene, camera);
+    }
+
+    init();
+</script>
+</body>
+</html>
