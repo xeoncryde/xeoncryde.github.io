@@ -277,11 +277,12 @@
         setupGame();
     }
 
-    let scene, camera, renderer, player;
+    let scene = null, camera = null, renderer = null, player = null;
     let platforms = [], jars = [], falafels = [], bullies = [];
     let velocity = { x: 0, y: 0, z: 0 };
     let keys = { w: false, a: false, s: false, d: false, space: false };
     let canJump = false;
+    let gameInitialized = false;
     
     let game = {
         level: 1,
@@ -399,6 +400,8 @@
     }
 
     function init() {
+        if (gameInitialized) return;
+        
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87CEEB);
         scene.fog = new THREE.Fog(0xB0E0E6, 30, 80);
@@ -440,6 +443,7 @@
             if(e.code==='Space') keys.space=false;
         });
 
+        gameInitialized = true;
         animate();
     }
 
@@ -1299,16 +1303,24 @@ function addFalafel(x,y,z,sad) {
 
     function startGame() {
         if(typeof THREE === 'undefined') { alert("Engine failed"); return; }
-        game.level = 1; 
-        game.score = 0; 
-        game.total = 0; 
+        
+        // Initialize game engine if not already done
+        if (!gameInitialized) {
+            init();
+        }
+        
+        game.level = 1;
+        game.score = 0;
+        game.total = 0;
         game.hummusCount = 0;
-        game.mega = false; 
-        game.active = true; 
+        game.mega = false;
+        game.active = true;
         game.paused = false;
         completedLevels = [];
         loadLevel(1);
         showScreen(null);
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+    }
         if(audioCtx.state === 'suspended') audioCtx.resume();
     }
 
