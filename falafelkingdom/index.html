@@ -721,7 +721,7 @@ function addFalafel(x,y,z,sad) {
         const rt = new THREE.Mesh(tearGeo, tearMat); rt.position.set(0.18, -0.05, 0.52);
         
         // Tear streaks
-        const streakGeo = new THREE.CapsuleGeometry(0.02, 0.15, 4, 8);
+        const streakGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.15, 6);
         const streakMat = new THREE.MeshBasicMaterial({ color: 0x85C1E9, transparent: true, opacity: 0.7 });
         const lstreak = new THREE.Mesh(streakGeo, streakMat); lstreak.position.set(-0.18, -0.15, 0.5); lstreak.rotation.x = 0.3;
         const rstreak = new THREE.Mesh(streakGeo, streakMat); rstreak.position.set(0.18, -0.15, 0.5); rstreak.rotation.x = 0.3;
