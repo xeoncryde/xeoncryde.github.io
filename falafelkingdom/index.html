@@ -479,6 +479,102 @@
     // Moving platforms array
     let movingPlatforms = [];
     let ladders = [];
+    let gates = [];
+    
+    // Texture generation for better visuals
+    function createTexture(color1, color2, type) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 128; canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = color1; ctx.fillRect(0,0,128,128);
+        for(let i=0; i<500; i++) {
+            ctx.fillStyle = Math.random()>0.5 ? color2 : 'rgba(0,0,0,0.1)';
+            const s = Math.random()*3+1;
+            if(type==='grass') ctx.fillRect(Math.random()*128, Math.random()*128, s, s*2);
+            else ctx.fillRect(Math.random()*128, Math.random()*128, s, s);
+        }
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        return tex;
+    }
+    
+    const textures = {
+        grass: createTexture('#8FBC8F', '#556B2F', 'grass'),
+        sand: createTexture('#F4A460', '#D2691E', 'noise'),
+        stone: createTexture('#A9A9A9', '#696969', 'stone'),
+        wood: createTexture('#DEB887', '#8B4513', 'noise')
+    };
+    
+    // Scenery helpers
+    function createTree(x, z) {
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.2,1.2,6), new THREE.MeshStandardMaterial({color:0x8B4513}));
+        trunk.position.set(x, 0.6, z);
+        const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8), new THREE.MeshStandardMaterial({color:0x228B22}));
+        leaves.position.y = 0.9; trunk.add(leaves);
+        scene.add(trunk); platforms.push(trunk);
+    }
+    
+    function createBush(x, z) {
+        const bush = new THREE.Mesh(new THREE.DodecahedronGeometry(0.4), new THREE.MeshStandardMaterial({color:0x32CD32}));
+        bush.position.set(x, 0.3, z); bush.scale.y = 0.6;
+        scene.add(bush); platforms.push(bush);
+    }
+    
+    function createRock(x, z) {
+        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.3), new THREE.MeshStandardMaterial({color:0x808080}));
+        rock.position.set(x, 0.2, z); rock.rotation.set(Math.random(),Math.random(),Math.random());
+        scene.add(rock); platforms.push(rock);
+    }
+    
+    // Gate to block progress
+    function createGate(x, y, z, width) {
+        const mat = new THREE.MeshStandardMaterial({color:0x444444, transparent:true, opacity:0.7});
+        const gate = new THREE.Group();
+        
+        // Main barrier
+        const bar = new THREE.Mesh(new THREE.BoxGeometry(width, 2.5, 0.3), mat);
+        bar.position.y = 1.25; gate.add(bar);
+        
+        // Posts
+        const postGeo = new THREE.CylinderGeometry(0.15,0.15,2.5);
+        const lp = new THREE.Mesh(postGeo, mat); lp.position.set(-width/2, 0, 0); gate.add(lp);
+        const rp = new THREE.Mesh(postGeo, mat); rp.position.set(width/2, 0, 0); gate.add(rp);
+        
+        // Sign
+        const signCanvas = document.createElement('canvas');
+        signCanvas.width = 128; signCanvas.height = 64;
+        const ctx = signCanvas.getContext('2d');
+        ctx.fillStyle = '#FFF'; ctx.fillRect(0,0,128,64);
+        ctx.fillStyle = '#000'; ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('MAKE THEM', 64, 28);
+        ctx.fillText('HAPPY!', 64, 50);
+        const signTex = new THREE.CanvasTexture(signCanvas);
+        const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.5,0.8), new THREE.MeshBasicMaterial({map:signTex}));
+        sign.position.set(0, 1.8, 0.16); gate.add(sign);
+        
+        gate.position.set(x,y,z);
+        scene.add(gate);
+        gates.push({mesh:gate, open:false, box:new THREE.Box3().setFromObject(gate)});
+        platforms.push(gate);
+    }
+    
+    function updateGates() {
+        const allHappy = falafels.every(f => f.shared);
+        gates.forEach(g => {
+            if(allHappy && !g.open) {
+                g.open = true;
+                // Lift gate animation
+                let liftY = 0;
+                const liftInt = setInterval(() => {
+                    liftY += 0.3;
+                    g.mesh.position.y = liftY;
+                    g.box.setFromObject(g.mesh);
+                    if(liftY > 8) clearInterval(liftInt);
+                }, 16);
+                showHint("Path Open! Keep going!");
+            }
+        });
+    }
     
     function loadLevel(lvl) {
         // Clean up
@@ -488,7 +584,8 @@
         bullies.forEach(o => scene.remove(o));
         movingPlatforms.forEach(mp => scene.remove(mp.mesh));
         ladders.forEach(l => { if(l.rungs) l.rungs.forEach(r => scene.remove(r)); if(l.rails) l.rails.forEach(r => scene.remove(r)); });
-        platforms = []; jars = []; falafels = []; bullies = []; movingPlatforms = []; ladders = [];
+        gates.forEach(g => scene.remove(g.mesh));
+        platforms = []; jars = []; falafels = []; bullies = []; movingPlatforms = []; ladders = []; gates = [];
         game.score = 0; game.total = 0; game.hummusCount = 0;
         updateHUD();
 
@@ -496,126 +593,288 @@
         player.position.set(0, 2, 0);
 
         // Island base - sandy beach colored platform at bottom
-        addPlatformIsland(0, -3, 0, 35, 2, 35);
+        addPlatformIsland(0, -3, 0, 40, 2, 40);
+        
+        // Add random scenery
+        for(let i=0; i<8; i++) {
+            const rx = (Math.random()-0.5)*30;
+            const rz = (Math.random()-0.5)*30;
+            if(Math.abs(rx)>4 || Math.abs(rz)>4) {
+                if(Math.random()>0.5) createTree(rx, rz);
+                else createBush(rx, rz);
+            }
+        }
 
         if(lvl === 1) {
             // Level 1: Beach Base - Introduction with simple jumps
-            addPlatform(0, 0, -8, 8, 1, 6, 0xF5DEB3); addFalafel(0, 1, -8, true);
-            addPlatform(6, 1, -14, 6, 1, 6, 0xDEB887); addJar(6, 2, -14);
-            addPlatform(0, 2, -20, 7, 1, 7, 0xF5DEB3); addFalafel(-2, 3, -20, true); addFalafel(2, 3, -20, true);
-            addPlatform(-6, 3, -26, 6, 1, 6, 0xDEB887); addJar(-6, 4, -26);
-            addPlatform(0, 4, -32, 8, 1, 8, 0xF5DEB3); addFalafel(0, 5, -32, true);
+            addPlatform(0, 0, -6, 8, 1, 6, 0xF5DEB3);
+            addFalafel(-2, 1, -6, true);
+            addFalafel(2, 1, -6, true);
+            addJar(0, 1, -4);
+            
+            createGate(0, 0, -10, 5);
+            
+            addPlatform(0, 0, -14, 7, 1, 7, 0xDEB887);
+            addFalafel(0, 1, -14, true);
+            addJar(2, 1, -12);
         } else if(lvl === 2) {
             // Level 2: Sandy Slopes - Introduce ladder climbing
-            addPlatform(0, 0, -10, 7, 1, 6, 0xDEB887); addJar(0, 1, -10);
-            addLadder(4, 0.5, -10, 4); // Ladder going up
-            addPlatform(4, 2, -10, 6, 1, 6, 0xF5DEB3); addFalafel(4, 3, -10, true);
-            addPlatform(10, 2, -16, 6, 1, 6, 0xDEB887); addJar(10, 3, -16);
-            addPlatform(4, 3, -22, 7, 1, 7, 0xF5DEB3); addFalafel(2, 4, -22, true); addFalafel(6, 4, -22, true);
-            addLadder(-2, 3.5, -22, 4);
-            addPlatform(-2, 5, -22, 6, 1, 6, 0xDEB887); addJar(-2, 6, -22);
-            addPlatform(-8, 6, -28, 8, 1, 8, 0xF5DEB3); addFalafel(-8, 7, -28, true); addFalafel(-5, 7, -28, true); addFalafel(-11, 7, -28, true);
+            addPlatform(0, 0, -8, 7, 1, 6, 0xDEB887);
+            addJar(0, 1, -8);
+            
+            addLadder(4, 0.5, -8, 4);
+            addPlatform(4, 2, -8, 6, 1, 6, 0xF5DEB3);
+            addFalafel(4, 3, -8, true);
+            
+            createGate(4, 2, -12, 5);
+            
+            addPlatform(4, 2, -16, 7, 1, 7, 0xDEB887);
+            addFalafel(2, 3, -16, true);
+            addFalafel(6, 3, -16, true);
+            addJar(4, 3, -14);
+            
+            addLadder(-2, 2.5, -16, 4);
+            addPlatform(-2, 5, -16, 6, 1, 6, 0xF5DEB3);
+            addJar(-2, 6, -16);
+            
+            addPlatform(-8, 6, -22, 8, 1, 8, 0xDEB887);
+            addFalafel(-8, 7, -22, true);
+            addFalafel(-5, 7, -22, true);
+            addFalafel(-11, 7, -22, true);
         } else if(lvl === 3) {
             // Level 3: Coral Cliffs - Moving platforms introduction
-            addPlatform(0, 0, -8, 7, 1, 6, 0xFFDAB9); addJar(0, 1, -8);
-            addMovingPlatform(6, 1, -12, 5, 1, 5, 0xFFB6C1, -4, 4, 'x');
-            addPlatform(6, 1, -18, 6, 1, 6, 0xFFDAB9); addFalafel(6, 2, -18, true);
-            addMovingPlatform(0, 2, -24, 5, 1, 5, 0xFFB6C1, -3, 3, 'z');
-            addPlatform(0, 2, -30, 7, 1, 7, 0xFFDAB9); addJar(0, 3, -30);
-            addLadder(-5, 2.5, -30, 5);
-            addPlatform(-5, 5, -30, 6, 1, 6, 0xFFB6C1); addFalafel(-5, 6, -30, true); addFalafel(-8, 6, -30, true);
-            addPlatform(-12, 6, -36, 8, 1, 8, 0xFFDAB9); addJar(-12, 7, -36); addFalafel(-12, 7, -36, true);
+            addPlatform(0, 0, -6, 7, 1, 6, 0xFFDAB9);
+            addJar(0, 1, -6);
+            addFalafel(-2, 1, -6, true);
+            
+            createGate(0, 0, -10, 5);
+            
+            addMovingPlatform(6, 1, -14, 5, 1, 5, 0xFFB6C1, -4, 4, 'x');
+            addPlatform(6, 1, -20, 6, 1, 6, 0xFFDAB9);
+            addFalafel(6, 2, -20, true);
+            addJar(6, 2, -18);
+            
+            addMovingPlatform(0, 2, -26, 5, 1, 5, 0xFFB6C1, -3, 3, 'z');
+            addPlatform(0, 2, -32, 7, 1, 7, 0xFFDAB9);
+            addJar(0, 3, -30);
+            
+            addLadder(-5, 2.5, -32, 5);
+            addPlatform(-5, 5, -32, 6, 1, 6, 0xFFB6C1);
+            addFalafel(-5, 6, -32, true);
+            addFalafel(-8, 6, -32, true);
+            
+            addPlatform(-12, 6, -38, 8, 1, 8, 0xFFDAB9);
+            addJar(-12, 7, -36);
+            addFalafel(-12, 7, -38, true);
         } else if(lvl === 4) {
             // Level 4: Seashell Summit - More complex ladder sections
-            addPlatform(0, 0, -10, 6, 1, 6, 0xE6E6FA); addJar(0, 1, -10);
-            addLadder(5, 0.5, -10, 5);
-            addPlatform(5, 3, -10, 6, 1, 6, 0xDDA0DD); addFalafel(5, 4, -10, true);
-            addPlatform(11, 3, -15, 5, 1, 5, 0xE6E6FA); addJar(11, 4, -15);
-            addLadder(11, 3.5, -20, 5);
-            addPlatform(11, 6, -20, 6, 1, 6, 0xDDA0DD); addFalafel(9, 7, -20, true); addFalafel(13, 7, -20, true);
-            addMovingPlatform(5, 7, -26, 5, 1, 5, 0xFFB6C1, -5, 5, 'x');
-            addPlatform(5, 7, -32, 7, 1, 7, 0xE6E6FA); addJar(5, 8, -32);
-            addPlatform(-2, 8, -38, 8, 1, 8, 0xDDA0DD); addFalafel(-2, 9, -38, true); addFalafel(-5, 9, -38, true); addFalafel(1, 9, -38, true);
+            addPlatform(0, 0, -8, 6, 1, 6, 0xE6E6FA);
+            addJar(0, 1, -8);
+            
+            addLadder(5, 0.5, -8, 5);
+            addPlatform(5, 3, -8, 6, 1, 6, 0xDDA0DD);
+            addFalafel(5, 4, -8, true);
+            
+            createGate(5, 3, -12, 5);
+            
+            addPlatform(5, 3, -16, 5, 1, 5, 0xE6E6FA);
+            addJar(5, 4, -14);
+            
+            addLadder(11, 3.5, -16, 5);
+            addPlatform(11, 6, -16, 6, 1, 6, 0xDDA0DD);
+            addFalafel(9, 7, -16, true);
+            addFalafel(13, 7, -16, true);
+            
+            addMovingPlatform(5, 7, -22, 5, 1, 5, 0xFFB6C1, -5, 5, 'x');
+            addPlatform(5, 7, -28, 7, 1, 7, 0xE6E6FA);
+            addJar(5, 8, -26);
+            
+            addPlatform(-2, 8, -34, 8, 1, 8, 0xDDA0DD);
+            addFalafel(-2, 9, -34, true);
+            addFalafel(-5, 9, -34, true);
+            addFalafel(1, 9, -34, true);
         } else if(lvl === 5) {
             // Level 5: Pearl Plateau - Combination challenge
-            addPlatform(0, 0, -8, 7, 1, 6, 0xF0E68C); addJar(0, 1, -8);
-            addMovingPlatform(7, 1, -14, 5, 1, 5, 0xFFD700, -4, 4, 'x');
-            addPlatform(7, 1, -20, 6, 1, 6, 0xF0E68C); addFalafel(7, 2, -20, true);
-            addLadder(1, 1.5, -20, 4);
-            addPlatform(1, 4, -20, 6, 1, 6, 0xFFFACD); addJar(1, 5, -20);
-            addMovingPlatform(-5, 4, -26, 5, 1, 5, 0xFFD700, -3, 3, 'z');
-            addPlatform(-5, 4, -32, 7, 1, 7, 0xF0E68C); addFalafel(-7, 5, -32, true); addFalafel(-3, 5, -32, true);
-            addLadder(-12, 4.5, -32, 5);
-            addPlatform(-12, 7, -32, 6, 1, 6, 0xFFFACD); addJar(-12, 8, -32);
-            addPlatform(-18, 8, -38, 9, 1, 9, 0xF0E68C); addFalafel(-18, 9, -38, true); addFalafel(-21, 9, -38, true); addFalafel(-15, 9, -38, true);
+            addPlatform(0, 0, -6, 7, 1, 6, 0xF0E68C);
+            addJar(0, 1, -6);
+            addFalafel(0, 1, -6, true);
+            
+            createGate(0, 0, -10, 5);
+            
+            addMovingPlatform(7, 1, -16, 5, 1, 5, 0xFFD700, -4, 4, 'x');
+            addPlatform(7, 1, -22, 6, 1, 6, 0xF0E68C);
+            addFalafel(7, 2, -22, true);
+            addJar(7, 2, -20);
+            
+            addLadder(1, 1.5, -22, 4);
+            addPlatform(1, 4, -22, 6, 1, 6, 0xFFFACD);
+            addJar(1, 5, -22);
+            
+            addMovingPlatform(-5, 4, -28, 5, 1, 5, 0xFFD700, -3, 3, 'z');
+            addPlatform(-5, 4, -34, 7, 1, 7, 0xF0E68C);
+            addFalafel(-7, 5, -34, true);
+            addFalafel(-3, 5, -34, true);
+            
+            addLadder(-12, 4.5, -34, 5);
+            addPlatform(-12, 7, -34, 6, 1, 6, 0xFFFACD);
+            addJar(-12, 8, -34);
+            
+            addPlatform(-18, 8, -40, 9, 1, 9, 0xF0E68C);
+            addFalafel(-18, 9, -40, true);
+            addFalafel(-21, 9, -40, true);
+            addFalafel(-15, 9, -40, true);
         } else if(lvl === 6) {
             // Level 6: Starfish Station - Bullies return
-            addPlatform(0, 0, -10, 7, 1, 6, 0xADD8E6); addJar(0, 1, -10);
-            addBully(4, 0.5, -10);
-            addPlatform(8, 0, -16, 6, 1, 6, 0xB0E0E6); addFalafel(8, 1, -16, true);
-            addLadder(8, 0.5, -22, 5);
-            addPlatform(8, 4, -22, 6, 1, 6, 0xADD8E6); addJar(8, 5, -22);
-            addMovingPlatform(2, 5, -28, 5, 1, 5, 0xFFB6C1, -5, 5, 'x');
-            addPlatform(2, 5, -34, 7, 1, 7, 0xB0E0E6); addFalafel(0, 6, -34, true); addFalafel(4, 6, -34, true);
-            addBully(-4, 6, -34);
-            addPlatform(-4, 6, -40, 6, 1, 6, 0xADD8E6); addJar(-4, 7, -40);
-            addLadder(-10, 6.5, -40, 5);
-            addPlatform(-10, 9, -40, 8, 1, 8, 0xB0E0E6); addFalafel(-10, 10, -40, true); addFalafel(-13, 10, -40, true); addFalafel(-7, 10, -40, true);
+            addPlatform(0, 0, -8, 7, 1, 6, 0xADD8E6);
+            addJar(0, 1, -8);
+            addBully(3, 0.5, -8);
+            
+            createGate(0, 0, -12, 5);
+            
+            addPlatform(8, 0, -18, 6, 1, 6, 0xB0E0E6);
+            addFalafel(8, 1, -18, true);
+            
+            addLadder(8, 0.5, -24, 5);
+            addPlatform(8, 4, -24, 6, 1, 6, 0xADD8E6);
+            addJar(8, 5, -24);
+            addBully(8, 4.5, -22);
+            
+            addMovingPlatform(2, 5, -30, 5, 1, 5, 0xFFB6C1, -5, 5, 'x');
+            addPlatform(2, 5, -36, 7, 1, 7, 0xB0E0E6);
+            addFalafel(0, 6, -36, true);
+            addFalafel(4, 6, -36, true);
+            
+            addPlatform(-4, 6, -42, 6, 1, 6, 0xADD8E6);
+            addJar(-4, 7, -42);
+            
+            addLadder(-10, 6.5, -42, 5);
+            addPlatform(-10, 9, -42, 8, 1, 8, 0xB0E0E6);
+            addFalafel(-10, 10, -42, true);
+            addFalafel(-13, 10, -42, true);
+            addFalafel(-7, 10, -42, true);
         } else if(lvl === 7) {
             // Level 7: Dolphin Dance - Multiple moving platforms
-            addPlatform(0, 0, -8, 6, 1, 6, 0xFFC0CB); addJar(0, 1, -8);
-            addMovingPlatform(6, 1, -14, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
-            addMovingPlatform(6, 1, -22, 5, 1, 5, 0xFFB6C1, -3, 3, 'z');
-            addPlatform(6, 1, -28, 6, 1, 6, 0xFFC0CB); addFalafel(6, 2, -28, true);
-            addLadder(0, 1.5, -28, 5);
-            addPlatform(0, 5, -28, 7, 1, 7, 0xFFB6C1); addJar(0, 6, -28);
-            addMovingPlatform(-6, 5, -34, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
-            addPlatform(-6, 5, -40, 6, 1, 6, 0xFFC0CB); addFalafel(-8, 6, -40, true); addFalafel(-4, 6, -40, true);
-            addMovingPlatform(-12, 6, -46, 5, 1, 5, 0xFFB6C1, -3, 3, 'z');
-            addPlatform(-12, 6, -52, 8, 1, 8, 0xFFC0CB); addJar(-12, 7, -52); addFalafel(-12, 7, -52, true); addFalafel(-15, 7, -52, true); addFalafel(-9, 7, -52, true);
+            addPlatform(0, 0, -6, 6, 1, 6, 0xFFC0CB);
+            addJar(0, 1, -6);
+            addFalafel(0, 1, -6, true);
+            
+            createGate(0, 0, -10, 5);
+            
+            addMovingPlatform(6, 1, -16, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
+            addMovingPlatform(6, 1, -24, 5, 1, 5, 0xFFB6C1, -3, 3, 'z');
+            addPlatform(6, 1, -30, 6, 1, 6, 0xFFC0CB);
+            addFalafel(6, 2, -30, true);
+            addJar(6, 2, -28);
+            
+            addLadder(0, 1.5, -30, 5);
+            addPlatform(0, 5, -30, 7, 1, 7, 0xFFB6C1);
+            addJar(0, 6, -30);
+            
+            addMovingPlatform(-6, 5, -36, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
+            addPlatform(-6, 5, -42, 6, 1, 6, 0xFFC0CB);
+            addFalafel(-8, 6, -42, true);
+            addFalafel(-4, 6, -42, true);
+            
+            addMovingPlatform(-12, 6, -48, 5, 1, 5, 0xFFB6C1, -3, 3, 'z');
+            addPlatform(-12, 6, -54, 8, 1, 8, 0xFFC0CB);
+            addJar(-12, 7, -52);
+            addFalafel(-12, 7, -54, true);
+            addFalafel(-15, 7, -54, true);
+            addFalafel(-9, 7, -54, true);
         } else if(lvl === 8) {
             // Level 8: Turtle Tower - Vertical climb with ladders
-            addPlatform(0, 0, -10, 6, 1, 6, 0x98FB98); addJar(0, 1, -10);
-            addLadder(5, 0.5, -10, 4);
-            addPlatform(5, 3, -10, 5, 1, 5, 0x90EE90); addFalafel(5, 4, -10, true);
-            addMovingPlatform(10, 4, -16, 5, 1, 5, 0xFFB6C1, -4, 4, 'x');
-            addPlatform(10, 4, -22, 5, 1, 5, 0x98FB98); addJar(10, 5, -22);
-            addLadder(4, 4.5, -22, 5);
-            addPlatform(4, 8, -22, 6, 1, 6, 0x90EE90); addFalafel(2, 9, -22, true); addFalafel(6, 9, -22, true);
-            addMovingPlatform(-2, 9, -28, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
-            addPlatform(-2, 9, -34, 6, 1, 6, 0x98FB98); addJar(-2, 10, -34);
-            addLadder(-8, 9.5, -34, 5);
-            addPlatform(-8, 13, -34, 8, 1, 8, 0x90EE90); addFalafel(-8, 14, -34, true); addFalafel(-11, 14, -34, true); addFalafel(-5, 14, -34, true);
+            addPlatform(0, 0, -8, 6, 1, 6, 0x98FB98);
+            addJar(0, 1, -8);
+            
+            addLadder(5, 0.5, -8, 4);
+            addPlatform(5, 3, -8, 5, 1, 5, 0x90EE90);
+            addFalafel(5, 4, -8, true);
+            
+            createGate(5, 3, -12, 5);
+            
+            addMovingPlatform(10, 4, -18, 5, 1, 5, 0xFFB6C1, -4, 4, 'x');
+            addPlatform(10, 4, -24, 5, 1, 5, 0x98FB98);
+            addJar(10, 5, -24);
+            
+            addLadder(4, 4.5, -24, 5);
+            addPlatform(4, 8, -24, 6, 1, 6, 0x90EE90);
+            addFalafel(2, 9, -24, true);
+            addFalafel(6, 9, -24, true);
+            
+            addMovingPlatform(-2, 9, -30, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
+            addPlatform(-2, 9, -36, 6, 1, 6, 0x98FB98);
+            addJar(-2, 10, -36);
+            
+            addLadder(-8, 9.5, -36, 5);
+            addPlatform(-8, 13, -36, 8, 1, 8, 0x90EE90);
+            addFalafel(-8, 14, -36, true);
+            addFalafel(-11, 14, -36, true);
+            addFalafel(-5, 14, -36, true);
         } else if(lvl === 9) {
             // Level 9: Whale Watch - Long moving platform sections
-            addPlatform(0, 0, -8, 7, 1, 6, 0xB19CD9); addJar(0, 1, -8);
-            addMovingPlatform(7, 1, -14, 6, 1, 6, 0xFFB6C1, -5, 5, 'x');
-            addMovingPlatform(7, 1, -24, 6, 1, 6, 0xDDA0DD, -4, 4, 'z');
-            addPlatform(7, 1, -30, 6, 1, 6, 0xB19CD9); addFalafel(7, 2, -30, true);
-            addLadder(1, 1.5, -30, 5);
-            addPlatform(1, 5, -30, 7, 1, 7, 0xDDA0DD); addJar(1, 6, -30);
-            addMovingPlatform(-5, 5, -36, 6, 1, 6, 0xFFB6C1, -5, 5, 'x');
-            addMovingPlatform(-5, 5, -46, 6, 1, 6, 0xFF69B4, -4, 4, 'z');
-            addPlatform(-5, 5, -52, 7, 1, 7, 0xB19CD9); addFalafel(-7, 6, -52, true); addFalafel(-3, 6, -52, true);
-            addLadder(-12, 5.5, -52, 6);
-            addPlatform(-12, 9, -52, 8, 1, 8, 0xDDA0DD); addJar(-12, 10, -52); addFalafel(-12, 10, -52, true); addFalafel(-15, 10, -52, true); addFalafel(-9, 10, -52, true);
+            addPlatform(0, 0, -6, 7, 1, 6, 0xB19CD9);
+            addJar(0, 1, -6);
+            addFalafel(0, 1, -6, true);
+            
+            createGate(0, 0, -10, 5);
+            
+            addMovingPlatform(7, 1, -16, 6, 1, 6, 0xFFB6C1, -5, 5, 'x');
+            addMovingPlatform(7, 1, -26, 6, 1, 6, 0xDDA0DD, -4, 4, 'z');
+            addPlatform(7, 1, -32, 6, 1, 6, 0xB19CD9);
+            addFalafel(7, 2, -32, true);
+            addJar(7, 2, -30);
+            
+            addLadder(1, 1.5, -32, 5);
+            addPlatform(1, 5, -32, 7, 1, 7, 0xDDA0DD);
+            addJar(1, 6, -32);
+            
+            addMovingPlatform(-5, 5, -38, 6, 1, 6, 0xFFB6C1, -5, 5, 'x');
+            addMovingPlatform(-5, 5, -48, 6, 1, 6, 0xFF69B4, -4, 4, 'z');
+            addPlatform(-5, 5, -54, 7, 1, 7, 0xB19CD9);
+            addFalafel(-7, 6, -54, true);
+            addFalafel(-3, 6, -54, true);
+            
+            addLadder(-12, 5.5, -54, 6);
+            addPlatform(-12, 9, -54, 8, 1, 8, 0xDDA0DD);
+            addJar(-12, 10, -54);
+            addFalafel(-12, 10, -54, true);
+            addFalafel(-15, 10, -54, true);
+            addFalafel(-9, 10, -54, true);
         } else if(lvl === 10) {
             // Level 10: Mountain Peak - Final challenge combining all mechanics
-            addPlatform(0, 0, -10, 7, 1, 6, 0xFFD700); addJar(0, 1, -10);
-            addBully(5, 0.5, -10);
-            addMovingPlatform(10, 1, -16, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
-            addPlatform(10, 1, -22, 6, 1, 6, 0xFFE4B5); addFalafel(10, 2, -22, true);
-            addLadder(4, 1.5, -22, 5);
-            addPlatform(4, 5, -22, 6, 1, 6, 0xFFD700); addJar(4, 6, -22);
-            addMovingPlatform(-2, 6, -28, 5, 1, 5, 0xFFB6C1, -5, 5, 'x');
-            addMovingPlatform(-2, 6, -38, 5, 1, 5, 0xDDA0DD, -4, 4, 'z');
-            addPlatform(-2, 6, -44, 6, 1, 6, 0xFFE4B5); addFalafel(-4, 7, -44, true); addFalafel(0, 7, -44, true);
-            addLadder(-8, 6.5, -44, 6);
-            addPlatform(-8, 10, -44, 7, 1, 7, 0xFFD700); addJar(-8, 11, -44);
-            addMovingPlatform(-14, 11, -50, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
-            addPlatform(-14, 11, -56, 10, 1, 10, 0xFFE4B5); 
-            addFalafel(-14, 12, -56, true); addFalafel(-17, 12, -56, true); addFalafel(-11, 12, -56, true);
-            addFalafel(-14, 12, -53, true); addFalafel(-14, 12, -59, true);
+            addPlatform(0, 0, -8, 7, 1, 6, 0xFFD700);
+            addJar(0, 1, -8);
+            addBully(4, 0.5, -8);
+            addFalafel(-2, 1, -8, true);
+            
+            createGate(0, 0, -12, 5);
+            
+            addMovingPlatform(10, 1, -18, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
+            addPlatform(10, 1, -24, 6, 1, 6, 0xFFE4B5);
+            addFalafel(10, 2, -24, true);
+            addJar(10, 2, -22);
+            
+            addLadder(4, 1.5, -24, 5);
+            addPlatform(4, 5, -24, 6, 1, 6, 0xFFD700);
+            addJar(4, 6, -24);
+            
+            addMovingPlatform(-2, 6, -30, 5, 1, 5, 0xFFB6C1, -5, 5, 'x');
+            addMovingPlatform(-2, 6, -40, 5, 1, 5, 0xDDA0DD, -4, 4, 'z');
+            addPlatform(-2, 6, -46, 6, 1, 6, 0xFFE4B5);
+            addFalafel(-4, 7, -46, true);
+            addFalafel(0, 7, -46, true);
+            
+            addLadder(-8, 6.5, -46, 6);
+            addPlatform(-8, 10, -46, 7, 1, 7, 0xFFD700);
+            addJar(-8, 11, -46);
+            
+            addMovingPlatform(-14, 11, -52, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
+            addPlatform(-14, 11, -58, 10, 1, 10, 0xFFE4B5); 
+            addFalafel(-14, 12, -58, true);
+            addFalafel(-17, 12, -58, true);
+            addFalafel(-11, 12, -58, true);
+            addFalafel(-14, 12, -55, true);
+            addFalafel(-14, 12, -61, true);
         } else {
             showScreen('cert-menu');
             sound('win');
@@ -841,16 +1100,29 @@ function addFalafel(x,y,z,sad) {
         
         // Check if near a falafel to share
         let near = false;
+        let nearestFalafel = null;
+        let nearestDist = 2.5;
+        
         falafels.forEach(f => {
-            if(!f.shared && player.position.distanceTo(f.mesh.position) < 2.5) {
+            const dist = player.position.distanceTo(f.mesh.position);
+            if(!f.shared && dist < nearestDist) {
                 near = true;
-                if(game.hummusCount > 0) {
-                    share(f);
-                } else {
-                    showHint("You need hummus! Find a jar first.");
-                }
+                nearestDist = dist;
+                nearestFalafel = f;
             }
         });
+        
+        if(near && nearestFalafel) {
+            if(game.hummusCount > 0) {
+                showHint("Press SPACE to Share Hummus!");
+            } else {
+                showHint("You need hummus! Find a jar first.");
+            }
+            
+            if(game.hummusCount > 0) {
+                share(nearestFalafel);
+            }
+        }
         
         // Jump if not near a falafel
         if(!near && canJump) {
@@ -979,6 +1251,7 @@ function addFalafel(x,y,z,sad) {
     }
 
     function checkWin() {
+        updateGates(); // Check if gates should open
         const left = jars.filter(j=>j.active).length + falafels.filter(f=>!f.shared).length;
         if(left === 0) levelComplete();
     }
@@ -1007,6 +1280,20 @@ function addFalafel(x,y,z,sad) {
     function showScreen(id) {
         document.querySelectorAll('.menu').forEach(m => m.classList.add('hidden'));
         if(id) document.getElementById(id).classList.remove('hidden');
+    }
+    
+    // Hint system for QOL
+    let hintTimeout;
+    function showHint(text) {
+        const msg = document.getElementById('msg');
+        msg.innerText = text;
+        msg.style.display = 'block';
+        msg.style.fontSize = '24px';
+        msg.style.color = '#D4AC6E';
+        clearTimeout(hintTimeout);
+        hintTimeout = setTimeout(() => {
+            msg.style.display = 'none';
+        }, 2500);
     }
 
     function startGame() {
