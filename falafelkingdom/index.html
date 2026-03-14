@@ -261,13 +261,20 @@
     // Level completion tracking
     let completedLevels = [];
 
-    // Check if Three.js loaded
-    if (typeof THREE === 'undefined') {
-        document.getElementById('load-status').style.display = 'block';
-        document.getElementById('play-btn').disabled = true;
-        document.getElementById('play-btn').innerText = "Engine Failed";
-        document.getElementById('play-btn').style.background = "#7f8c8d";
-        document.getElementById('play-btn').style.boxShadow = "none";
+    // Initialize game when DOM is ready and THREE is loaded
+    function initGame() {
+        if (typeof THREE === 'undefined') {
+            setTimeout(initGame, 100);
+            return;
+        }
+        
+        document.getElementById('load-status').style.display = 'none';
+        document.getElementById('play-btn').disabled = false;
+        document.getElementById('play-btn').innerText = "▶ Play Adventure";
+        document.getElementById('play-btn').style.background = "";
+        document.getElementById('play-btn').style.boxShadow = "";
+        
+        setupGame();
     }
 
     let scene, camera, renderer, player;
@@ -384,6 +391,11 @@
             o.start(n);
             o.stop(n+0.4);
         }
+    }
+
+    // Setup game - called when THREE is loaded
+    function setupGame() {
+        init();
     }
 
     function init() {
@@ -1143,7 +1155,8 @@ function addFalafel(x,y,z,sad) {
         }
     }
 
-    init();
+    // Start initialization when page loads
+    initGame();
 </script>
 </body>
 </html>
