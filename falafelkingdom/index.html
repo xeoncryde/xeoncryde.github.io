@@ -95,7 +95,7 @@
         /* Back button container */
         .back-container { position: absolute; top: 20px; left: 20px; z-index: 30; }
     </style>
-    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js" onload="initGame()"></script>
 </head>
 <body>
 
@@ -586,7 +586,8 @@
         ladders.forEach(l => { if(l.rungs) l.rungs.forEach(r => scene.remove(r)); if(l.rails) l.rails.forEach(r => scene.remove(r)); });
         gates.forEach(g => scene.remove(g.mesh));
         platforms = []; jars = []; falafels = []; bullies = []; movingPlatforms = []; ladders = []; gates = [];
-        game.score = 0; game.total = 0; game.hummusCount = 0;
+        game.score = 0; game.hummusCount = 0;
+        // Don't reset game.total here - it will be incremented as falafels are added
         updateHUD();
 
         createPlayer();
@@ -1442,8 +1443,8 @@ function addFalafel(x,y,z,sad) {
         }
     }
 
-    // Start initialization when page loads
-    initGame();
+    // Start initialization when THREE loads (via onload attribute)
+    // initGame() is called automatically when THREE script loads
 </script>
 </body>
 </html>
