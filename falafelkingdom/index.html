@@ -407,6 +407,7 @@
         scene.fog = new THREE.Fog(0xB0E0E6, 30, 80);
 
         camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 10, 15);
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
@@ -595,7 +596,10 @@
         updateHUD();
 
         createPlayer();
-        player.position.set(0, 2, 0);
+        player.position.set(0, 5, 0);
+        
+        // Reset camera to initial position
+        camera.position.set(0, 10, 15);
 
         // Island base - sandy beach colored platform at bottom
         addPlatformIsland(0, -3, 0, 40, 2, 40);
@@ -885,7 +889,7 @@
             sound('win');
             return;
         }
-        game.total = jars.length + falafels.length;
+        game.total = falafels.length;
         updateHUD();
         showLevelIndicator(lvl);
     }
@@ -1207,14 +1211,25 @@ function addFalafel(x,y,z,sad) {
 
         canJump = false;
         
+        // Check collision with static platforms
         platforms.forEach(p => {
             const pBox = new THREE.Box3().setFromObject(p);
-            const plBox = new THREE.Box3().setFromObject(player);
-            if(plBox.intersectsBox(pBox)) {
-                if(velocity.y <= 0 && player.position.y >= p.position.y) {
-                    player.position.y = pBox.max.y + 0.5;
-                    velocity.y = 0;
-                    canJump = true;
+            const playerBox = new THREE.Box3().setFromObject(player);
+            
+            // Only check if player is falling down and above the platform
+            if(velocity.y <= 0) {
+                // Check horizontal overlap
+                if(playerBox.min.x < pBox.max.x && playerBox.max.x > pBox.min.x &&
+                   playerBox.min.z < pBox.max.z && playerBox.max.z > pBox.min.z) {
+                    // Check vertical position - player feet near platform top
+                    const playerBottom = player.position.y - 0.5;
+                    const platformTop = pBox.max.y;
+                    
+                    if(playerBottom >= platformTop - 0.3 && playerBottom <= platformTop + 0.5) {
+                        player.position.y = platformTop + 0.5;
+                        velocity.y = 0;
+                        canJump = true;
+                    }
                 }
             }
         });
@@ -1222,17 +1237,24 @@ function addFalafel(x,y,z,sad) {
         // Also check moving platforms for collision
         movingPlatforms.forEach(mp => {
             const pBox = new THREE.Box3().setFromObject(mp.mesh);
-            const plBox = new THREE.Box3().setFromObject(player);
-            if(plBox.intersectsBox(pBox)) {
-                if(velocity.y <= 0 && player.position.y >= mp.mesh.position.y) {
-                    player.position.y = pBox.max.y + 0.5;
-                    velocity.y = 0;
-                    canJump = true;
-                    // Move player with platform
-                    if(mp.axis === 'x') {
-                        player.position.x += Math.cos(time * mp.speed * 50 + mp.offset) * mp.speed * (mp.max - mp.min) / 2;
-                    } else if(mp.axis === 'z') {
-                        player.position.z += Math.cos(time * mp.speed * 50 + mp.offset) * mp.speed * (mp.max - mp.min) / 2;
+            const playerBox = new THREE.Box3().setFromObject(player);
+            
+            if(velocity.y <= 0) {
+                if(playerBox.min.x < pBox.max.x && playerBox.max.x > pBox.min.x &&
+                   playerBox.min.z < pBox.max.z && playerBox.max.z > pBox.min.z) {
+                    const playerBottom = player.position.y - 0.5;
+                    const platformTop = pBox.max.y;
+                    
+                    if(playerBottom >= platformTop - 0.3 && playerBottom <= platformTop + 0.5) {
+                        player.position.y = platformTop + 0.5;
+                        velocity.y = 0;
+                        canJump = true;
+                        // Move player with platform
+                        if(mp.axis === 'x') {
+                            player.position.x += Math.cos(time * mp.speed * 50 + mp.offset) * mp.speed * (mp.max - mp.min) / 2;
+                        } else if(mp.axis === 'z') {
+                            player.position.z += Math.cos(time * mp.speed * 50 + mp.offset) * mp.speed * (mp.max - mp.min) / 2;
+                        }
                     }
                 }
             }
@@ -1319,8 +1341,6 @@ function addFalafel(x,y,z,sad) {
         completedLevels = [];
         loadLevel(1);
         showScreen(null);
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-    }
         if(audioCtx.state === 'suspended') audioCtx.resume();
     }
 
