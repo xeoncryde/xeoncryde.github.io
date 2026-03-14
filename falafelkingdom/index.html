@@ -280,6 +280,7 @@
         level: 1,
         score: 0,
         total: 0,
+        hummusCount: 0,
         mega: false,
         active: false,
         paused: false
@@ -998,7 +999,14 @@ function addFalafel(x,y,z,sad) {
 
     function startGame() {
         if(typeof THREE === 'undefined') { alert("Engine failed"); return; }
-        game.level = 1; game.mega = false; game.active = true; game.paused = false;
+        game.level = 1; 
+        game.score = 0; 
+        game.total = 0; 
+        game.hummusCount = 0;
+        game.mega = false; 
+        game.active = true; 
+        game.paused = false;
+        completedLevels = [];
         loadLevel(1);
         showScreen(null);
         if(audioCtx.state === 'suspended') audioCtx.resume();
@@ -1011,6 +1019,9 @@ function addFalafel(x,y,z,sad) {
     }
 
     function retryLevel() { 
+        game.score = 0;
+        game.total = 0;
+        game.hummusCount = 0;
         loadLevel(game.level); 
         game.paused = false; 
         game.active = true; 
@@ -1019,6 +1030,9 @@ function addFalafel(x,y,z,sad) {
     
     function nextLevel() { 
         game.level++; 
+        game.score = 0;
+        game.total = 0;
+        game.hummusCount = 0;
         game.active = true; 
         loadLevel(game.level); 
         showScreen(null); 
@@ -1117,6 +1131,9 @@ function addFalafel(x,y,z,sad) {
     function selectLevel(lvl) {
         if(lvl === 1 || completedLevels.includes(lvl - 1)) {
             game.level = lvl;
+            game.score = 0;
+            game.total = 0;
+            game.hummusCount = 0;
             game.mega = false;
             game.active = true;
             game.paused = false;
