@@ -475,7 +475,7 @@
         movingPlatforms.forEach(mp => scene.remove(mp.mesh));
         ladders.forEach(l => { if(l.rungs) l.rungs.forEach(r => scene.remove(r)); if(l.rails) l.rails.forEach(r => scene.remove(r)); });
         platforms = []; jars = []; falafels = []; bullies = []; movingPlatforms = []; ladders = [];
-        game.score = 0; game.total = 0;
+        game.score = 0; game.total = 0; game.hummusCount = 0;
         updateHUD();
 
         createPlayer();
@@ -683,29 +683,60 @@
         }
         
         bowl.position.set(x,y,z); bowl.castShadow = true; scene.add(bowl); 
-        jars.push({mesh:bowl, active:true}); game.total++;
+        jars.push({mesh:bowl, active:true});
     }
     
-    function addFalafel(x,y,z,sad) {
+function addFalafel(x,y,z,sad) {
         const baseColor = sad ? 0xC4A574 : 0xD4B48C;
         const m = new THREE.Mesh(new THREE.SphereGeometry(0.55, 20, 20), new THREE.MeshStandardMaterial({color: baseColor, roughness: 0.6}));
         m.position.set(x,y,z); m.castShadow = true; scene.add(m);
+
+        // Eyes group for easy switching
+        const eyesGroup = new THREE.Group();
         
-        // Cute eyes - bigger and more expressive
-        const eGeo = new THREE.SphereGeometry(0.1, 10, 10);
-        const eMat = new THREE.MeshBasicMaterial({ color: 0x2C3E50 });
-        const le = new THREE.Mesh(eGeo, eMat); le.position.set(-0.18, 0.12, 0.48);
-        const re = new THREE.Mesh(eGeo, eMat); re.position.set(0.18, 0.12, 0.48);
+        // Sad eyes with dramatic tears
+        const sadEyeGeo = new THREE.SphereGeometry(0.08, 10, 10);
+        const sadEyeMat = new THREE.MeshBasicMaterial({ color: 0x2C3E50 });
+        const lse = new THREE.Mesh(sadEyeGeo, sadEyeMat); lse.position.set(-0.18, 0.1, 0.48);
+        const rse = new THREE.Mesh(sadEyeGeo, sadEyeMat); rse.position.set(0.18, 0.1, 0.48);
         
-        // Eye shine for cuteness
-        const shineGeo = new THREE.SphereGeometry(0.04, 6, 6);
+        // Dramatic tear drops
+        const tearGeo = new THREE.SphereGeometry(0.05, 8, 8);
+        const tearMat = new THREE.MeshBasicMaterial({ color: 0x5DADE2, transparent: true, opacity: 0.8 });
+        const lt = new THREE.Mesh(tearGeo, tearMat); lt.position.set(-0.18, -0.05, 0.52);
+        const rt = new THREE.Mesh(tearGeo, tearMat); rt.position.set(0.18, -0.05, 0.52);
+        
+        // Tear streaks
+        const streakGeo = new THREE.CapsuleGeometry(0.02, 0.15, 4, 8);
+        const streakMat = new THREE.MeshBasicMaterial({ color: 0x85C1E9, transparent: true, opacity: 0.7 });
+        const lstreak = new THREE.Mesh(streakGeo, streakMat); lstreak.position.set(-0.18, -0.15, 0.5); lstreak.rotation.x = 0.3;
+        const rstreak = new THREE.Mesh(streakGeo, streakMat); rstreak.position.set(0.18, -0.15, 0.5); rstreak.rotation.x = 0.3;
+        
+        eyesGroup.add(lse); eyesGroup.add(rse);
+        if(sad) {
+            eyesGroup.add(lt); eyesGroup.add(rt);
+            eyesGroup.add(lstreak); eyesGroup.add(rstreak);
+        }
+        m.add(eyesGroup);
+
+        // Happy eyes (hidden initially if sad)
+        const happyEyesGroup = new THREE.Group();
+        const heGeo = new THREE.SphereGeometry(0.12, 10, 10);
+        const heMat = new THREE.MeshBasicMaterial({ color: 0x2C3E50 });
+        const lhe = new THREE.Mesh(heGeo, heMat); lhe.position.set(-0.18, 0.12, 0.48);
+        const rhe = new THREE.Mesh(heGeo, heMat); rhe.position.set(0.18, 0.12, 0.48);
+        
+        // Eye shine for extra cuteness
+        const shineGeo = new THREE.SphereGeometry(0.05, 6, 6);
         const shineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const ls = new THREE.Mesh(shineGeo, shineMat); ls.position.set(-0.14, 0.17, 0.54);
-        const rs = new THREE.Mesh(shineGeo, shineMat); rs.position.set(0.22, 0.17, 0.54);
+        const lhs = new THREE.Mesh(shineGeo, shineMat); lhs.position.set(-0.14, 0.18, 0.54);
+        const rhs = new THREE.Mesh(shineGeo, shineMat); rhs.position.set(0.22, 0.18, 0.54);
         
-        m.add(le); m.add(re);
-        m.add(ls); m.add(rs);
-        
+        happyEyesGroup.add(lhe); happyEyesGroup.add(rhe);
+        happyEyesGroup.add(lhs); happyEyesGroup.add(rhs);
+        happyEyesGroup.visible = !sad;
+        m.add(happyEyesGroup);
+
         // Mouth - curved based on emotion
         const mouthCurve = sad ? -0.08 : 0.08;
         const mouthGeo = new THREE.TorusGeometry(0.12, 0.025, 8, 16, sad ? Math.PI : Math.PI);
@@ -714,19 +745,42 @@
         mouth.position.set(0, -0.08, 0.45);
         mouth.rotation.z = sad ? 0 : Math.PI;
         m.add(mouth);
-        
-        // Blush cheeks for extra cuteness
-        if(!sad) {
-            const blushGeo = new THREE.SphereGeometry(0.07, 8, 8);
-            const blushMat = new THREE.MeshBasicMaterial({ color: 0xFFB6C1, transparent: true, opacity: 0.6 });
-            const lb = new THREE.Mesh(blushGeo, blushMat); lb.position.set(-0.25, -0.05, 0.4);
-            const rb = new THREE.Mesh(blushGeo, blushMat); rb.position.set(0.25, -0.05, 0.4);
-            m.add(lb); m.add(rb);
-        }
-        
-        falafels.push({mesh:m, shared:false, mouth:mouth, originalY: y}); game.total++;
+
+        // Sad mouth (hidden if happy)
+        const sadMouthGroup = new THREE.Group();
+        const sadMouthGeo = new THREE.TorusGeometry(0.1, 0.03, 8, 16, Math.PI);
+        const sadMouthMat = new THREE.MeshBasicMaterial({color: 0x5D4037});
+        const sadMouth = new THREE.Mesh(sadMouthGeo, sadMouthMat);
+        sadMouth.position.set(0, -0.15, 0.45);
+        sadMouth.rotation.z = 0;
+        sadMouthGroup.add(sadMouth);
+        sadMouthGroup.visible = sad;
+        m.add(sadMouthGroup);
+
+        // Blush cheeks for extra cuteness (only when happy)
+        const blushGroup = new THREE.Group();
+        const blushGeo = new THREE.SphereGeometry(0.08, 8, 8);
+        const blushMat = new THREE.MeshBasicMaterial({ color: 0xFFB6C1, transparent: true, opacity: 0.7 });
+        const lb = new THREE.Mesh(blushGeo, blushMat); lb.position.set(-0.28, -0.02, 0.42);
+        const rb = new THREE.Mesh(blushGeo, blushMat); rb.position.set(0.28, -0.02, 0.42);
+        blushGroup.add(lb); blushGroup.add(rb);
+        blushGroup.visible = !sad;
+        m.add(blushGroup);
+
+        // Store references for animation
+        falafels.push({
+            mesh: m, 
+            shared: false, 
+            mouth: mouth, 
+            sadEyes: eyesGroup,
+            happyEyes: happyEyesGroup,
+            sadMouth: sadMouthGroup,
+            blush: blushGroup,
+            originalY: y,
+            tears: [lt, rt, lstreak, rstreak]
+        });
+        game.total++;
     }
-    
     function addBully(x,y,z) {
         // Mean-looking burnt falafel with angry expression
         const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 1), new THREE.MeshStandardMaterial({color: 0x3D2817, roughness: 0.9}));
@@ -770,12 +824,21 @@
 
     function handleSpace() {
         if(!game.active || game.paused) return;
+        
+        // Check if near a falafel to share
         let near = false;
         falafels.forEach(f => {
             if(!f.shared && player.position.distanceTo(f.mesh.position) < 2.5) {
-                near = true; share(f);
+                near = true;
+                if(game.hummusCount > 0) {
+                    share(f);
+                } else {
+                    showHint("You need hummus! Find a jar first.");
+                }
             }
         });
+        
+        // Jump if not near a falafel
         if(!near && canJump) {
             velocity.y = 0.35; canJump = false; sound('jump');
         }
@@ -783,23 +846,24 @@
 
     function share(f) {
         f.shared = true;
+        game.hummusCount--;
+        
+        // Switch to happy face
+        f.sadEyes.visible = false;
+        f.happyEyes.visible = true;
+        f.sadMouth.visible = false;
+        f.blush.visible = true;
+        
+        // Change color to happy
         f.mesh.material.color.setHex(0xF5CBA7);
-        f.mouth.rotation.z = Math.PI;
         
-        // Add happy blush when shared
-        const blushGeo = new THREE.SphereGeometry(0.07, 8, 8);
-        const blushMat = new THREE.MeshBasicMaterial({ color: 0xFFB6C1, transparent: true, opacity: 0.7 });
-        const lb = new THREE.Mesh(blushGeo, blushMat); lb.position.set(-0.25, -0.05, 0.4);
-        const rb = new THREE.Mesh(blushGeo, blushMat); rb.position.set(0.25, -0.05, 0.4);
-        f.mesh.add(lb); f.mesh.add(rb);
-        
+        // Animate jump
         sound('happy');
         game.score++; updateHUD();
         f.mesh.scale.set(1.3,1.3,1.3);
         setTimeout(()=> f.mesh.scale.set(1,1,1), 300);
         checkWin();
     }
-
     function updatePhysics() {
         if(!game.active || game.paused) return;
         
