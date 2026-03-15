@@ -302,15 +302,20 @@ function tryLoadModel(relPath) {
   if (!gltfLoader) return Promise.resolve(null);
   if (Object.prototype.hasOwnProperty.call(modelCache, relPath)) {
     const cached = modelCache[relPath];
-    return Promise.resolve(cached ? cached.clone() : null);
+    if (!cached) return Promise.resolve(null);
+    // Apply shadows on the clone (not the cached master)
+    const clone = cached.clone();
+    clone.traverse(c => { if (c.isMesh) { c.receiveShadow = true; c.castShadow = true; } });
+    return Promise.resolve(clone);
   }
   return new Promise(resolve => {
     gltfLoader.load(
       MODEL_BASE + relPath,
       gltf => {
-        gltf.scene.traverse(c => { if (c.isMesh) { c.receiveShadow = true; c.castShadow = true; } });
-        modelCache[relPath] = gltf.scene;
-        resolve(gltf.scene.clone());
+        modelCache[relPath] = gltf.scene; // cache without shadow flags
+        const clone = gltf.scene.clone();
+        clone.traverse(c => { if (c.isMesh) { c.receiveShadow = true; c.castShadow = true; } });
+        resolve(clone);
       },
       undefined,
       () => { modelCache[relPath] = null; resolve(null); }
@@ -1238,7 +1243,12 @@ function runGameLogic() {
     if (!p.crumble || p.crumbleState !== 'crumbling') return;
     const elapsed = Date.now() - p.crumbleTimer;
     p.mesh.position.x = p.x + (Math.random()-.5)*0.08*(1-elapsed/CFG.CRUMBLE_TIME);
-    if (p.physBody) p.physBody.position.x = p.mesh.position.x;
+    // Sync all axes so physics body stays aligned with visual during shake
+    if (p.physBody) {
+      p.physBody.position.x = p.mesh.position.x;
+      p.physBody.position.y = p.mesh.position.y;
+      p.physBody.position.z = p.mesh.position.z;
+    }
     if (elapsed > CFG.CRUMBLE_TIME) {
       p.crumbleState = 'fallen'; p.active = false; p.mesh.visible = false;
       if (p.physBody) physWorld && physWorld.removeBody(p.physBody);
@@ -1380,7 +1390,7 @@ function updatePhysics() {
     // Wind zones (add to Cannon.js velocity)
     mechanics.filter(m=>m.type==='wind').forEach(wm => {
       const hx=wm.pos.x,hy=wm.pos.y,hz=wm.pos.z;
-      if (Math.abs(v.x-hx)<wm.w/2+0.3 && Math.abs(player.position.y-hy)<wm.h/2+0.3 && Math.abs(player.position.z-hz)<wm.d/2+0.3) {
+      if (Math.abs(player.position.x-hx)<wm.w/2+0.3 && Math.abs(player.position.y-hy)<wm.h/2+0.3 && Math.abs(player.position.z-hz)<wm.d/2+0.3) {
         v.x += wm.dir.x*60; v.z += wm.dir.z*60;
       }
     });
@@ -1434,13 +1444,13 @@ function updatePhysics() {
       if (m.plat && m.plat.physBody) {
         m.plat.physBody.position.x = m.plat.mesh.position.x;
         m.plat.physBody.position.z = m.plat.mesh.position.z;
-        m.plat.physBody.wakeUp && m.plat.physBody.wakeUp();
+        m.plat.physBody.wakeUp?.();
       }
     });
     mechanics.filter(m=>m.type==='tidal').forEach(m => {
       if (m.plat && m.plat.physBody) {
         m.plat.physBody.position.y = m.plat.mesh.position.y;
-        m.plat.physBody.wakeUp && m.plat.physBody.wakeUp();
+        m.plat.physBody.wakeUp?.();
       }
     });
 
