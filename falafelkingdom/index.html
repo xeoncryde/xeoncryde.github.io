@@ -262,7 +262,7 @@
     <div class="menu-badge">✦ ADVENTURE AWAITS ✦</div>
     <div class="menu-buttons">
         <button id="play-btn" onclick="startGame()">▶ &nbsp;NEW ADVENTURE</button>
-        <button id="continue-btn" class="secondary" onclick="continueGame()" style="display:none">⚡ &nbsp;CONTINUE</button>
+        <button id="continue-btn" class="secondary hidden" onclick="continueGame()">⚡ &nbsp;CONTINUE</button>
         <button class="secondary" onclick="showLevelSelect()">📍 &nbsp;SELECT LEVEL</button>
         <button class="secondary" onclick="showControls()">🎮 &nbsp;CONTROLS</button>
         <button class="secondary" onclick="showSettings()">⚙️ &nbsp;SETTINGS</button>
@@ -417,7 +417,7 @@
         
         // Show continue button if there's progress
         if (completedLevels.length > 0) {
-            document.getElementById('continue-btn').style.display = '';
+            document.getElementById('continue-btn').classList.remove('hidden');
         }
         
         initMenuStars();
