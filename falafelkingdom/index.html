@@ -443,15 +443,15 @@
         
         /* Level Selector Grid */
         .level-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 25px 0; }
+        /* Level buttons are square tiles — defined independently from the base button style */
         .level-btn { 
-            width: 65px; height: 65px; 
+            width: 65px; height: 65px; min-width: 65px;
             border-radius: 12px; 
             font-size: 20px; 
             display: flex; align-items: center; justify-content: center; 
             position: relative; overflow: hidden;
             font-weight: 700;
             letter-spacing: 1px;
-            min-width: unset;
             padding: 0;
         }
         .level-btn.completed { 
