@@ -441,7 +441,8 @@
         paused: false,
         checkpoint: null,   // {x,y,z,zone} — last activated checkpoint
         wasElevated: false,
-        hasLanded: false
+        hasLanded: false,
+        pendingStart: false // set while cutscene plays before first game start
     };
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1884,18 +1885,12 @@ function addFalafel(x,y,z,sad) {
     }
 
     let cutscenePanel = 0;
-    // Computed at runtime from DOM to avoid hardcoded mismatch
-    let CUTSCENE_PANELS = 0;
-    function getCutscenePanels() {
-        if (!CUTSCENE_PANELS) CUTSCENE_PANELS = document.querySelectorAll('#cutscene-content .cutscene-panel').length;
-        return CUTSCENE_PANELS;
-    }
+    const CUTSCENE_TOTAL = 7; // must match number of cutscene-panel divs
 
     function initCutsceneDots() {
-        const count = getCutscenePanels();
         const dots = document.getElementById('cutscene-dots');
         dots.innerHTML = '';
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < CUTSCENE_TOTAL; i++) {
             const d = document.createElement('span');
             d.className = 'cutscene-dot' + (i === 0 ? ' active' : '');
             dots.appendChild(d);
@@ -1903,10 +1898,9 @@ function addFalafel(x,y,z,sad) {
     }
 
     function advanceCutscene() {
-        const count = getCutscenePanels();
         document.getElementById('cutscene-panel-' + cutscenePanel).classList.add('hidden');
         cutscenePanel++;
-        if (cutscenePanel >= count) {
+        if (cutscenePanel >= CUTSCENE_TOTAL) {
             skipCutscene();
             return;
         }
@@ -1914,15 +1908,15 @@ function addFalafel(x,y,z,sad) {
         document.querySelectorAll('.cutscene-dot').forEach((d, i) => {
             d.className = 'cutscene-dot' + (i === cutscenePanel ? ' active' : '');
         });
-        if (cutscenePanel === count - 1) {
+        if (cutscenePanel === CUTSCENE_TOTAL - 1) {
             document.getElementById('cutscene-next-btn').innerText = 'Play! 🧆';
         }
     }
 
     function skipCutscene() {
         localStorage.setItem('fk_cutscene_seen', '1');
-        if (window._pendingGameStart) {
-            window._pendingGameStart = false;
+        if (game.pendingStart) {
+            game.pendingStart = false;
             _doStartGame();
         } else {
             showScreen('main-menu');
@@ -1948,14 +1942,13 @@ function addFalafel(x,y,z,sad) {
         
         // Show cutscene on first play
         if (!localStorage.getItem('fk_cutscene_seen')) {
-            const count = getCutscenePanels();
             cutscenePanel = 0;
             initCutsceneDots();
             document.getElementById('cutscene-panel-0').classList.remove('hidden');
-            for(let i=1;i<count;i++) document.getElementById('cutscene-panel-'+i).classList.add('hidden');
+            for(let i=1;i<CUTSCENE_TOTAL;i++) document.getElementById('cutscene-panel-'+i).classList.add('hidden');
             document.getElementById('cutscene-next-btn').innerText = 'Next ▶';
             showScreen('cutscene');
-            window._pendingGameStart = true;
+            game.pendingStart = true;
             return;
         }
         _doStartGame();
@@ -1963,7 +1956,7 @@ function addFalafel(x,y,z,sad) {
 
     function continueGame() {
         if (!gameInitialized) init();
-        const maxLevel = completedLevels.length > 0 ? Math.max(...completedLevels) + 1 : 1;
+        const maxLevel = completedLevels.length > 0 ? completedLevels.reduce((a, b) => Math.max(a, b), 0) + 1 : 1;
         const targetLevel = Math.min(maxLevel, MAX_LEVELS);
         selectLevel(targetLevel);
     }
