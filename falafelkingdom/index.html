@@ -6,7 +6,7 @@
 <title>Falafel Kingdom — Island Adventure</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{overflow:hidden;background:#08060f;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;user-select:none}
+body{overflow:hidden;background:#08060f;font-family:'Comic Sans MS','Comic Sans',cursive,sans-serif;user-select:none}
 #cw{position:fixed;inset:0}
 #hud{position:fixed;top:0;left:0;width:100%;z-index:10;pointer-events:none;display:none}
 .hb{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:linear-gradient(180deg,rgba(0,0,0,.5) 0%,transparent 100%)}
@@ -29,25 +29,32 @@ body{overflow:hidden;background:#08060f;font-family:'Segoe UI',Tahoma,Geneva,Ver
 #mt.show{opacity:1}
 .scr{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100}
 .scr.hidden{display:none!important}
-.dv{width:60px;height:1px;background:linear-gradient(90deg,transparent,rgba(201,162,39,.6),transparent);margin:16px auto}
-.btn{background:transparent;border:1px solid rgba(255,255,255,.22);color:#fff;padding:15px 42px;font-size:13px;border-radius:2px;cursor:pointer;margin:5px;font-weight:500;text-transform:uppercase;letter-spacing:3px;transition:all .25s;min-width:220px;font-family:inherit;position:relative;overflow:hidden}
-.btn::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);transition:left .5s}
+.dv{width:80px;height:4px;background:linear-gradient(90deg,transparent,#FFD700,transparent);margin:16px auto;border-radius:4px}
+.btn{background:linear-gradient(180deg,#9B59B6,#7D3C98);border:4px solid #5D2F72;color:#fff;padding:14px 36px;font-size:15px;border-radius:20px;cursor:pointer;margin:6px;font-weight:900;text-transform:uppercase;letter-spacing:2px;transition:transform .12s,box-shadow .12s;min-width:220px;font-family:'Comic Sans MS','Comic Sans',cursive;position:relative;overflow:hidden;box-shadow:0 6px 0 #4A2460,0 8px 14px rgba(0,0,0,.5)}
+.btn::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transition:left .4s}
 .btn:hover::after{left:100%}
-.btn:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.4)}
-.btn:active{transform:scale(.98)}
-.btn.p{background:linear-gradient(135deg,#c9a227,#f4d03f,#c9a227);border:none;color:#1a1a0a;font-weight:700;box-shadow:0 4px 20px rgba(201,162,39,.35)}
-.btn.p:hover{box-shadow:0 6px 28px rgba(201,162,39,.55);transform:translateY(-2px)}
-.btn.s{border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.65)}
-.btn.s:hover{border-color:rgba(255,255,255,.35);color:#fff}
-.btn.d{border-color:rgba(200,60,60,.4);color:#e07070}
-.btn.d:hover{background:rgba(200,60,60,.15)}
-.btn.sm{padding:11px 26px;font-size:12px;min-width:160px}
+.btn:hover{transform:translateY(-4px) scale(1.04);box-shadow:0 10px 0 #4A2460,0 14px 18px rgba(0,0,0,.5)}
+.btn:active{transform:translateY(2px) scale(0.97);box-shadow:0 2px 0 #4A2460,0 4px 8px rgba(0,0,0,.4)}
+.btn.p{background:linear-gradient(180deg,#FFB300,#FF8000);border-color:#CC5500;color:#1a0800;font-weight:900;box-shadow:0 6px 0 #994400,0 8px 14px rgba(0,0,0,.5)}
+.btn.p:hover{box-shadow:0 10px 0 #994400,0 14px 18px rgba(0,0,0,.5);transform:translateY(-5px) scale(1.06)}
+.btn.p:active{box-shadow:0 2px 0 #994400,0 4px 8px rgba(0,0,0,.4)}
+.btn.s{background:linear-gradient(180deg,#A56CC1,#8044A0);border-color:#5D2F72;color:#fff;box-shadow:0 6px 0 #4A2460,0 8px 14px rgba(0,0,0,.5)}
+.btn.s:hover{box-shadow:0 10px 0 #4A2460,0 14px 18px rgba(0,0,0,.5)}
+.btn.d{background:linear-gradient(180deg,#E74C3C,#C0392B);border-color:#922B21;color:#fff;box-shadow:0 6px 0 #7B241C,0 8px 14px rgba(0,0,0,.5)}
+.btn.d:hover{box-shadow:0 10px 0 #7B241C,0 14px 18px rgba(0,0,0,.5)}
+.btn.sm{padding:10px 22px;font-size:13px;min-width:160px;border-width:3px;box-shadow:0 4px 0 #4A2460,0 6px 10px rgba(0,0,0,.4)}
+.btn.sm:hover{box-shadow:0 7px 0 #4A2460,0 10px 14px rgba(0,0,0,.4);transform:translateY(-3px) scale(1.03)}
 .sb{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .sd{position:absolute;background:#fff;border-radius:50%;animation:tw var(--d,3s) infinite var(--dl,0s)}
 @keyframes tw{0%,100%{opacity:.1}50%{opacity:.7}}
-#sm{background:radial-gradient(ellipse at 50% 30%,#1a0e35 0%,#08060f 100%)}
-.gl{font-size:60px;font-weight:200;letter-spacing:12px;color:#fff;text-transform:uppercase;text-shadow:0 0 70px rgba(201,162,39,.35)}
-.gt{color:rgba(255,255,255,.38);font-size:12px;letter-spacing:6px;text-transform:uppercase;margin:8px 0 32px}
+@keyframes wiggleTitle{0%,100%{transform:rotate(-1.5deg) scale(1)}50%{transform:rotate(1.5deg) scale(1.03)}}
+@keyframes floatEmoji{0%,100%{transform:translateY(0) rotate(-5deg) scale(1)}50%{transform:translateY(-22px) rotate(5deg) scale(1.1)}}
+@keyframes floatEmoji2{0%,100%{transform:translateY(0) rotate(8deg) scale(1)}50%{transform:translateY(-18px) rotate(-8deg) scale(1.08)}}
+.menu-floater{position:absolute;font-size:28px;animation:floatEmoji var(--fd,4s) ease-in-out infinite var(--fdr,0s);pointer-events:none;user-select:none;opacity:0.65;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.menu-floater:nth-child(odd){animation-name:floatEmoji2}
+#sm{background:radial-gradient(ellipse at 50% 20%,#3a0870 0%,#5a00a0 40%,#1a0040 100%);overflow:hidden}
+.gl{font-size:56px;font-weight:900;letter-spacing:6px;color:#FFD700;text-transform:uppercase;text-shadow:4px 4px 0 #CC4400,-2px -2px 0 #CC4400,3px -2px 0 #CC4400,-2px 3px 0 #CC4400,0 0 40px rgba(255,200,0,.7);animation:wiggleTitle 3s ease-in-out infinite;font-family:'Comic Sans MS','Comic Sans',cursive}
+.gt{color:#FFB6C1;font-size:13px;letter-spacing:3px;text-transform:uppercase;margin:8px 0 28px;font-style:italic;text-shadow:1px 1px 3px rgba(0,0,0,.6)}
 #sop{background:#000}
 .cw{width:min(800px,92vw)}
 #csc{width:100%;height:320px;border-radius:4px;display:block}
@@ -60,7 +67,7 @@ body{overflow:hidden;background:#08060f;font-family:'Segoe UI',Tahoma,Geneva,Ver
 .csd{display:flex;gap:7px}
 .csdot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .3s}
 .csdot.a{background:#f4d03f;box-shadow:0 0 8px rgba(244,208,63,.5)}
-#slv{background:radial-gradient(ellipse at 50% 30%,#1a0e35 0%,#08060f 100%)}
+#slv{background:radial-gradient(ellipse at 50% 20%,#1a4070 0%,#0a2050 50%,#020810 100%);overflow:hidden}
 .lg{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:22px 0}
 .lc{width:86px;height:86px;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.1);transition:all .25s;position:relative;font-size:9px;letter-spacing:1px;text-transform:uppercase}
 .lc .ln{font-size:24px;font-weight:200;margin-bottom:2px}
@@ -148,7 +155,7 @@ body{overflow:hidden;background:#08060f;font-family:'Segoe UI',Tahoma,Geneva,Ver
     <button class="btn s" onclick="goScreen('slv')">SELECT ISLAND</button>
     <button class="btn s" onclick="goScreen('sse')">SETTINGS</button>
   </div>
-  <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:16px 24px;margin-top:24px;text-align:center;color:rgba(255,255,255,.42);font-size:12px;line-height:2;letter-spacing:1px">
+  <div style="background:rgba(255,200,50,.1);border:3px solid rgba(255,200,50,.4);border-radius:16px;padding:14px 22px;margin-top:20px;text-align:center;color:rgba(255,230,150,.85);font-size:13px;line-height:2;font-family:'Comic Sans MS','Comic Sans',cursive">
     <span class="ck">WASD</span> Move &nbsp;|&nbsp; <span class="ck">SPACE</span> Jump (hold for higher) &nbsp;|&nbsp; Walk near Jar to collect &nbsp;|&nbsp; Walk near Falafel to share
   </div>
 </div>
@@ -157,14 +164,14 @@ body{overflow:hidden;background:#08060f;font-family:'Segoe UI',Tahoma,Geneva,Ver
 <!-- Level Select -->
 <div id="slv" class="scr hidden">
   <div class="sb" id="lst"></div>
-  <h3 style="color:#fff;font-weight:200;letter-spacing:4px;font-size:24px">SELECT ISLAND</h3>
+  <h3 style="color:#FFD700;font-weight:900;letter-spacing:4px;font-size:28px;font-family:'Comic Sans MS','Comic Sans',cursive;text-shadow:3px 3px 0 #CC4400,-1px -1px 0 #CC4400">🗺️ SELECT ISLAND 🗺️</h3>
   <div class="dv"></div>
   <div class="lg" id="lg"></div>
   <button class="btn s sm" onclick="goScreen('sm')">← BACK</button>
 </div>
 <!-- Settings -->
 <div id="sse" class="scr hidden">
-  <h3 style="color:#fff;font-weight:200;letter-spacing:4px;font-size:24px;margin-bottom:20px">SETTINGS</h3>
+  <h3 style="color:#FFD700;font-weight:900;letter-spacing:3px;font-size:26px;margin-bottom:20px;font-family:'Comic Sans MS','Comic Sans',cursive;text-shadow:3px 3px 0 #CC4400">⚙️ SETTINGS ⚙️</h3>
   <div class="sep">
     <div class="sr"><span class="sl">SOUND EFFECTS</span><div class="tg on" id="ts" onclick="toggleSet('sfx')"><div class="tgt"></div></div></div>
     <div class="sr"><span class="sl">MUSIC</span><div class="tg on" id="tm" onclick="toggleSet('music')"><div class="tgt"></div></div></div>
@@ -264,7 +271,7 @@ function createPlayerPhysBody(spawn) {
   if (playerBody) physWorld.removeBody(playerBody);
   playerBody = new CANNON.Body({ mass: 1, material: physWorld._pMat, linearDamping: 0, angularDamping: 1 });
   playerBody.addShape(new CANNON.Sphere(P_RADIUS));
-  playerBody.position.set(spawn.x, spawn.y + 1.5, spawn.z);
+  playerBody.position.set(spawn.x, spawn.y + 2, spawn.z);
   playerBody.allowSleep = false;
   physWorld.addBody(playerBody);
 }
@@ -933,7 +940,7 @@ function createPlayer(spawn) {
   const lb = new THREE.Mesh(blGeo,blMat); lb.position.set(-0.3,0.02,0.43);
   const rb = new THREE.Mesh(blGeo,blMat); rb.position.set(0.3,0.02,0.43);
   player.add(lb); player.add(rb);
-  player.position.set(spawn.x, spawn.y + 1, spawn.z);
+  player.position.set(spawn.x, spawn.y + 2, spawn.z);
   scene.add(player);
   vel = {x:0,y:0,z:0};
   onGround = false;
@@ -992,7 +999,7 @@ function makeFalafelNPC(x,y,z,happy=false) {
 // ── Bully model ───────────────────────────────────────────────────────
 function makeBully(x,y,z,boss=false) {
   const grp = new THREE.Group();
-  const col = boss ? 0x3a2010 : 0x2d1a0a;
+  const col = boss ? 0xCC2200 : 0xFF6B35;
   const body = new THREE.Mesh(
     new THREE.SphereGeometry(boss?0.7:0.55, 16,12),
     new THREE.MeshStandardMaterial({color:col, roughness:0.7})
@@ -1022,16 +1029,16 @@ function makeBully(x,y,z,boss=false) {
 // ── Portal ────────────────────────────────────────────────────────────
 function buildPortal(pd) {
   portalGroup = new THREE.Group();
-  const ringMat = new THREE.MeshStandardMaterial({color:0xFFD700, roughness:0.2, metalness:0.8, emissive:0xC09000, emissiveIntensity:0.5, transparent:true, opacity:0.85});
+  const ringMat = new THREE.MeshStandardMaterial({color:0xFFD700, roughness:0.2, metalness:0.8, emissive:0xC09000, emissiveIntensity:0.8, transparent:true, opacity:0.9});
   const ring = new THREE.Mesh(new THREE.TorusGeometry(1.4,0.18,16,48), ringMat);
   ring.castShadow = false;
   portalGroup.add(ring);
   // Inner disc
-  const discMat = new THREE.MeshStandardMaterial({color:0x60C0FF, transparent:true, opacity:0.25, side:THREE.DoubleSide, depthWrite:false});
+  const discMat = new THREE.MeshStandardMaterial({color:0x80D0FF, transparent:true, opacity:0.35, side:THREE.DoubleSide, depthWrite:false});
   const disc = new THREE.Mesh(new THREE.CircleGeometry(1.22,32), discMat);
   portalGroup.add(disc);
-  // Point light
-  const pl = new THREE.PointLight(0xFFD040, 0.5, 8);
+  // Point light — always visible
+  const pl = new THREE.PointLight(0xFFD040, 1.0, 10);
   portalGroup.add(pl);
   portalGroup.position.set(pd.x, pd.y + 1.8, pd.z);
   portalGroup.userData.ring = ring;
@@ -1348,6 +1355,7 @@ function runGameLogic() {
       const dx=px-f.x, dy=py-f.y, dz=pz-f.z;
       if (Math.sqrt(dx*dx+dy*dy+dz*dz) < CFG.SHARE_DIST) {
         f.happy=true; G.jarsHeld--; G.falafelsHappy++; G.score+=50;
+        f.group.userData.happyStart = Date.now();
         sfx('share'); emitParticles('share',f.x,f.y,f.z,14); showFloat('💛 Falafel is happy!');
         f.group.children.forEach(c => { if (c.material && c.geometry && c.geometry.type==='SphereGeometry' && c.geometry.parameters && c.geometry.parameters.radius > 0.3) c.material.color.setHex(0xE8C07A); });
         updateHUD();
@@ -1369,10 +1377,15 @@ function runGameLogic() {
     }
   });
 
-  // Portal entry
-  if (portalActive && portalGroup) {
+  // Portal entry — always accessible; bonus message if all falafels were saved
+  if (portalGroup) {
     const pp = portalGroup.position;
-    if (Math.sqrt((px-pp.x)**2+(pz-pp.z)**2)<1.4 && Math.abs(py-pp.y)<2.0) onIslandComplete();
+    const portalDist = Math.sqrt((px-pp.x)**2+(pz-pp.z)**2);
+    if (portalDist < 3.5 && Math.abs(py-pp.y) < 3.5 && !portalActive && G.falafelsTotal > 0 && G.falafelsHappy < G.falafelsTotal) {
+      const rem = G.falafelsTotal - G.falafelsHappy;
+      showMechHint(`🌀 Portal: Save ${rem} more ${rem === 1 ? 'falafel' : 'falafels'} for bonus! Or walk through to exit.`);
+    }
+    if (portalDist < 2.0 && Math.abs(py-pp.y) < 2.5) onIslandComplete();
   }
 }
 
@@ -1567,17 +1580,34 @@ function updateMechanics(t) {
     j.group.position.y = j.y + Math.sin(t*0.002+j.x)*0.12;
     if (j.group.userData.ring) j.group.userData.ring.rotation.z += 0.04;
   });
-  // Sad falafel bob
+  // Falafel animation (sad bob or happy bounce/glow)
   falafels.forEach(f => {
-    if (f.happy) return;
-    f.group.position.y = f.y + Math.sin(t*0.002+f.z)*0.08;
-  });
-  // Portal rotation
-  if (portalGroup) {
-    portalGroup.rotation.y += portalActive ? 0.04 : 0.018;
-    if (portalActive) {
-      portalGroup.userData.ring.material.emissiveIntensity = 0.5 + Math.sin(t*0.005)*0.4;
+    if (!f.happy) {
+      f.group.position.y = f.y + Math.sin(t*0.002+f.z)*0.08;
+      return;
     }
+    // Happy falafel: bounce then gentle float
+    const bs = f.group.userData.happyStart;
+    if (bs) {
+      const el = Date.now() - bs;
+      if (el < 2000) {
+        f.group.position.y = f.y + Math.abs(Math.sin(el*0.008))*0.65;
+        f.group.scale.setScalar(1 + Math.abs(Math.sin(el*0.008))*0.18);
+      } else {
+        f.group.userData.happyStart = null;
+        f.group.scale.setScalar(1.05);
+        f.group.position.y = f.y + Math.sin(t*0.003+f.z)*0.06;
+      }
+    } else {
+      f.group.position.y = f.y + Math.sin(t*0.003+f.z)*0.06;
+    }
+  });
+  // Portal rotation — always spinning and glowing
+  if (portalGroup) {
+    portalGroup.rotation.y += 0.03;
+    const pIntensity = portalActive ? (0.8 + Math.sin(t*0.005)*0.5) : (0.5 + Math.sin(t*0.004)*0.3);
+    portalGroup.userData.ring.material.emissiveIntensity = pIntensity;
+    portalGroup.userData.light.intensity = portalActive ? 2.0 : 1.0;
   }
   // Clouds drift
   scene.children.filter(c=>c.userData && c.userData.deco && c.userData.spd!==undefined).forEach(c => {
@@ -1938,6 +1968,19 @@ function buildMenuStars(containerId) {
   }
 }
 
+// ── Menu floating emoji ───────────────────────────────────────────────
+function buildMenuFloaters(containerId) {
+  const c=document.getElementById(containerId); if(!c) return;
+  const emojis=['🧆','⭐','💛','🌟','❤️','✨','🎉','🍯','🎊','💫'];
+  for(let i=0;i<14;i++){
+    const d=document.createElement('div'); d.className='menu-floater';
+    d.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    const sz=18+Math.random()*18;
+    d.style.cssText=`left:${Math.random()*96}%;top:${Math.random()*90}%;font-size:${sz}px;--fd:${3+Math.random()*4}s;--fdr:${Math.random()*3}s`;
+    c.appendChild(d);
+  }
+}
+
 // ── Animated logo ─────────────────────────────────────────────────────
 function animateLogo() {
   const cv=document.getElementById('mc'); if(!cv) return;
@@ -1981,12 +2024,15 @@ function animate() {
 window.addEventListener('load', () => {
   buildMenuStars('mst');
   buildMenuStars('lst');
+  buildMenuFloaters('mst');
   animateLogo();
   if(completed.length>0) document.getElementById('bcn').style.display='block';
   // Pre-init engine silently (no island load)
   initEngine();
-  // Build level grid when showing level select
-  // handled inside goScreen directly
+  // Auto-start cutscene on first visit (no click required)
+  if (!localStorage.getItem('fk20_cs')) {
+    setTimeout(() => { csPanel=0; G.pendingStart=true; initCutscene(); goScreen('sop'); }, 500);
+  }
 });
 </script>
 </body>
