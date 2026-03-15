@@ -5,48 +5,83 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Falafel Kingdom</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{overflow:hidden;background:#1a0a00;font-family:'Segoe UI',Arial,sans-serif;user-select:none}
+@font-face {
+  font-family: 'KenneyFuture';
+  src: url('models/ui/Font/Kenney Future.ttf') format('truetype');
+  font-display: swap;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'KenneyFuture','Segoe UI',Arial,sans-serif}
+body{overflow:hidden;background:#1a0a00;user-select:none}
 #c{display:block;width:100vw;height:100vh}
 #hud{
   position:fixed;top:12px;left:50%;transform:translateX(-50%);
   display:flex;gap:18px;align-items:center;
-  background:rgba(0,0,0,0.55);padding:8px 22px;border-radius:24px;
-  color:#fff;font-size:17px;font-weight:600;pointer-events:none;
+  background:rgba(0,0,0,0.65);padding:8px 22px;border-radius:24px;
+  color:#fff;font-size:14px;pointer-events:none;
   border:2px solid rgba(255,200,50,0.5);backdrop-filter:blur(4px);
   white-space:nowrap;
+  background-image:url('models/isometric/Spritesheet/platformerTiles_sheet.png');
+  background-size:200px auto;background-blend-mode:overlay;
 }
 .hi{display:flex;align-items:center;gap:5px}
-.hz{font-size:13px;color:#FFD700;font-weight:700}
+.hz{font-size:11px;color:#FFD700}
 #overlay{
   position:fixed;inset:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;z-index:100;
 }
-#menu-screen{background:linear-gradient(160deg,#FF8C00 0%,#C0392B 100%)}
-#pause-screen{background:rgba(10,5,30,0.85);display:none}
-#win-screen{background:linear-gradient(160deg,#FFD700 0%,#FF8C00 100%);display:none}
-.title{font-size:clamp(36px,8vw,80px);font-weight:900;color:#FFD700;
-  text-shadow:4px 4px 0 #8B2500,0 0 30px rgba(255,200,0,0.6);margin-bottom:8px;text-align:center}
-.sub{font-size:clamp(14px,3vw,22px);color:#FFF8DC;
-  text-shadow:2px 2px 0 rgba(0,0,0,0.5);margin-bottom:32px;text-align:center}
-.btn{
-  padding:14px 44px;font-size:22px;font-weight:800;
-  background:#FFD700;color:#8B2500;border:none;border-radius:50px;cursor:pointer;
-  box-shadow:0 6px 0 #B8600B,0 0 20px rgba(255,215,0,0.4);
-  transition:transform 0.1s,box-shadow 0.1s;margin:6px;
+#menu-screen{
+  background-color:#FF8C00;
+  background-image:url('models/isometric/Tilesheet/tilesheet_complete.png'),linear-gradient(160deg,#FF8C00 0%,#C0392B 100%);
+  background-size:600px auto,100% 100%;
+  background-blend-mode:overlay,normal;
 }
-.btn:hover{transform:translateY(-3px);box-shadow:0 9px 0 #B8600B,0 0 25px rgba(255,215,0,0.5)}
-.btn:active{transform:translateY(3px);box-shadow:0 3px 0 #B8600B}
-.btn-red{background:#E74C3C;color:#fff;box-shadow:0 6px 0 #922B21}
-.btn-red:hover{box-shadow:0 9px 0 #922B21}
+#pause-screen{background:rgba(10,5,30,0.88);display:none}
+#win-screen{
+  background-color:#FFD700;
+  background-image:url('models/isometric/Tilesheet/tilesheet_complete.png');
+  background-size:600px auto;background-blend-mode:overlay;display:none;
+}
+.title{
+  font-size:clamp(30px,7vw,70px);color:#FFD700;
+  text-shadow:4px 4px 0 #8B2500,0 0 30px rgba(255,200,0,0.6);
+  margin-bottom:8px;text-align:center;
+}
+.sub{
+  font-size:clamp(11px,2.5vw,18px);color:#FFF8DC;
+  text-shadow:2px 2px 0 rgba(0,0,0,0.5);margin-bottom:32px;text-align:center;
+}
+.btn{
+  background-image:url('models/ui/PNG/Yellow/Default/button_rectangle_depth_flat.png');
+  background-size:100% 100%;background-color:transparent;
+  border:none;color:#5a2800;
+  padding:18px 50px;font-size:17px;
+  cursor:pointer;min-width:240px;min-height:68px;
+  image-rendering:pixelated;
+  transition:transform 0.1s,filter 0.1s;margin:6px;
+  text-shadow:1px 1px 0 rgba(255,255,255,0.25);
+}
+.btn:hover{filter:brightness(1.1);transform:scale(1.04)}
+.btn:active{filter:brightness(0.9);transform:scale(0.97)}
+.btn-red{
+  background-image:url('models/ui/PNG/Red/Default/button_rectangle_depth_flat.png');
+  color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,0.4);
+}
+.btn-blue{
+  background-image:url('models/ui/PNG/Blue/Default/button_rectangle_depth_flat.png');
+  color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,0.4);
+}
+.btn-green{
+  background-image:url('models/ui/PNG/Green/Default/button_rectangle_depth_flat.png');
+  color:#fff;text-shadow:1px 1px 0 rgba(0,0,0,0.4);
+}
 .ctrl{
-  margin-top:24px;color:#FFF8DC;font-size:14px;text-align:center;
-  background:rgba(0,0,0,0.35);padding:14px 28px;border-radius:12px;line-height:1.8;
+  margin-top:24px;color:#FFF8DC;font-size:11px;text-align:center;
+  background:rgba(0,0,0,0.45);padding:14px 28px;border-radius:12px;line-height:2;
 }
 #msg{
   position:fixed;top:72px;left:50%;transform:translateX(-50%);
-  background:rgba(0,0,0,0.85);color:#fff;padding:10px 22px;
-  border-radius:18px;font-size:17px;font-weight:700;
+  background:rgba(0,0,0,0.88);color:#fff;padding:10px 22px;
+  border-radius:18px;font-size:14px;
   border:2px solid #FFD700;pointer-events:none;
   display:none;z-index:50;white-space:nowrap;
 }
@@ -56,8 +91,8 @@ body{overflow:hidden;background:#1a0a00;font-family:'Segoe UI',Arial,sans-serif;
 }
 #iprompt{
   position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
-  background:rgba(0,0,0,0.8);color:#FFD700;padding:9px 20px;
-  border-radius:14px;font-size:16px;font-weight:700;
+  background:rgba(0,0,0,0.82);color:#FFD700;padding:9px 20px;
+  border-radius:14px;font-size:13px;
   border:2px solid #FFD700;pointer-events:none;
   display:none;z-index:50;
 }
@@ -82,13 +117,13 @@ body{overflow:hidden;background:#1a0a00;font-family:'Segoe UI',Arial,sans-serif;
   </div>
   <div id="pause-screen" style="position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center">
     <div class="title" style="color:#fff">PAUSED</div>
-    <button class="btn" id="resumeBtn">&#x25B6; RESUME</button>
+    <button class="btn btn-blue" id="resumeBtn">&#x25B6; RESUME</button>
     <button class="btn btn-red" id="menuBtn" style="margin-top:8px">&#x1F3E0; MENU</button>
   </div>
   <div id="win-screen" style="position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center">
     <div class="title">&#x1F389; YOU DID IT! &#x1F389;</div>
     <div class="sub">All 21 Falafels are happy!<br>The Falafel Kingdom overflows with kindness!</div>
-    <button class="btn" id="againBtn">&#x1F504; PLAY AGAIN</button>
+    <button class="btn btn-green" id="againBtn">&#x1F504; PLAY AGAIN</button>
   </div>
 </div>
 <div id="msg"></div>
@@ -100,14 +135,73 @@ body{overflow:hidden;background:#1a0a00;font-family:'Segoe UI',Arial,sans-serif;
   <div id="btn-l" style="position:absolute;top:77px;left:8px;width:55px;height:55px;background:rgba(255,255,255,0.12);border:2px solid rgba(255,255,255,0.3);border-radius:10px;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;user-select:none">◀</div>
   <div id="btn-r" style="position:absolute;top:77px;left:118px;width:55px;height:55px;background:rgba(255,255,255,0.12);border:2px solid rgba(255,255,255,0.3);border-radius:10px;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;user-select:none">▶</div>
 </div>
-<div id="btn-j" style="position:fixed;bottom:30px;right:20px;width:70px;height:70px;border-radius:50%;background:rgba(255,215,0,0.25);border:3px solid rgba(255,215,0,0.6);color:#FFD700;font-size:22px;display:none;align-items:center;justify-content:center;z-index:30;user-select:none">JUMP</div>
-<div id="btn-e" style="position:fixed;bottom:30px;right:100px;width:70px;height:70px;border-radius:50%;background:rgba(0,200,100,0.25);border:3px solid rgba(0,200,100,0.6);color:#00FF88;font-size:14px;display:none;align-items:center;justify-content:center;z-index:30;user-select:none;font-weight:700">GIVE</div>
+<div id="btn-j" style="position:fixed;bottom:30px;right:20px;width:70px;height:70px;border-radius:50%;background:rgba(255,215,0,0.25);border:3px solid rgba(255,215,0,0.6);color:#FFD700;font-size:18px;display:none;align-items:center;justify-content:center;z-index:30;user-select:none">JUMP</div>
+<div id="btn-e" style="position:fixed;bottom:30px;right:100px;width:70px;height:70px;border-radius:50%;background:rgba(0,200,100,0.25);border:3px solid rgba(0,200,100,0.6);color:#00FF88;font-size:12px;display:none;align-items:center;justify-content:center;z-index:30;user-select:none;font-weight:700">GIVE</div>
 
 <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script>
 // =============================================================
 //  FALAFEL KINGDOM  -  Complete Single-File Platformer
 // =============================================================
+
+// ── UI Sounds ─────────────────────────────────────────────────
+const uiSounds = {};
+['click-a','tap-a','switch-a'].forEach(name => {
+  try {
+    const audio = new Audio('models/ui/Sounds/' + name + '.ogg');
+    audio.volume = 0.4;
+    audio.addEventListener('error', () => { uiSounds[name] = null; });
+    uiSounds[name] = audio;
+  } catch(e) { uiSounds[name] = null; }
+});
+function playUISound(name) {
+  const a = uiSounds[name];
+  if (!a) return;
+  a.currentTime = 0;
+  a.play().catch(() => {});
+}
+// Wire button clicks to sound
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', () => playUISound('click-a'));
+  });
+});
+
+// ── GLB Asset Loader ──────────────────────────────────────────
+const modelCache = {};
+let _gltfLoader = null;
+function getGLTFLoader() {
+  if (!_gltfLoader && typeof THREE !== 'undefined' && THREE.GLTFLoader) {
+    _gltfLoader = new THREE.GLTFLoader();
+  }
+  return _gltfLoader;
+}
+function loadGLB(path, onLoad, scale) {
+  if (scale === undefined) scale = 1;
+  const loader = getGLTFLoader();
+  if (!loader) { console.warn('GLTFLoader unavailable — skipping:', path); return; }
+  if (modelCache[path]) {
+    const clone = modelCache[path].clone();
+    clone.scale.setScalar(scale);
+    onLoad(clone);
+    return;
+  }
+  loader.load(path, function(gltf) {
+    gltf.scene.traverse(function(child) {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+    modelCache[path] = gltf.scene;
+    const clone = gltf.scene.clone();
+    clone.scale.setScalar(scale);
+    onLoad(clone);
+  }, undefined, function(err) {
+    console.warn('GLB load failed:', path, err && (err.message || err));
+  });
+}
 
 // ── Renderer ──────────────────────────────────────────────────
 const canvas = document.getElementById('c');
@@ -149,7 +243,8 @@ scene.add(fill);
 // ── Audio ─────────────────────────────────────────────────────
 let actx = null;
 function ac(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();return actx;}
-function beep(f1,f2,dur,type='sine',vol=0.25){
+function beep(f1,f2,dur,type,vol){
+  if(!type)type='sine'; if(!vol)vol=0.25;
   try{
     const c=ac(),o=c.createOscillator(),g=c.createGain();
     o.connect(g);g.connect(c.destination);
@@ -161,39 +256,36 @@ function beep(f1,f2,dur,type='sine',vol=0.25){
     o.start();o.stop(c.currentTime+dur);
   }catch(e){}
 }
-function chord(fs,dur,vol=0.18){fs.forEach(f=>beep(f,f,dur,'sine',vol));}
-
-// Each multi-note SFX stores its timeout IDs so rapid calls don't stack up.
 let _sfxIds={};
 function seqBeeps(key,notes,gap){
-  (_sfxIds[key]||[]).forEach(id=>clearTimeout(id));
-  _sfxIds[key]=notes.map(([f1,f2,d,v],i)=>setTimeout(()=>beep(f1,f2,d,'sine',v),i*gap));
+  (_sfxIds[key]||[]).forEach(function(id){clearTimeout(id);});
+  _sfxIds[key]=notes.map(function(n,i){return setTimeout(function(){beep(n[0],n[1],n[2],'sine',n[3]);},i*gap);});
 }
 const SFX={
-  pickup:()=>beep(440,880,0.15,'sine',0.22),
-  happy:()=>seqBeeps('happy',[[261.6,261.6,0.25,0.18],[329.6,329.6,0.25,0.18],[392,392,0.25,0.18],[493.9,587.3,0.3,0.15]],120),
-  jump:()=>beep(220,420,0.1,'square',0.12),
-  hurt:()=>beep(180,80,0.25,'sawtooth',0.2),
-  bridge:()=>seqBeeps('bridge',[[261.6,313.9,0.2,0.2],[329.6,395.5,0.2,0.2],[392,470.4,0.2,0.2],[523.3,628,0.2,0.2]],110),
-  boss:()=>seqBeeps('boss',[[261.6,261.6,0.25,0.22],[329.6,329.6,0.25,0.22],[392,392,0.25,0.22],[523.3,523.3,0.25,0.22],[659.3,659.3,0.25,0.22],[783.9,783.9,0.3,0.25]],130),
-  checkpoint:()=>beep(880,1046.5,0.25,'sine',0.18),
-  victory:()=>seqBeeps('victory',[[523.3,523.3,0.2,0.25],[659.3,659.3,0.2,0.25],[783.9,783.9,0.2,0.25],[1046.5,1046.5,0.2,0.28],[783.9,783.9,0.15,0.22],[1046.5,1046.5,0.2,0.28],[1318.5,1318.5,0.35,0.3]],150),
+  pickup:function(){beep(440,880,0.15,'sine',0.22);},
+  happy:function(){seqBeeps('happy',[[261.6,261.6,0.25,0.18],[329.6,329.6,0.25,0.18],[392,392,0.25,0.18],[493.9,587.3,0.3,0.15]],120);},
+  jump:function(){beep(220,420,0.1,'square',0.12);},
+  hurt:function(){beep(180,80,0.25,'sawtooth',0.2);},
+  bridge:function(){seqBeeps('bridge',[[261.6,313.9,0.2,0.2],[329.6,395.5,0.2,0.2],[392,470.4,0.2,0.2],[523.3,628,0.2,0.2]],110);},
+  boss:function(){seqBeeps('boss',[[261.6,261.6,0.25,0.22],[329.6,329.6,0.25,0.22],[392,392,0.25,0.22],[523.3,523.3,0.25,0.22],[659.3,659.3,0.25,0.22],[783.9,783.9,0.3,0.25]],130);},
+  checkpoint:function(){beep(880,1046.5,0.25,'sine',0.18);},
+  victory:function(){seqBeeps('victory',[[523.3,523.3,0.2,0.25],[659.3,659.3,0.2,0.25],[783.9,783.9,0.2,0.25],[1046.5,1046.5,0.2,0.28],[783.9,783.9,0.15,0.22],[1046.5,1046.5,0.2,0.28],[1318.5,1318.5,0.35,0.3]],150);},
 };
 
 // ── Input ─────────────────────────────────────────────────────
 const keys={};
 let jumpBuf=0, eBuf=false;
-document.addEventListener('keydown',e=>{
+document.addEventListener('keydown',function(e){
   if(!keys[e.code]&&e.code==='Space') jumpBuf=0.12;
   if(!keys[e.code]&&e.code==='KeyE') eBuf=true;
   keys[e.code]=true;
-  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
+  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].indexOf(e.code)>-1) e.preventDefault();
   if(e.code==='Escape'){
     if(gs===GS.PLAY) pauseGame();
     else if(gs===GS.PAUSE) resumeGame();
   }
 });
-document.addEventListener('keyup',e=>{keys[e.code]=false;});
+document.addEventListener('keyup',function(e){keys[e.code]=false;});
 
 // ── Mobile touch controls ─────────────────────────────────────
 (function(){
@@ -203,14 +295,14 @@ document.addEventListener('keyup',e=>{keys[e.code]=false;});
   document.getElementById('btn-j').style.display='flex';
   document.getElementById('btn-e').style.display='flex';
   function td(el,k){
-    el.addEventListener('touchstart',e=>{e.preventDefault();keys[k]=true;},{ passive:false });
-    el.addEventListener('touchend',  e=>{e.preventDefault();keys[k]=false;},{ passive:false });
+    el.addEventListener('touchstart',function(e){e.preventDefault();keys[k]=true;},{passive:false});
+    el.addEventListener('touchend',function(e){e.preventDefault();keys[k]=false;},{passive:false});
   }
   td(document.getElementById('btn-u'),'ArrowUp');
   td(document.getElementById('btn-l'),'ArrowLeft');
   td(document.getElementById('btn-r'),'ArrowRight');
-  document.getElementById('btn-j').addEventListener('touchstart',e=>{e.preventDefault();jumpBuf=0.12;},{ passive:false });
-  document.getElementById('btn-e').addEventListener('touchstart',e=>{e.preventDefault();eBuf=true;},{ passive:false });
+  document.getElementById('btn-j').addEventListener('touchstart',function(e){e.preventDefault();jumpBuf=0.12;},{passive:false});
+  document.getElementById('btn-e').addEventListener('touchstart',function(e){e.preventDefault();eBuf=true;},{passive:false});
 })();
 
 // ── Game State ────────────────────────────────────────────────
@@ -240,8 +332,7 @@ const P={
 
 // ── Helpers ───────────────────────────────────────────────────
 function lerp(a,b,t){return a+(b-a)*Math.min(1,t);}
-function dist2(ax,ay,bx,by){const dx=ax-bx,dy=ay-by;return Math.sqrt(dx*dx+dy*dy);}
-function dist3(a,b){const dx=a.x-b.x,dy=a.y-b.y,dz=(a.z||0)-(b.z||0);return Math.sqrt(dx*dx+dy*dy+dz*dz);}
+function dist2(ax,ay,bx,by){var dx=ax-bx,dy=ay-by;return Math.sqrt(dx*dx+dy*dy);}
 
 // ── Materials ─────────────────────────────────────────────────
 const MATS={
@@ -273,124 +364,79 @@ function platMats(key){
 // =============================================================
 //  LEVEL DATA
 // =============================================================
-// Platforms: x=left-edge, y=center-y, w,h,d, type, mat
-// type: static | moving_h | moving_v | crumble | ice
 const PLAT_DEFS=[
 // ── ZONE 1: Falafel Village ───────────────────────────────────
-  // Ground
   {x:  0,y:-1,z:0,w:22,h:2,d:6,type:'static',mat:'grass'},
-  // gap 22-26
   {x: 26,y:-1,z:0,w:18,h:2,d:6,type:'static',mat:'grass'},
-  // Stepped up for falafel 2 zone
-  {x: 36,y: 5,z:0,w:18,h:1,d:4,type:'static',mat:'grass'}, // platform y=6
-  {x: 44,y: 2,z:0,w: 8,h:1,d:4,type:'static',mat:'grass'}, // step
-  // gap 44-50
+  {x: 36,y: 5,z:0,w:18,h:1,d:4,type:'static',mat:'grass'},
+  {x: 44,y: 2,z:0,w: 8,h:1,d:4,type:'static',mat:'grass'},
   {x: 50,y:-1,z:0,w:22,h:2,d:6,type:'static',mat:'grass'},
-  // elevated section for falafel 2 approach
   {x: 72,y:-1,z:0,w:20,h:2,d:6,type:'static',mat:'grass'},
-  {x: 74,y: 5,z:0,w:18,h:1,d:4,type:'static',mat:'grass'}, // falafel2 y=8 → platform at y=6
-  {x: 74,y: 8,z:0,w:16,h:1,d:4,type:'static',mat:'grass'}, // platform top = 8.5
-  // gap 92-96
+  {x: 74,y: 5,z:0,w:18,h:1,d:4,type:'static',mat:'grass'},
+  {x: 74,y: 8,z:0,w:16,h:1,d:4,type:'static',mat:'grass'},
   {x: 92,y:-1,z:0,w:30,h:2,d:6,type:'static',mat:'grass'},
-  // checkpoint 100 area
   {x:122,y:-1,z:0,w:20,h:2,d:6,type:'static',mat:'grass'},
-  // falafel 3 at x=130, y=4 → platform at y=2.5
   {x:142,y:-1,z:0,w:22,h:2,d:6,type:'static',mat:'grass'},
-  // gap 164-168
   {x:168,y:-1,z:0,w:16,h:2,d:6,type:'static',mat:'grass'},
-  // High platform for falafel 4 at x=175, y=12
   {x:160,y: 4,z:0,w:10,h:1,d:4,type:'static',mat:'grass'},
   {x:163,y: 9,z:0,w:12,h:1,d:4,type:'static',mat:'grass'},
-  // End zone1
   {x:184,y:-1,z:0,w:18,h:2,d:6,type:'static',mat:'grass'},
-
 // ── ZONE 2: Kindness Forest ───────────────────────────────────
   {x:202,y:-1,z:0,w:20,h:2,d:6,type:'static',mat:'forest'},
-  // falafel 5 at x=220, y=3
   {x:222,y:-1,z:0,w:10,h:2,d:6,type:'static',mat:'forest'},
-  // SPIKES at 232-238 (hazard, no platform)
   {x:238,y:-1,z:0,w:18,h:2,d:6,type:'static',mat:'forest'},
-  // moving platform zone — falafel 6 at x=255, y=10
-  {x:255,y: 9,z:0,w:14,h:1,d:4,type:'static',mat:'forest'},   // falafel6 platform top=9.5
+  {x:255,y: 9,z:0,w:14,h:1,d:4,type:'static',mat:'forest'},
   {x:248,y: 4,z:0,w: 8,h:1,d:4,type:'moving_h',spd:2.5,range:12,phase:0,mat:'forest'},
   {x:255,y:-1,z:0,w:20,h:2,d:6,type:'static',mat:'forest'},
-  // falafel 7 at x=290, y=6
   {x:274,y:-1,z:0,w:20,h:2,d:6,type:'static',mat:'forest'},
-  {x:280,y: 5,z:0,w:16,h:1,d:4,type:'static',mat:'forest'}, // falafel7 top=5.5
-  // LAVA PIT 294-310 → bridge_lava1 spans it
+  {x:280,y: 5,z:0,w:16,h:1,d:4,type:'static',mat:'forest'},
   {x:310,y:-1,z:0,w:14,h:2,d:6,type:'static',mat:'forest'},
-  // falafel 8 at x=320, y=15 — high up
   {x:316,y: 5,z:0,w: 8,h:1,d:4,type:'static',mat:'forest'},
-  {x:314,y:11,z:0,w:12,h:1,d:4,type:'static',mat:'forest'}, // falafel8 top=11.5
-  // falafel 9 at x=350, y=8
+  {x:314,y:11,z:0,w:12,h:1,d:4,type:'static',mat:'forest'},
   {x:324,y:-1,z:0,w:22,h:2,d:6,type:'static',mat:'forest'},
-  {x:340,y: 5,z:0,w:16,h:1,d:4,type:'static',mat:'forest'}, // falafel9 top=5.5 → y approx 6
-  // gap+spikes 346-352
+  {x:340,y: 5,z:0,w:16,h:1,d:4,type:'static',mat:'forest'},
   {x:352,y:-1,z:0,w:16,h:2,d:6,type:'static',mat:'forest'},
-  // falafel 10 at x=370, y=4 (tucked in side path)
   {x:366,y:-1,z:0,w:20,h:2,d:6,type:'static',mat:'forest'},
-  // vertical moving platform for falafel 11 at x=400, y=18
   {x:382,y:-1,z:0,w:12,h:2,d:6,type:'static',mat:'forest'},
   {x:388,y: 6,z:0,w: 7,h:1,d:4,type:'moving_v',spd:2.2,range:14,phase:0,mat:'forest'},
-  {x:392,y:17,z:0,w:12,h:1,d:4,type:'static',mat:'forest'}, // falafel11 top=17.5
-  // main ground continues — mini-boss1 area
+  {x:392,y:17,z:0,w:12,h:1,d:4,type:'static',mat:'forest'},
   {x:394,y:-1,z:0,w:28,h:2,d:6,type:'static',mat:'forest'},
-  // falafel 12 at x=430, y=6
   {x:422,y:-1,z:0,w:24,h:2,d:6,type:'static',mat:'forest'},
-  {x:424,y: 5,z:0,w:14,h:1,d:4,type:'static',mat:'forest'}, // falafel12 top=5.5
-  // LAVA PIT 446-462 → bridge_lava2
+  {x:424,y: 5,z:0,w:14,h:1,d:4,type:'static',mat:'forest'},
   {x:462,y:-1,z:0,w:18,h:2,d:6,type:'static',mat:'forest'},
-  // falafel 13 at x=460, y=10
   {x:456,y: 7,z:0,w:12,h:1,d:4,type:'static',mat:'forest'},
-  // falafel 14 at x=490, y=5
   {x:480,y:-1,z:0,w:22,h:2,d:6,type:'static',mat:'forest'},
-  {x:482,y: 4,z:0,w:14,h:1,d:4,type:'static',mat:'forest'}, // falafel14 top=4.5
-
+  {x:482,y: 4,z:0,w:14,h:1,d:4,type:'static',mat:'forest'},
 // ── ZONE 3: Aurora Peak ───────────────────────────────────────
   {x:502,y:-1,z:0,w:14,h:2,d:6,type:'static',mat:'ice'},
-  // ice platforms
   {x:516,y:-1,z:0,w: 7,h:1,d:4,type:'ice',mat:'ice'},
-  // gap 523-528
   {x:528,y:-1,z:0,w: 8,h:1,d:4,type:'ice',mat:'ice'},
-  // falafel 15 at x=525, y=6 — raised ice
   {x:522,y: 5,z:0,w:10,h:1,d:4,type:'ice',mat:'ice'},
-  // crumble run
   {x:536,y:-1,z:0,w: 5,h:1,d:4,type:'crumble',mat:'crumble'},
   {x:542,y:-1,z:0,w: 5,h:1,d:4,type:'crumble',mat:'crumble'},
   {x:548,y:-1,z:0,w: 6,h:1,d:4,type:'static',mat:'ice'},
-  // falafel 16 at x=560, y=12 — climb
   {x:553,y: 4,z:0,w: 6,h:1,d:4,type:'crumble',mat:'crumble'},
   {x:556,y: 9,z:0,w: 9,h:1,d:4,type:'static',mat:'ice'},
-  // falafel 17 at x=595, y=8
   {x:554,y:-1,z:0,w:26,h:2,d:6,type:'static',mat:'ice'},
-  {x:580,y: 7,z:0,w:18,h:1,d:4,type:'static',mat:'ice'}, // falafel17 top=7.5
-  // ICE PIT 598-614 → bridge_ice
+  {x:580,y: 7,z:0,w:18,h:1,d:4,type:'static',mat:'ice'},
   {x:614,y:-1,z:0,w:14,h:2,d:6,type:'static',mat:'ice'},
-  // falafel 18 at x=620, y=20 — very high
   {x:616,y: 4,z:0,w: 6,h:1,d:3,type:'crumble',mat:'crumble'},
   {x:618,y: 9,z:0,w: 6,h:1,d:3,type:'static',mat:'ice'},
-  {x:616,y:15,z:0,w: 9,h:1,d:4,type:'static',mat:'ice'}, // falafel18 top=15.5→y≈16
-  // continue
+  {x:616,y:15,z:0,w: 9,h:1,d:4,type:'static',mat:'ice'},
   {x:622,y:-1,z:0,w:22,h:2,d:6,type:'static',mat:'ice'},
-  // falafel 19 at x=650, y=6
   {x:642,y:-1,z:0,w:22,h:2,d:6,type:'static',mat:'ice'},
   {x:644,y: 5,z:0,w:14,h:1,d:4,type:'ice',mat:'ice'},
-  // crumble gauntlet
   {x:664,y:-1,z:0,w: 4,h:1,d:4,type:'crumble',mat:'crumble'},
   {x:669,y:-1,z:0,w: 4,h:1,d:4,type:'crumble',mat:'crumble'},
   {x:674,y:-1,z:0,w: 4,h:1,d:4,type:'crumble',mat:'crumble'},
   {x:678,y:-1,z:0,w:10,h:2,d:6,type:'static',mat:'ice'},
-  // falafel 20 at x=690, y=15 — hidden high
   {x:685,y:-1,z:0,w:14,h:2,d:6,type:'static',mat:'ice'},
   {x:686,y: 5,z:0,w: 7,h:1,d:4,type:'static',mat:'ice'},
   {x:686,y:11,z:0,w: 9,h:1,d:4,type:'static',mat:'ice'},
-  // Final approach + boss area
   {x:694,y:-1,z:0,w:60,h:2,d:8,type:'static',mat:'ice'},
-  // Victory platform
   {x:747,y:-1,z:0,w:18,h:2,d:8,type:'static',mat:'special'},
 ];
 
-// Hazards
 const HAZ_DEFS=[
   {type:'spike',x:232,y:-0.5,z:0,w:6},
   {type:'spike',x:346,y:-0.5,z:0,w:6},
@@ -400,14 +446,12 @@ const HAZ_DEFS=[
   {type:'lava', x:598,y:-2.2,z:0,w:16},
 ];
 
-// Checkpoints
 const CP_DEFS=[
   {x:50, y:1},{x:100,y:1},{x:155,y:1},
   {x:240,y:1},{x:305,y:1},{x:385,y:1},{x:455,y:1},
   {x:542,y:1},{x:625,y:1},{x:702,y:1},
 ];
 
-// Falafels
 const FAL_DEFS=[
   {id:1, x:30, y:2,  cost:1,zone:1},
   {id:2, x:82, y:10, cost:1,zone:1},
@@ -432,24 +476,20 @@ const FAL_DEFS=[
   {id:21,x:731,y:3,  cost:1,zone:3},
 ];
 
-// Bosses
 const BOSS_DEFS=[
-  {id:'mb1',x:228,y:2,type:'mini',need:10,label:'Need 10 🫙 hummus to pass!'},
-  {id:'mb2',x:416,y:2,type:'mini',need:10,label:'Need 10 🫙 hummus to pass!'},
-  {id:'final',x:722,y:3,type:'final',need:15,label:'FINAL BOSS: Need 15 🫙 hummus!'},
+  {id:'mb1',x:228,y:2,type:'mini',need:10,label:'Need 10 \uD83E\uDED9 hummus to pass!'},
+  {id:'mb2',x:416,y:2,type:'mini',need:10,label:'Need 10 \uD83E\uDED9 hummus to pass!'},
+  {id:'final',x:722,y:3,type:'final',need:15,label:'FINAL BOSS: Need 15 \uD83E\uDED9 hummus!'},
 ];
 
-// Bridges
 const BRIDGE_DEFS={
   bridge_lava1:{x:294,y:-0.5,w:16,h:0.7,d:6},
   bridge_lava2:{x:446,y:-0.5,w:16,h:0.7,d:6},
   bridge_ice:  {x:598,y:-0.5,w:16,h:0.7,d:6},
 };
 
-// Hummus positions — 150 total
 function makeHummus(){
   const pos=[];
-  // Zone 1 ~40
   const z1=[
     [8,2],[12,2],[16,2],[19,2],
     [28,2],[32,2],[35,2],
@@ -464,8 +504,7 @@ function makeHummus(){
     [160,5],[164,5],[167,5],
     [164,10],[168,10],[172,10],
   ];
-  z1.forEach(([x,y])=>pos.push({x,y:y+0.6,z:0}));
-  // Zone 2 ~70
+  z1.forEach(function(p){pos.push({x:p[0],y:p[1]+0.6,z:0});});
   const z2=[
     [203,2],[207,2],[211,2],[215,2],[219,2],
     [224,2],[228,2],
@@ -492,8 +531,7 @@ function makeHummus(){
     [483,2],[487,2],[491,2],[495,2],
     [484,5],[488,5],
   ];
-  z2.forEach(([x,y])=>pos.push({x,y:y+0.6,z:0}));
-  // Zone 3 ~40
+  z2.forEach(function(p){pos.push({x:p[0],y:p[1]+0.6,z:0});});
   const z3=[
     [503,2],[507,2],[511,2],[515,2],
     [517,2],[521,2],[525,2],[529,2],
@@ -514,7 +552,7 @@ function makeHummus(){
     [695,2],[699,2],[703,2],[707,2],[711,2],
     [715,2],[719,2],[725,2],[729,2],[733,2],
   ];
-  z3.forEach(([x,y])=>pos.push({x,y:y+0.6,z:0}));
+  z3.forEach(function(p){pos.push({x:p[0],y:p[1]+0.6,z:0});});
   return pos;
 }
 
@@ -529,13 +567,14 @@ const jars=[];
 const bosses=[];
 const bridges={};
 const particles=[];
+const spinningMeshes=[];
 let skyBgMat=null;
 
 // =============================================================
 //  BUILD WORLD
 // =============================================================
 function buildPlatforms(){
-  PLAT_DEFS.forEach(d=>{
+  PLAT_DEFS.forEach(function(d){
     const geo=new THREE.BoxGeometry(d.w,d.h,d.d);
     const mats=platMats(d.type==='ice'?'ice':d.mat);
     const mesh=new THREE.Mesh(geo,mats);
@@ -543,9 +582,11 @@ function buildPlatforms(){
     mesh.position.set(cx,d.y,d.z||0);
     mesh.receiveShadow=true;
     scene.add(mesh);
-    platforms.push({
-      ...d,
-      mesh,cx,cy:d.y,
+    const plat={
+      x:d.x,y:d.y,z:d.z||0,w:d.w,h:d.h,d:d.d,
+      type:d.type,mat:d.mat,
+      spd:d.spd||0,range:d.range||0,phase:d.phase||0,
+      mesh:mesh,cx:cx,cy:d.y,
       minX:d.x,maxX:d.x+d.w,
       minY:d.y-d.h/2,maxY:d.y+d.h/2,
       topY:d.y+d.h/2,
@@ -553,32 +594,84 @@ function buildPlatforms(){
       moveOffset:0,moveDir:1,
       crumbling:false,crumTimer:1.2,fallen:false,respTimer:0,
       active:true,
-    });
+    };
+    platforms.push(plat);
+    addPlatformGLBs(d, plat);
   });
 }
 
+function addPlatformGLBs(d, plat){
+  var glbPath;
+  var topY=d.y+d.h/2;
+  var cx=d.x+d.w/2;
+
+  if(d.type==='crumble'||d.mat==='crumble'||d.mat==='special'||d.mat==='bridge') return;
+
+  if(d.type==='moving_h'||d.type==='moving_v'){
+    var mvPath=d.mat==='ice'?'models/platformer/block-moving-blue.glb':'models/platformer/block-moving.glb';
+    loadGLB(mvPath,function(model){
+      model.position.set(0,d.h/2,0);
+      var sc=Math.min(d.w/2.0,2.5);
+      model.scale.setScalar(sc);
+      plat.mesh.add(model);
+    });
+    return;
+  }
+
+  if(d.type==='ice'||d.mat==='ice'){
+    glbPath=d.w>=8?'models/platformer/block-snow-large.glb':'models/platformer/block-snow.glb';
+  } else if(d.mat==='forest'){
+    glbPath=d.w>=12?'models/platformer/block-grass-large.glb':'models/platformer/block-grass.glb';
+  } else {
+    glbPath=d.w>=12?'models/platformer/block-grass-large.glb':'models/platformer/block-grass.glb';
+  }
+
+  var blockSize=2.0;
+  var count=Math.max(1,Math.min(5,Math.round(d.w/blockSize)));
+  var stepW=d.w/count;
+  for(var i=0;i<count;i++){
+    (function(idx){
+      var bx=d.x+(idx+0.5)*stepW;
+      loadGLB(glbPath,function(model){
+        model.position.set(bx,topY,d.z||0);
+        model.scale.setScalar(stepW/2.0);
+        scene.add(model);
+      });
+    })(i);
+  }
+}
+
 function buildHazards(){
-  HAZ_DEFS.forEach(d=>{
-    const group=new THREE.Group();
+  HAZ_DEFS.forEach(function(d){
+    var group=new THREE.Group();
     if(d.type==='spike'){
-      const n=Math.floor(d.w/0.85);
-      for(let i=0;i<n;i++){
-        const sg=new THREE.ConeGeometry(0.32,1.0,6);
-        const sm=new THREE.MeshLambertMaterial({color:0xCC1100});
-        const s=new THREE.Mesh(sg,sm);
+      var fallbackGrp=new THREE.Group();
+      var n=Math.floor(d.w/0.85);
+      for(var i=0;i<n;i++){
+        var sg=new THREE.ConeGeometry(0.32,1.0,6);
+        var sm=new THREE.MeshLambertMaterial({color:0xCC1100});
+        var s=new THREE.Mesh(sg,sm);
         s.position.set(i*0.85-d.w/2+0.42,0.5,0);
-        group.add(s);
+        fallbackGrp.add(s);
       }
+      group.add(fallbackGrp);
+      (function(fg,dw){
+        loadGLB('models/platformer/trap-spikes.glb',function(model){
+          model.scale.set(dw/3.0,1.0,1.0);
+          model.position.set(0,0.5,0);
+          group.add(model);
+          fg.visible=false;
+        });
+      })(fallbackGrp,d.w);
     } else {
-      const geo=new THREE.PlaneGeometry(d.w,7);
-      const mat=new THREE.MeshLambertMaterial({color:0xFF3300,emissive:new THREE.Color(0.4,0.05,0),transparent:true,opacity:0.88,side:THREE.DoubleSide});
-      const m=new THREE.Mesh(geo,mat);
+      var geo=new THREE.PlaneGeometry(d.w,7);
+      var mat=new THREE.MeshLambertMaterial({color:0xFF3300,emissive:new THREE.Color(0.4,0.05,0),transparent:true,opacity:0.88,side:THREE.DoubleSide});
+      var m=new THREE.Mesh(geo,mat);
       m.rotation.x=-Math.PI/2;
       group.add(m);
-      // glow ring effect
-      const geo2=new THREE.PlaneGeometry(d.w,7);
-      const mat2=new THREE.MeshBasicMaterial({color:0xFF6600,transparent:true,opacity:0.3,side:THREE.DoubleSide});
-      const m2=new THREE.Mesh(geo2,mat2);
+      var geo2=new THREE.PlaneGeometry(d.w,7);
+      var mat2=new THREE.MeshBasicMaterial({color:0xFF6600,transparent:true,opacity:0.3,side:THREE.DoubleSide});
+      var m2=new THREE.Mesh(geo2,mat2);
       m2.rotation.x=-Math.PI/2;
       m2.position.y=0.05;
       group.add(m2);
@@ -586,7 +679,8 @@ function buildHazards(){
     group.position.set(d.x+d.w/2,d.y,d.z||0);
     scene.add(group);
     hazards.push({
-      ...d,mesh:group,
+      type:d.type,x:d.x,y:d.y,z:d.z||0,w:d.w,
+      mesh:group,
       minX:d.x,maxX:d.x+d.w,
       minY:d.y-0.4,maxY:d.y+(d.type==='spike'?1.3:0.4),
     });
@@ -594,67 +688,109 @@ function buildHazards(){
 }
 
 function buildCheckpoints(){
-  CP_DEFS.forEach((d,i)=>{
-    const g=new THREE.Group();
-    const sg=new THREE.SphereGeometry(0.55,14,10);
-    const sm=new THREE.MeshLambertMaterial({color:0x00FF88,emissive:new THREE.Color(0,0.5,0.2),transparent:true,opacity:0.85});
-    const sphere=new THREE.Mesh(sg,sm);
+  CP_DEFS.forEach(function(d,i){
+    var g=new THREE.Group();
+    // Small state-indicator orb (changes color when activated)
+    var sg=new THREE.SphereGeometry(0.28,10,8);
+    var sm=new THREE.MeshLambertMaterial({color:0x00FF88,emissive:new THREE.Color(0,0.5,0.2),transparent:true,opacity:0.9});
+    var sphere=new THREE.Mesh(sg,sm);
+    sphere.position.set(0,2.8,0);
     g.add(sphere);
-    const rg=new THREE.TorusGeometry(0.82,0.09,8,28);
-    const rm=new THREE.MeshLambertMaterial({color:0x00EE66,emissive:new THREE.Color(0,0.4,0.15)});
-    const ring=new THREE.Mesh(rg,rm);
+    var rg=new THREE.TorusGeometry(0.48,0.06,6,20);
+    var rm=new THREE.MeshLambertMaterial({color:0x00EE66,emissive:new THREE.Color(0,0.4,0.15)});
+    var ring=new THREE.Mesh(rg,rm);
+    ring.position.set(0,2.8,0);
     g.add(ring);
-    // star on top
-    const cg=new THREE.ConeGeometry(0.15,0.4,5);
-    const cm=new THREE.MeshLambertMaterial({color:0xFFFF00,emissive:new THREE.Color(0.5,0.5,0)});
-    const cone=new THREE.Mesh(cg,cm);
-    cone.position.y=0.7;
-    g.add(cone);
+    // Flag GLB as main visual
+    loadGLB('models/platformer/flag.glb',function(model){
+      model.scale.setScalar(1.4);
+      g.add(model);
+    });
+    // Sign decoration every 3rd checkpoint
+    if(i%3===0){
+      (function(){
+        loadGLB('models/platformer/sign.glb',function(model){
+          model.position.set(1.8,0,0);
+          model.scale.setScalar(1.0);
+          g.add(model);
+        });
+      })();
+    }
     g.position.set(d.x,d.y,0);
     scene.add(g);
-    checkpoints.push({...d,mesh:g,sphere,sm,ring,rm,activated:false,phase:i*0.6});
+    checkpoints.push({x:d.x,y:d.y,mesh:g,sphere:sphere,sm:sm,ring:ring,rm:rm,activated:false,phase:i*0.6});
   });
 }
 
 function buildFalafels(){
-  FAL_DEFS.forEach(d=>{
-    const g=new THREE.Group();
-    const bg=new THREE.SphereGeometry(0.52,14,10);
-    const bm=new THREE.MeshLambertMaterial({color:0x9A7858});
-    const body=new THREE.Mesh(bg,bm);
+  FAL_DEFS.forEach(function(d){
+    var g=new THREE.Group();
+    // Slightly larger body (0.62 vs original 0.52)
+    var bg=new THREE.SphereGeometry(0.62,14,10);
+    var bm=new THREE.MeshLambertMaterial({color:0x9A7858});
+    var body=new THREE.Mesh(bg,bm);
     body.castShadow=true;
     g.add(body);
-    // sad eyes
-    const eg=new THREE.SphereGeometry(0.09,6,4);
-    const em=new THREE.MeshLambertMaterial({color:0x222222});
-    const eL=new THREE.Mesh(eg,em); eL.position.set(-0.22,0.12,0.46); g.add(eL);
-    const eR=new THREE.Mesh(eg,em); eR.position.set( 0.22,0.12,0.46); g.add(eR);
-    // sad mouth arc
-    const mg=new THREE.TorusGeometry(0.14,0.04,6,10,Math.PI);
-    const mm=new THREE.MeshLambertMaterial({color:0x333333});
-    const mouth=new THREE.Mesh(mg,mm);
-    mouth.position.set(0,-0.1,0.46);
-    mouth.rotation.z=Math.PI;
-    mouth.rotation.x=-0.15;
+    // Sesame seeds for texture
+    for(var s=0;s<10;s++){
+      var ssg=new THREE.SphereGeometry(0.06,4,3);
+      var ssm=new THREE.MeshLambertMaterial({color:0xFFF8E0});
+      var seed=new THREE.Mesh(ssg,ssm);
+      var theta=Math.random()*Math.PI*2;
+      var phi=0.5+Math.random()*Math.PI*0.55;
+      seed.position.set(0.63*Math.sin(phi)*Math.cos(theta),0.63*Math.cos(phi),0.63*Math.sin(phi)*Math.sin(theta));
+      g.add(seed);
+    }
+    // Sad eyes
+    var eg=new THREE.SphereGeometry(0.09,6,4);
+    var em=new THREE.MeshLambertMaterial({color:0x222222});
+    var eL=new THREE.Mesh(eg,em); eL.position.set(-0.24,0.14,0.52); g.add(eL);
+    var eR=new THREE.Mesh(eg,em); eR.position.set( 0.24,0.14,0.52); g.add(eR);
+    // Sad mouth
+    var mg=new THREE.TorusGeometry(0.14,0.04,6,10,Math.PI);
+    var mm=new THREE.MeshLambertMaterial({color:0x333333});
+    var mouth=new THREE.Mesh(mg,mm);
+    mouth.position.set(0,-0.1,0.52);
+    mouth.rotation.z=Math.PI; mouth.rotation.x=-0.15;
     g.add(mouth);
-    // floating cost label (will be shown via CSS3D-like approach — use a small sphere indicator)
+    // Chest near some falafels
+    if(d.id%5===0){
+      (function(){
+        loadGLB('models/platformer/chest.glb',function(model){
+          model.position.set(1.4,-0.5,0.5);
+          model.scale.setScalar(0.75);
+          g.add(model);
+        });
+      })();
+    }
     g.position.set(d.x,d.y,0);
     scene.add(g);
-    falafels.push({...d,mesh:g,bm,happy:false,bobT:Math.random()*6.28});
+    falafels.push({id:d.id,x:d.x,y:d.y,cost:d.cost,zone:d.zone,bridge:d.bridge||null,mesh:g,bm:bm,happy:false,bobT:Math.random()*6.28});
   });
 }
 
 function buildJars(){
-  makeHummus().forEach((pos,i)=>{
-    const g=new THREE.Group();
-    const jg=new THREE.CylinderGeometry(0.24,0.19,0.44,10);
-    const jm=new THREE.MeshLambertMaterial({color:0xF0D8A0,emissive:new THREE.Color(0.08,0.06,0.02)});
-    g.add(new THREE.Mesh(jg,jm));
-    const lg=new THREE.TorusGeometry(0.2,0.06,6,14);
-    const lm=new THREE.MeshLambertMaterial({color:0xDAA520,emissive:new THREE.Color(0.15,0.08,0)});
-    const lid=new THREE.Mesh(lg,lm);
+  makeHummus().forEach(function(pos,i){
+    var g=new THREE.Group();
+    // Fallback geometry (shown until GLB loads)
+    var fallback=new THREE.Group();
+    var jg=new THREE.CylinderGeometry(0.24,0.19,0.44,10);
+    var jm=new THREE.MeshLambertMaterial({color:0xF0D8A0,emissive:new THREE.Color(0.08,0.06,0.02)});
+    fallback.add(new THREE.Mesh(jg,jm));
+    var lg=new THREE.TorusGeometry(0.2,0.06,6,14);
+    var lm=new THREE.MeshLambertMaterial({color:0xDAA520,emissive:new THREE.Color(0.15,0.08,0)});
+    var lid=new THREE.Mesh(lg,lm);
     lid.rotation.x=Math.PI/2; lid.position.y=0.26;
-    g.add(lid);
+    fallback.add(lid);
+    g.add(fallback);
+    // coin-gold GLB
+    (function(fb){
+      loadGLB('models/platformer/coin-gold.glb',function(model){
+        model.scale.setScalar(0.65);
+        g.add(model);
+        fb.visible=false;
+      });
+    })(fallback);
     g.position.set(pos.x,pos.y,pos.z);
     scene.add(g);
     jars.push({x:pos.x,y:pos.y,z:pos.z,mesh:g,got:false,spin:i*0.28});
@@ -663,43 +799,55 @@ function buildJars(){
 }
 
 function buildBosses(){
-  BOSS_DEFS.forEach(d=>{
-    const r=d.type==='final'?1.2:0.85;
-    const g=new THREE.Group();
-    const bg=new THREE.SphereGeometry(r,16,12);
-    const bm=new THREE.MeshLambertMaterial({color:0x420060,emissive:new THREE.Color(0.08,0,0.12)});
-    const body=new THREE.Mesh(bg,bm);
+  BOSS_DEFS.forEach(function(d){
+    var r=d.type==='final'?1.2:0.85;
+    var g=new THREE.Group();
+    // Fallback sphere
+    var fallback=new THREE.Group();
+    var bg=new THREE.SphereGeometry(r,16,12);
+    var bm=new THREE.MeshLambertMaterial({color:0x420060,emissive:new THREE.Color(0.08,0,0.12)});
+    var body=new THREE.Mesh(bg,bm);
     body.castShadow=true;
-    g.add(body);
-    // red eyes
-    const eg=new THREE.SphereGeometry(0.13,8,6);
-    const em=new THREE.MeshLambertMaterial({color:0xFF0000,emissive:new THREE.Color(0.6,0,0)});
-    const el=new THREE.Mesh(eg,em); el.position.set(-0.3*r/0.85,0.18*r/0.85,r*0.88); g.add(el);
-    const er=new THREE.Mesh(eg,em); er.position.set( 0.3*r/0.85,0.18*r/0.85,r*0.88); g.add(er);
-    // angry brows
-    const brg=new THREE.BoxGeometry(0.28,0.08,0.1);
-    const brm=new THREE.MeshLambertMaterial({color:0x880000});
-    const bl=new THREE.Mesh(brg,brm); bl.position.set(-0.3*r/0.85,0.36*r/0.85,r*0.88); bl.rotation.z=0.5; g.add(bl);
-    const br2=new THREE.Mesh(brg,brm); br2.position.set(0.3*r/0.85,0.36*r/0.85,r*0.88); br2.rotation.z=-0.5; g.add(br2);
+    fallback.add(body);
+    var eg=new THREE.SphereGeometry(0.13,8,6);
+    var em=new THREE.MeshLambertMaterial({color:0xFF0000,emissive:new THREE.Color(0.6,0,0)});
+    var el=new THREE.Mesh(eg,em); el.position.set(-0.3*r/0.85,0.18*r/0.85,r*0.88); fallback.add(el);
+    var er=new THREE.Mesh(eg,em); er.position.set( 0.3*r/0.85,0.18*r/0.85,r*0.88); fallback.add(er);
+    var brg=new THREE.BoxGeometry(0.28,0.08,0.1);
+    var brm=new THREE.MeshLambertMaterial({color:0x880000});
+    var bl=new THREE.Mesh(brg,brm); bl.position.set(-0.3*r/0.85,0.36*r/0.85,r*0.88); bl.rotation.z=0.5; fallback.add(bl);
+    var br2=new THREE.Mesh(brg,brm); br2.position.set(0.3*r/0.85,0.36*r/0.85,r*0.88); br2.rotation.z=-0.5; fallback.add(br2);
+    g.add(fallback);
+    var glbPath=d.type==='final'?'models/platformer/bomb.glb':'models/platformer/saw.glb';
+    var isFinal=d.type==='final';
+    (function(fb,isfin){
+      loadGLB(glbPath,function(model){
+        var sc=isfin?1.8:1.3;
+        model.scale.setScalar(sc);
+        g.add(model);
+        fb.visible=false;
+        if(!isfin) spinningMeshes.push(model);
+      });
+    })(fallback,isFinal);
     g.position.set(d.x,d.y,0);
     scene.add(g);
-    bosses.push({...d,mesh:g,bm,defeated:false,bobT:0});
+    bosses.push({id:d.id,x:d.x,y:d.y,type:d.type,need:d.need,label:d.label,mesh:g,bm:bm,defeated:false,bobT:0});
   });
 }
 
 function buildBridges(){
-  Object.entries(BRIDGE_DEFS).forEach(([key,d])=>{
-    const geo=new THREE.BoxGeometry(d.w,d.h,d.d);
-    const mats=platMats('bridge');
-    // make clones so we can set opacity per-face
-    const tmat=new THREE.MeshLambertMaterial({color:0xE8C080,transparent:true,opacity:0});
-    const smat=new THREE.MeshLambertMaterial({color:0xC8A060,transparent:true,opacity:0});
-    const mesh=new THREE.Mesh(geo,[smat,smat,tmat,smat,smat,smat]);
-    const cx=d.x+d.w/2;
+  Object.keys(BRIDGE_DEFS).forEach(function(key){
+    var d=BRIDGE_DEFS[key];
+    var geo=new THREE.BoxGeometry(d.w,d.h,d.d);
+    var tmat=new THREE.MeshLambertMaterial({color:0xE8C080,transparent:true,opacity:0});
+    var smat=new THREE.MeshLambertMaterial({color:0xC8A060,transparent:true,opacity:0});
+    var mesh=new THREE.Mesh(geo,[smat,smat,tmat,smat,smat,smat]);
+    var cx=d.x+d.w/2;
     mesh.position.set(cx,d.y,0);
     scene.add(mesh);
     bridges[key]={
-      ...d,mesh,cx,tmat,smat,
+      x:d.x,y:d.y,w:d.w,h:d.h,d:d.d,
+      mesh:mesh,cx:cx,tmat:tmat,smat:smat,
       minX:d.x,maxX:d.x+d.w,
       topY:d.y+d.h/2,
       minY:d.y-d.h/2,maxY:d.y+d.h/2,
@@ -710,116 +858,172 @@ function buildBridges(){
 
 function buildBackground(){
   // Distant mountains
-  for(let i=0;i<36;i++){
-    const bx=i*22+Math.random()*10;
-    const bz=-28-Math.random()*15;
-    const bh=12+Math.random()*22;
-    const zone=bx<200?0.12:bx<500?0.36:0.72;
-    const mg=new THREE.ConeGeometry(7+Math.random()*6,bh,5);
-    const mm=new THREE.MeshLambertMaterial({color:new THREE.Color().setHSL(zone,0.3,0.28)});
-    const mesh=new THREE.Mesh(mg,mm);
-    mesh.position.set(bx,bh/2-3,bz);
-    scene.add(mesh);
+  for(var i=0;i<36;i++){
+    var bx=i*22+Math.random()*10;
+    var bz=-28-Math.random()*15;
+    var bh=12+Math.random()*22;
+    var zone=bx<200?0.12:bx<500?0.36:0.72;
+    var mg=new THREE.ConeGeometry(7+Math.random()*6,bh,5);
+    var mm=new THREE.MeshLambertMaterial({color:new THREE.Color().setHSL(zone,0.3,0.28)});
+    var msh=new THREE.Mesh(mg,mm);
+    msh.position.set(bx,bh/2-3,bz);
+    scene.add(msh);
   }
-  // Zone1 clouds
-  for(let i=0;i<18;i++){
-    const x=Math.random()*220-10;
-    const y=18+Math.random()*14;
-    const z=-12-Math.random()*18;
-    buildCloud(x,y,z);
+
+  // Zone 1 (0-200): GLB trees + flowers + fences + clouds
+  for(var i=0;i<18;i++){
+    var x=Math.random()*210-5;
+    var z=-9-Math.random()*14;
+    buildTree(x,-1,z,'zone1');
+    if(i%2===0) addDecoration(x+2.5,0,z+1.5,'flower');
+    if(i%3===0) addDecoration(x-1,0,z-1,'grass');
+    if(i%5===0) addDecoration(x+4,0,z,'fence');
   }
-  // Zone2 trees
-  for(let i=0;i<24;i++){
-    const x=200+Math.random()*300;
-    const z=-8-Math.random()*12;
-    buildTree(x,-1,z);
+  for(var i=0;i<16;i++){
+    buildCloud(Math.random()*220-10, 18+Math.random()*14, -12-Math.random()*18);
   }
-  // Zone3 aurora
-  const auroraCols=[0x9B59B6,0x1ABC9C,0x2980B9,0xE74C3C,0x8E44AD,0x16A085];
-  for(let i=0;i<10;i++){
-    const x=490+i*28+Math.random()*15;
-    const y=22+Math.random()*12;
-    const z=-18-Math.random()*12;
-    const geo=new THREE.PlaneGeometry(22+Math.random()*10,6+Math.random()*6);
-    const mat=new THREE.MeshBasicMaterial({color:auroraCols[i%6],transparent:true,opacity:0.22+Math.random()*0.15,side:THREE.DoubleSide});
-    const m=new THREE.Mesh(geo,mat);
-    m.position.set(x,y,z);
-    m.rotation.z=(Math.random()-0.5)*0.6;
-    scene.add(m);
+  // Zone 1 ground decoration strip
+  for(var i=0;i<10;i++){
+    var gx=8+i*18+Math.random()*6;
+    addDecoration(gx,0,1.5,'flower');
+    addDecoration(gx+5,0,-1.5,'grass');
+    if(i%3===0) addDecoration(gx+9,0,1,'barrel');
+    if(i%4===0) addDecoration(gx+12,0,0,'sign');
   }
+
+  // Zone 2 (200-500): Forest trees + mushrooms + rocks + plants
+  for(var i=0;i<26;i++){
+    var x=200+Math.random()*300;
+    var z=-9-Math.random()*14;
+    buildTree(x,-1,z,'zone2');
+    if(i%2===0) addDecoration(x+1.5,0,z+1,'mushroom');
+    if(i%3===0) addDecoration(x-1.5,0,z-1,'rock');
+    if(i%4===0) addDecoration(x+0.5,0,z+0.5,'plant');
+    if(i%6===0) addDecoration(x-2,0,z,'flower-tall');
+  }
+  for(var i=0;i<14;i++){
+    var gx=205+i*20+Math.random()*8;
+    addDecoration(gx,0,2,'mushroom');
+    addDecoration(gx+6,0,-2,'rock');
+    addDecoration(gx+10,0,1,'plant');
+  }
+
+  // Zone 3 (500+): Snow trees + rocks + stones
+  for(var i=0;i<20;i++){
+    var x=500+Math.random()*270;
+    var z=-9-Math.random()*14;
+    buildTree(x,-1,z,'zone3');
+    if(i%2===0) addDecoration(x+1.5,0,z,'rock');
+    if(i%3===0) addDecoration(x-1,0,z+1,'stone');
+  }
+  // Zone 3 aurora curtains
+  var auroraCols=[0x9B59B6,0x1ABC9C,0x2980B9,0xE74C3C,0x8E44AD,0x16A085];
+  for(var i=0;i<10;i++){
+    var ax=490+i*28+Math.random()*15;
+    var ay=22+Math.random()*12;
+    var az=-18-Math.random()*12;
+    var ageo=new THREE.PlaneGeometry(22+Math.random()*10,6+Math.random()*6);
+    var amat=new THREE.MeshBasicMaterial({color:auroraCols[i%6],transparent:true,opacity:0.22+Math.random()*0.15,side:THREE.DoubleSide});
+    var am=new THREE.Mesh(ageo,amat);
+    am.position.set(ax,ay,az);
+    am.rotation.z=(Math.random()-0.5)*0.6;
+    scene.add(am);
+  }
+
   // Ground underlay
-  const gg=new THREE.PlaneGeometry(1400,60);
-  const gm=new THREE.MeshLambertMaterial({color:0x7A5210});
-  const gp=new THREE.Mesh(gg,gm);
+  var gg=new THREE.PlaneGeometry(1400,60);
+  var gm=new THREE.MeshLambertMaterial({color:0x7A5210});
+  var gp=new THREE.Mesh(gg,gm);
   gp.rotation.x=-Math.PI/2;
   gp.position.set(400,-3.5,0);
   scene.add(gp);
+
   // Sky backdrop
-  const sg=new THREE.PlaneGeometry(1400,200);
-  const smat=new THREE.MeshBasicMaterial({color:0x87CEEB,side:THREE.DoubleSide});
-  const sky=new THREE.Mesh(sg,smat);
+  var sg=new THREE.PlaneGeometry(1400,200);
+  var smat=new THREE.MeshBasicMaterial({color:0x87CEEB,side:THREE.DoubleSide});
+  var sky=new THREE.Mesh(sg,smat);
   sky.position.set(400,50,-32);
   scene.add(sky);
   skyBgMat=smat;
 }
 
 function buildCloud(x,y,z){
-  const g=new THREE.Group();
-  const pts=[[0,0,0,1.4],[1.6,0.3,0,1.1],[-1.5,0.2,0,1.0],[0.8,0.9,0,1.0],[-0.7,0.8,0,0.9]];
-  pts.forEach(([px,py,pz,r])=>{
-    const m=new THREE.Mesh(new THREE.SphereGeometry(r,8,6),new THREE.MeshLambertMaterial({color:0xEEEEEE}));
-    m.position.set(px,py,pz);
+  var g=new THREE.Group();
+  var pts=[[0,0,0,1.4],[1.6,0.3,0,1.1],[-1.5,0.2,0,1.0],[0.8,0.9,0,1.0],[-0.7,0.8,0,0.9]];
+  pts.forEach(function(p){
+    var m=new THREE.Mesh(new THREE.SphereGeometry(p[3],8,6),new THREE.MeshLambertMaterial({color:0xEEEEEE}));
+    m.position.set(p[0],p[1],p[2]);
     g.add(m);
   });
   g.position.set(x,y,z);
   scene.add(g);
 }
 
-function buildTree(x,y,z){
-  const g=new THREE.Group();
-  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.32,2.2,7),new THREE.MeshLambertMaterial({color:0x3E2A1A}));
-  trunk.position.y=1.1;
-  g.add(trunk);
-  for(let l=0;l<3;l++){
-    const cone=new THREE.Mesh(new THREE.ConeGeometry(1.6-l*0.3,2.2,8),new THREE.MeshLambertMaterial({color:l===0?0x1A5C1A:0x267326}));
-    cone.position.y=2.8+l*1.3;
-    g.add(cone);
-  }
-  g.position.set(x,y,z);
-  g.scale.setScalar(0.7+Math.random()*0.7);
-  scene.add(g);
+function buildTree(x,y,z,type){
+  if(!type) type='zone1';
+  var modelPath;
+  if(type==='zone3') modelPath='models/platformer/tree-pine-snow.glb';
+  else if(type==='zone2') modelPath='models/platformer/tree-pine.glb';
+  else modelPath='models/platformer/tree.glb';
+  loadGLB(modelPath,function(model){
+    var s=1.3+Math.random()*1.1;
+    model.position.set(x,y,z);
+    model.scale.setScalar(s);
+    model.rotation.y=Math.random()*Math.PI*2;
+    scene.add(model);
+  });
+}
+
+function addDecoration(x,y,z,type){
+  var paths={
+    'flower':'models/platformer/flowers.glb',
+    'flower-tall':'models/platformer/flowers-tall.glb',
+    'mushroom':'models/platformer/mushrooms.glb',
+    'rock':'models/platformer/rocks.glb',
+    'stone':'models/platformer/stones.glb',
+    'grass':'models/platformer/grass.glb',
+    'plant':'models/platformer/plant.glb',
+    'fence':'models/platformer/fence-straight.glb',
+    'barrel':'models/platformer/barrel.glb',
+    'sign':'models/platformer/sign.glb',
+    'poles':'models/platformer/poles.glb',
+  };
+  var path=paths[type]||paths['rock'];
+  loadGLB(path,function(model){
+    model.position.set(x,y,z);
+    model.scale.setScalar(0.8+Math.random()*0.5);
+    model.rotation.y=Math.random()*Math.PI*2;
+    scene.add(model);
+  });
 }
 
 // =============================================================
 //  PLAYER MESH
 // =============================================================
 function buildPlayer(){
-  const g=new THREE.Group();
-  // Body
-  const bg=new THREE.SphereGeometry(0.6,16,12);
-  const bm=new THREE.MeshLambertMaterial({color:0xC8860A});
-  const body=new THREE.Mesh(bg,bm);
+  var g=new THREE.Group();
+  var bg=new THREE.SphereGeometry(0.6,16,12);
+  var bm=new THREE.MeshLambertMaterial({color:0xC8860A});
+  var body=new THREE.Mesh(bg,bm);
   body.castShadow=true;
   g.add(body);
-  // Sesame seeds
-  for(let i=0;i<14;i++){
-    const sg=new THREE.SphereGeometry(0.055,5,4);
-    const sm=new THREE.MeshLambertMaterial({color:0xFFFAF0});
-    const s=new THREE.Mesh(sg,sm);
-    const theta=Math.random()*Math.PI*2;
-    const phi=0.4+Math.random()*Math.PI*0.6;
+  for(var i=0;i<14;i++){
+    var sg=new THREE.SphereGeometry(0.055,5,4);
+    var sm=new THREE.MeshLambertMaterial({color:0xFFFAF0});
+    var s=new THREE.Mesh(sg,sm);
+    var theta=Math.random()*Math.PI*2;
+    var phi=0.4+Math.random()*Math.PI*0.6;
     s.position.set(0.61*Math.sin(phi)*Math.cos(theta),0.61*Math.cos(phi),0.61*Math.sin(phi)*Math.sin(theta));
     g.add(s);
   }
-  // Eyes
-  const ew=new THREE.MeshLambertMaterial({color:0xFFFFFF});
-  const ep=new THREE.MeshLambertMaterial({color:0x111111});
-  const eg=new THREE.SphereGeometry(0.13,8,6);
-  const pg=new THREE.SphereGeometry(0.075,6,4);
-  const eL=new THREE.Mesh(eg,ew); eL.position.set(-0.26,0.22,0.52); g.add(eL);
-  const eR=new THREE.Mesh(eg,ew); eR.position.set( 0.26,0.22,0.52); g.add(eR);
-  const pL=new THREE.Mesh(pg,ep); pL.position.set(-0.26,0.22,0.60); g.add(pL);
-  const pR=new THREE.Mesh(pg,ep); pR.position.set( 0.26,0.22,0.60); g.add(pR);
+  var ew=new THREE.MeshLambertMaterial({color:0xFFFFFF});
+  var ep=new THREE.MeshLambertMaterial({color:0x111111});
+  var eg=new THREE.SphereGeometry(0.13,8,6);
+  var pg=new THREE.SphereGeometry(0.075,6,4);
+  var eL=new THREE.Mesh(eg,ew); eL.position.set(-0.26,0.22,0.52); g.add(eL);
+  var eR=new THREE.Mesh(eg,ew); eR.position.set( 0.26,0.22,0.52); g.add(eR);
+  var pL=new THREE.Mesh(pg,ep); pL.position.set(-0.26,0.22,0.60); g.add(pL);
+  var pR=new THREE.Mesh(pg,ep); pR.position.set( 0.26,0.22,0.60); g.add(pR);
   g.position.set(P.x,P.y,P.z);
   scene.add(g);
   P.mesh=g;
@@ -829,30 +1033,31 @@ function buildPlayer(){
 //  PARTICLES
 // =============================================================
 function spawnParticles(x,y,z,count,color){
-  for(let i=0;i<count;i++){
-    const geo=new THREE.SphereGeometry(0.1,4,3);
-    const mat=new THREE.MeshBasicMaterial({color,transparent:true});
-    const mesh=new THREE.Mesh(geo,mat);
+  for(var i=0;i<count;i++){
+    var geo=new THREE.SphereGeometry(0.1,4,3);
+    var mat=new THREE.MeshBasicMaterial({color:color,transparent:true});
+    var mesh=new THREE.Mesh(geo,mat);
     mesh.position.set(x,y,z);
     scene.add(mesh);
-    const a=Math.random()*Math.PI*2;
-    const spd=2+Math.random()*5;
-    particles.push({mesh,vx:Math.cos(a)*spd*0.8,vy:3+Math.random()*5,vz:Math.sin(a)*1.5,life:1,max:1});
+    var a=Math.random()*Math.PI*2;
+    var spd=2+Math.random()*5;
+    particles.push({mesh:mesh,vx:Math.cos(a)*spd*0.8,vy:3+Math.random()*5,vz:Math.sin(a)*1.5,life:1,max:1});
   }
 }
 
 // =============================================================
 //  UI HELPERS
 // =============================================================
-let msgT=0;
-function showMsg(txt,dur=2.5){
-  const el=document.getElementById('msg');
+var msgT=0;
+function showMsg(txt,dur){
+  if(!dur) dur=2.5;
+  var el=document.getElementById('msg');
   el.textContent=txt; el.style.display='block'; msgT=dur;
 }
 function flashCP(){
-  const el=document.getElementById('cpflash');
+  var el=document.getElementById('cpflash');
   el.style.display='block';
-  setTimeout(()=>el.style.display='none',PC.CP_FLASH_MS);
+  setTimeout(function(){el.style.display='none';},PC.CP_FLASH_MS);
 }
 
 // =============================================================
@@ -862,31 +1067,41 @@ function startGame(){
   document.getElementById('menu-screen').style.display='none';
   document.getElementById('hud').style.display='flex';
   gs=GS.PLAY;
-  // reset
   gd.hummus=0; gd.helped=0;
   gd.lastCP={x:5,y:3,z:0};
   P.x=5; P.y=3; P.z=0; P.vx=0; P.vy=0;
   P.onG=false; P.iTimer=0; P.facing=1;
   jumpBuf=0; eBuf=false;
-  falafels.forEach(f=>{f.happy=false;f.bm.color.setHex(0x9A7858);f.bm.emissive.setHex(0);f.mesh.rotation.y=0;f.mesh.position.y=f.y;});
-  jars.forEach(j=>{j.got=false;j.mesh.visible=true;});
-  checkpoints.forEach(cp=>{cp.activated=false;cp.sm.color.setHex(0x00FF88);cp.sm.emissive.set(0,0.5,0.2);});
-  bosses.forEach(b=>{b.defeated=false;b.mesh.visible=true;});
-  Object.values(bridges).forEach(b=>{
+  falafels.forEach(function(f){
+    f.happy=false;
+    f.bm.color.setHex(0x9A7858);
+    f.bm.emissive.setHex(0);
+    f.mesh.rotation.y=0;
+    f.mesh.position.y=f.y;
+  });
+  jars.forEach(function(j){j.got=false;j.mesh.visible=true;});
+  checkpoints.forEach(function(cp){
+    cp.activated=false;
+    cp.sm.color.setHex(0x00FF88);
+    cp.sm.emissive.set(0,0.5,0.2);
+  });
+  bosses.forEach(function(b){b.defeated=false;b.mesh.visible=true;});
+  Object.keys(bridges).forEach(function(k){
+    var b=bridges[k];
     b.unlocked=false;b.appearing=false;b.appearT=0;
     b.tmat.opacity=0;b.smat.opacity=0;
     b.tmat.transparent=true;b.smat.transparent=true;
     if(b.addedToPlats){
-      const idx=platforms.findIndex(pp=>pp.mesh===b.mesh);
-      if(idx>-1)platforms.splice(idx,1);
+      var idx=platforms.findIndex(function(pp){return pp.mesh===b.mesh;});
+      if(idx>-1) platforms.splice(idx,1);
       b.addedToPlats=false;
     }
   });
-  platforms.forEach(p=>{
+  platforms.forEach(function(p){
     if(p.type==='crumble'){
       p.fallen=false;p.crumbling=false;p.crumTimer=PC.CRUMBLE_DUR;
       p.mesh.visible=true;
-      if(Array.isArray(p.mesh.material))p.mesh.material.forEach(m=>m.color&&m.color.setHex(0xA07020));
+      if(Array.isArray(p.mesh.material)) p.mesh.material.forEach(function(m){if(m.color)m.color.setHex(0xA07020);});
     }
   });
 }
@@ -904,95 +1119,99 @@ function triggerWin(){
   document.getElementById('hud').style.display='none';
   document.getElementById('win-screen').style.display='flex';
   SFX.victory();
-  for(let i=0;i<6;i++) setTimeout(()=>spawnParticles(P.x,P.y+2,P.z,35,[0xFFD700,0xFF8C00,0x00FF88,0x00BFFF,0xFF69B4,0xFFFF00][i]),i*300);
+  var colors=[0xFFD700,0xFF8C00,0x00FF88,0x00BFFF,0xFF69B4,0xFFFF00];
+  for(var i=0;i<6;i++){
+    (function(ci){setTimeout(function(){spawnParticles(P.x,P.y+2,P.z,35,colors[ci]);},ci*300);})(i);
+  }
 }
 
 // =============================================================
 //  UNLOCK BRIDGE
 // =============================================================
 function unlockBridge(key){
-  const b=bridges[key];
+  var b=bridges[key];
   if(!b||b.unlocked) return;
   b.unlocked=true; b.appearing=true; b.appearT=0;
   SFX.bridge();
-  showMsg('✨ A bridge has appeared! ✨');
+  showMsg('\u2728 A bridge has appeared! \u2728');
 }
 
 // =============================================================
 //  COLLISION HELPERS
 // =============================================================
 function getPlatAABB(p){
-  let minX=p.minX,maxX=p.maxX,minY=p.minY,maxY=p.maxY;
+  var minX=p.minX,maxX=p.maxX,minY=p.minY,maxY=p.maxY;
   if(p.type==='moving_h'){minX+=p.moveOffset;maxX+=p.moveOffset;}
   else if(p.type==='moving_v'){minY+=p.moveOffset;maxY+=p.moveOffset;}
-  return{minX,maxX,minY,maxY,topY:maxY};
+  return{minX:minX,maxX:maxX,minY:minY,maxY:maxY,topY:maxY};
 }
 
 function resolveY(newY,oldY,vy){
-  const hw=PC.HW, hh=PC.HH;
-  let ry=newY, rvy=vy, onG=false, onIce=false;
-  let platUnder=null;
-  for(const p of platforms){
+  var hw=PC.HW,hh=PC.HH;
+  var ry=newY,rvy=vy,onG=false,onIce=false;
+  var platUnder=null;
+  for(var i=0;i<platforms.length;i++){
+    var p=platforms[i];
     if(!p.active||p.fallen) continue;
-    const{minX,maxX,minY,maxY,topY}=getPlatAABB(p);
-    // horizontal overlap (use current x)
-    if(P.x+hw<=minX+0.05||P.x-hw>=maxX-0.05) continue;
-    const bot=ry-hh, top=ry+hh;
-    if(bot<maxY&&top>minY){
-      if(vy<=0&&oldY-hh>=maxY-1.2){
-        ry=maxY+hh; rvy=0; onG=true;
+    var ab=getPlatAABB(p);
+    if(P.x+hw<=ab.minX+0.05||P.x-hw>=ab.maxX-0.05) continue;
+    var bot=ry-hh,top=ry+hh;
+    if(bot<ab.maxY&&top>ab.minY){
+      if(vy<=0&&oldY-hh>=ab.maxY-1.2){
+        ry=ab.maxY+hh; rvy=0; onG=true;
         if(p.type==='ice') onIce=true;
         platUnder=p;
-      } else if(vy>0&&oldY+hh<=minY+1.2){
-        ry=minY-hh; rvy=0;
+      } else if(vy>0&&oldY+hh<=ab.minY+1.2){
+        ry=ab.minY-hh; rvy=0;
       }
     }
   }
-  return{ry,rvy,onG,onIce,platUnder};
+  return{ry:ry,rvy:rvy,onG:onG,onIce:onIce,platUnder:platUnder};
 }
 
 function resolveX(newX,curY,vx){
-  const hw=PC.HW,hh=PC.HH;
-  let rx=newX,rvx=vx;
-  for(const p of platforms){
+  var hw=PC.HW,hh=PC.HH;
+  var rx=newX,rvx=vx;
+  for(var i=0;i<platforms.length;i++){
+    var p=platforms[i];
     if(!p.active||p.fallen) continue;
-    const{minX,maxX,minY,maxY}=getPlatAABB(p);
-    if(curY+hh<=minY+0.05||curY-hh>=maxY-0.05) continue;
-    const lft=rx-hw,rgt=rx+hw;
-    if(lft<maxX&&rgt>minX){
-      const ol=rgt-minX, or2=maxX-lft;
-      if(ol<or2){rx=minX-hw;}else{rx=maxX+hw;}
+    var ab=getPlatAABB(p);
+    if(curY+hh<=ab.minY+0.05||curY-hh>=ab.maxY-0.05) continue;
+    var lft=rx-hw,rgt=rx+hw;
+    if(lft<ab.maxX&&rgt>ab.minX){
+      var ol=rgt-ab.minX,or2=ab.maxX-lft;
+      if(ol<or2){rx=ab.minX-hw;}else{rx=ab.maxX+hw;}
       rvx=0;
     }
   }
-  return{rx,rvx};
+  return{rx:rx,rvx:rvx};
 }
 
 // =============================================================
 //  INTERACTION
 // =============================================================
 function handleE(){
-  // falafels
-  for(const f of falafels){
+  for(var i=0;i<falafels.length;i++){
+    var f=falafels[i];
     if(f.happy) continue;
     if(dist2(P.x,P.y,f.x,f.y)<3.5){
       if(gd.hummus>=f.cost){
         gd.hummus-=f.cost;
         makeFalafelHappy(f);
       } else {
-        showMsg(`Need ${f.cost} 🫙! (have ${gd.hummus})`);
+        showMsg('Need '+f.cost+' \uD83E\uDED9! (have '+gd.hummus+')');
       }
       return;
     }
   }
-  // bosses
-  for(const b of bosses){
+  for(var i=0;i<bosses.length;i++){
+    var b=bosses[i];
     if(b.defeated) continue;
     if(dist2(P.x,P.y,b.x,b.y)<3.5){
       if(gd.hummus>=b.need){
         defeatBoss(b);
       } else {
-        showMsg(b.label+` (have ${gd.hummus})`);
+        showMsg(b.label+' (have '+gd.hummus+')');
       }
       return;
     }
@@ -1006,9 +1225,9 @@ function makeFalafelHappy(f){
   spawnParticles(f.x,f.y+1,0,22,0xFFD700);
   spawnParticles(f.x,f.y+1,0,10,0xFF8C00);
   SFX.happy();
-  const remaining=FAL_DEFS.length-gd.helped;
-  if(remaining>0) showMsg(`\u{1F60A} Falafel #${f.id} is happy! \u{1F389} (${remaining} more to go!)`);
-  else showMsg(`\u{1F60A} Falafel #${f.id} is happy! \u{1F389} All falafels helped!`);
+  var remaining=FAL_DEFS.length-gd.helped;
+  if(remaining>0) showMsg('\uD83D\uDE0A Falafel #'+f.id+' is happy! \uD83C\uDF89 ('+remaining+' more to go!)');
+  else showMsg('\uD83D\uDE0A Falafel #'+f.id+' is happy! \uD83C\uDF89 All falafels helped!');
   if(f.bridge) unlockBridge(f.bridge);
   if(gd.helped>=FAL_DEFS.length) setTimeout(triggerWin,2000);
 }
@@ -1019,22 +1238,23 @@ function defeatBoss(b){
   spawnParticles(b.x,b.y+1.5,0,20,0xBB00FF);
   SFX.boss();
   if(b.type==='final'){
-    showMsg('🎊 FINAL BOSS DEFEATED! Kindness reigns! 🎊');
+    showMsg('\uD83C\uDF8A FINAL BOSS DEFEATED! Kindness reigns! \uD83C\uDF8A');
     setTimeout(triggerWin,3000);
   } else {
-    showMsg('✨ Bully defeated! Path is open! ✨');
+    showMsg('\u2728 Bully defeated! Path is open! \u2728');
   }
 }
 
-function respawn(loseHummus,teleport=true){
-  const lost=Math.min(loseHummus,gd.hummus);
+function respawn(loseHummus,teleport){
+  if(teleport===undefined) teleport=true;
+  var lost=Math.min(loseHummus,gd.hummus);
   gd.hummus-=lost;
   if(teleport){
     P.x=gd.lastCP.x; P.y=gd.lastCP.y; P.z=gd.lastCP.z||0;
     P.vx=0; P.vy=0; P.onG=false;
   }
   P.iTimer=PC.ITIME;
-  if(lost>0) showMsg(`💔 Lost ${lost} 🫙! (${gd.hummus} left)`);
+  if(lost>0) showMsg('\uD83D\uDC94 Lost '+lost+' \uD83E\uDED9! ('+gd.hummus+' left)');
 }
 
 // =============================================================
@@ -1045,17 +1265,16 @@ function updatePlayer(dt){
   P.iTimer=Math.max(0,P.iTimer-dt);
   jumpBuf=Math.max(0,jumpBuf-dt);
 
-  const left=keys['ArrowLeft']||keys['KeyA'];
-  const right=keys['ArrowRight']||keys['KeyD'];
+  var left=keys['ArrowLeft']||keys['KeyA'];
+  var right=keys['ArrowRight']||keys['KeyD'];
 
-  // Horizontal accel
-  let tVx=0;
+  var tVx=0;
   if(right){tVx=PC.WSPD;P.facing=1;}
   if(left) {tVx=-PC.WSPD;P.facing=-1;}
 
-  const isGnd=P.onG, isIce=P.onIce;
-  const acc=isIce?PC.IACC:isGnd?PC.GACC:PC.AACC;
-  const dec=isIce?PC.IDEC:isGnd?PC.GDEC:PC.ADEC;
+  var isGnd=P.onG,isIce=P.onIce;
+  var acc=isIce?PC.IACC:isGnd?PC.GACC:PC.AACC;
+  var dec=isIce?PC.IDEC:isGnd?PC.GDEC:PC.ADEC;
 
   if(tVx!==0){
     P.vx=lerp(P.vx,tVx,dt*acc);
@@ -1065,34 +1284,29 @@ function updatePlayer(dt){
   }
   P.vx=Math.max(-PC.MHSPD,Math.min(PC.MHSPD,P.vx));
 
-  // Jump
-  const canJump=P.onG||(P.coyote>0);
+  var canJump=P.onG||(P.coyote>0);
   if(jumpBuf>0&&canJump){
     P.vy=PC.JVEL; P.onG=false; P.coyote=0; jumpBuf=0;
     P.isJump=true; P.jHold=0;
     SFX.jump();
   }
-  // Variable jump hold
   if(P.isJump){
     if(keys['Space']&&P.vy>0&&P.jHold<PC.JHOLD){
       P.vy+=PC.JHFRC*dt; P.jHold+=dt;
     } else { P.isJump=false; }
   }
 
-  // Gravity
   if(!P.onG){
     P.vy+=PC.GRAV*dt;
     P.vy=Math.max(PC.MFALL,P.vy);
   }
 
-  // Coyote countdown
   P.coyote=Math.max(0,P.coyote-dt);
 
-  // Move & resolve
-  const newY=P.y+P.vy*dt;
-  const{ry,rvy,onG,onIce,platUnder}=resolveY(newY,P.y,P.vy);
+  var newY=P.y+P.vy*dt;
+  var res=resolveY(newY,P.y,P.vy);
+  var ry=res.ry,rvy=res.rvy,onG=res.onG,onIce=res.onIce,platUnder=res.platUnder;
 
-  // Crumble
   if(onG&&platUnder&&platUnder.type==='crumble'&&!platUnder.crumbling){
     platUnder.crumbling=true;
     if(Array.isArray(platUnder.mesh.material)){
@@ -1100,50 +1314,48 @@ function updatePlayer(dt){
     }
   }
 
-  // Coyote — if was on ground, just left
   if(P.onG&&!onG) P.coyote=PC.COY;
 
   P.y=ry; P.vy=rvy; P.onG=onG; P.onIce=onIce;
 
-  const newX=P.x+P.vx*dt;
-  const{rx,rvx}=resolveX(newX,P.y,P.vx);
-  P.x=rx; P.vx=rvx;
+  var newX=P.x+P.vx*dt;
+  var xres=resolveX(newX,P.y,P.vx);
+  P.x=xres.rx; P.vx=xres.rvx;
 
-  // Moving platform carry
-  for(const p of platforms){
+  for(var i=0;i<platforms.length;i++){
+    var p=platforms[i];
     if(!p.active||p.fallen) continue;
     if(p.type!=='moving_h'&&p.type!=='moving_v') continue;
-    const{minX,maxX,topY}=getPlatAABB(p);
-    if(P.onG&&P.x+PC.HW>minX&&P.x-PC.HW<maxX&&Math.abs(P.y-PC.HH-topY)<0.15){
+    var ab=getPlatAABB(p);
+    if(P.onG&&P.x+PC.HW>ab.minX&&P.x-PC.HW<ab.maxX&&Math.abs(P.y-PC.HH-ab.topY)<0.15){
       if(p.type==='moving_h') P.x+=p.spd*p.moveDir*dt;
     }
   }
 
-  // Void
   if(P.y<PC.VOID_Y){ respawn(PC.VOID_PENALTY); return; }
 
-  // Hazards
   if(P.iTimer<=0){
-    for(const h of hazards){
+    for(var i=0;i<hazards.length;i++){
+      var h=hazards[i];
       if(P.x+PC.HW>h.minX&&P.x-PC.HW<h.maxX&&P.y+PC.HH>h.minY&&P.y-PC.HH<h.maxY){
         if(h.type==='lava'){ respawn(Math.min(gd.hummus,10)); }
         else { respawn(PC.SPIKE_PENALTY); }
         SFX.hurt(); return;
       }
     }
-    // Boss contact
-    for(const b of bosses){
+    for(var i=0;i<bosses.length;i++){
+      var b=bosses[i];
       if(b.defeated) continue;
       if(dist2(P.x,P.y,b.x,b.y)<(b.type==='final'?2.0:1.5)){
-        const dx=P.x-b.x;
+        var dx=P.x-b.x;
         P.vx=(dx>=0?1:-1)*6; P.vy=5;
         respawn(PC.SPIKE_PENALTY,false); SFX.hurt(); P.iTimer=PC.ITIME; break;
       }
     }
   }
 
-  // Collect hummus
-  for(const j of jars){
+  for(var i=0;i<jars.length;i++){
+    var j=jars[i];
     if(j.got) continue;
     if(Math.abs(P.x-j.x)<1.4&&Math.abs(P.y-j.y)<1.4&&Math.abs(P.z-(j.z||0))<2){
       j.got=true; j.mesh.visible=false;
@@ -1151,34 +1363,34 @@ function updatePlayer(dt){
     }
   }
 
-  // Checkpoints
-  for(const cp of checkpoints){
+  for(var i=0;i<checkpoints.length;i++){
+    var cp=checkpoints[i];
     if(cp.activated) continue;
     if(Math.abs(P.x-cp.x)<2.5&&Math.abs(P.y-cp.y)<3){
       cp.activated=true;
       gd.lastCP={x:cp.x,y:cp.y+1,z:0};
       cp.sm.color.setHex(0xFFFF00);
       cp.sm.emissive.set(0.5,0.4,0);
-      showMsg('💚 Checkpoint saved!'); SFX.checkpoint(); flashCP();
+      showMsg('\uD83D\uDC9A Checkpoint saved!'); SFX.checkpoint(); flashCP();
     }
   }
 
-  // E interact
   if(eBuf){ eBuf=false; handleE(); }
 
-  // Interaction prompt
-  let prompt='';
-  for(const f of falafels){
+  var prompt='';
+  for(var i=0;i<falafels.length;i++){
+    var f=falafels[i];
     if(!f.happy&&dist2(P.x,P.y,f.x,f.y)<3.5){
-      prompt=`Press E — give ${f.cost} 🫙 hummus to Falafel #${f.id}`;break;
+      prompt='Press E \u2014 give '+f.cost+' \uD83E\uDED9 hummus to Falafel #'+f.id; break;
     }
   }
   if(!prompt){
-    for(const b of bosses){
+    for(var i=0;i<bosses.length;i++){
+      var b=bosses[i];
       if(!b.defeated&&dist2(P.x,P.y,b.x,b.y)<3.5){ prompt=b.label; break; }
     }
   }
-  const ip=document.getElementById('iprompt');
+  var ip=document.getElementById('iprompt');
   ip.style.display=prompt?'block':'none';
   ip.textContent=prompt;
 }
@@ -1187,7 +1399,8 @@ function updatePlayer(dt){
 //  UPDATE PLATFORMS
 // =============================================================
 function updatePlatforms(dt){
-  for(const p of platforms){
+  for(var i=0;i<platforms.length;i++){
+    var p=platforms[i];
     if(!p.active) continue;
     if(p.type==='moving_h'){
       p.moveOffset+=p.spd*p.moveDir*dt;
@@ -1202,7 +1415,6 @@ function updatePlatforms(dt){
     if(p.type==='crumble'){
       if(p.crumbling&&!p.fallen){
         p.crumTimer-=dt;
-        // shake effect
         p.mesh.position.x=p.startCX+(Math.random()-0.5)*0.1*(1-p.crumTimer/PC.CRUMBLE_DUR);
         if(p.crumTimer<=0){
           p.fallen=true; p.mesh.visible=false; p.respTimer=PC.CRUMBLE_RESPAWN;
@@ -1213,7 +1425,7 @@ function updatePlatforms(dt){
         if(p.respTimer<=0){
           p.fallen=false; p.crumbling=false; p.crumTimer=PC.CRUMBLE_DUR;
           p.mesh.visible=true; p.mesh.position.x=p.startCX;
-          if(Array.isArray(p.mesh.material))p.mesh.material.forEach(m=>m.color&&m.color.setHex(0xA07020));
+          if(Array.isArray(p.mesh.material)) p.mesh.material.forEach(function(m){if(m.color)m.color.setHex(0xA07020);});
         }
       }
     }
@@ -1224,10 +1436,11 @@ function updatePlatforms(dt){
 //  UPDATE BRIDGES
 // =============================================================
 function updateBridges(dt){
-  Object.values(bridges).forEach(b=>{
+  Object.keys(bridges).forEach(function(k){
+    var b=bridges[k];
     if(!b.appearing) return;
     b.appearT+=dt;
-    const t=Math.min(1,b.appearT/1.2);
+    var t=Math.min(1,b.appearT/1.2);
     b.tmat.opacity=t; b.smat.opacity=t;
     if(t>=1){
       b.appearing=false;
@@ -1252,7 +1465,8 @@ function updateBridges(dt){
 //  UPDATE FALAFELS
 // =============================================================
 function updateFalafels(dt,t){
-  for(const f of falafels){
+  for(var i=0;i<falafels.length;i++){
+    var f=falafels[i];
     if(f.happy){
       f.bobT+=dt*3.5;
       f.mesh.position.y=f.y+Math.sin(f.bobT)*0.32;
@@ -1267,7 +1481,8 @@ function updateFalafels(dt,t){
 //  UPDATE JARS
 // =============================================================
 function updateJars(dt,t){
-  for(const j of jars){
+  for(var i=0;i<jars.length;i++){
+    var j=jars[i];
     if(j.got) continue;
     j.mesh.rotation.y=t*1.8+j.spin;
     j.mesh.position.y=j.y+Math.sin(t*2+j.spin)*0.12;
@@ -1278,7 +1493,8 @@ function updateJars(dt,t){
 //  UPDATE CHECKPOINTS
 // =============================================================
 function updateCheckpoints(dt,t){
-  for(const cp of checkpoints){
+  for(var i=0;i<checkpoints.length;i++){
+    var cp=checkpoints[i];
     cp.ring.rotation.y=t+cp.phase;
     if(!cp.activated){
       cp.sm.opacity=0.6+Math.sin(t*3+cp.phase)*0.2;
@@ -1290,11 +1506,16 @@ function updateCheckpoints(dt,t){
 //  UPDATE BOSSES
 // =============================================================
 function updateBosses(dt,t){
-  for(const b of bosses){
+  for(var i=0;i<bosses.length;i++){
+    var b=bosses[i];
     if(b.defeated) continue;
     b.bobT+=dt*1.8;
     b.mesh.position.y=b.y+Math.sin(b.bobT)*0.18;
     b.mesh.rotation.y+=dt*1.2;
+  }
+  // Spin saw GLB meshes
+  for(var i=0;i<spinningMeshes.length;i++){
+    spinningMeshes[i].rotation.z+=dt*9;
   }
 }
 
@@ -1302,41 +1523,40 @@ function updateBosses(dt,t){
 //  UPDATE PARTICLES
 // =============================================================
 function updateParticles(dt){
-  for(let i=particles.length-1;i>=0;i--){
-    const p=particles[i];
+  for(var i=particles.length-1;i>=0;i--){
+    var p=particles[i];
     p.life-=dt;
     if(p.life<=0){scene.remove(p.mesh);particles.splice(i,1);continue;}
     p.vy-=14*dt;
     p.mesh.position.x+=p.vx*dt;
     p.mesh.position.y+=p.vy*dt;
     p.mesh.position.z+=p.vz*dt;
-    const t=p.life/p.max;
-    p.mesh.material.opacity=t;
-    p.mesh.scale.setScalar(Math.max(0.01,t));
+    var t2=p.life/p.max;
+    p.mesh.material.opacity=t2;
+    p.mesh.scale.setScalar(Math.max(0.01,t2));
   }
 }
 
 // =============================================================
 //  UPDATE PLAYER MESH
 // =============================================================
-let camX=5,camY=10,camTX=5,camTY=4;
-const GROUND_SQUASH=new THREE.Vector3(1.06,0.94,1.06);
+var camX=5,camY=10;
+var camLook=new THREE.Vector3();
+var GROUND_SQUASH=new THREE.Vector3(1.06,0.94,1.06);
 function updatePlayerMesh(dt,t){
   if(!P.mesh) return;
-  const bob=P.onG?Math.sin(t*8)*0.04:0;
+  var bob=P.onG?Math.sin(t*8)*0.04:0;
   P.mesh.position.set(P.x,P.y+bob,P.z);
-  const tr=P.facing===1?0:Math.PI;
+  var tr=P.facing===1?0:Math.PI;
   P.mesh.rotation.y=lerp(P.mesh.rotation.y,tr,dt*14);
   if(!P.onG){P.mesh.scale.set(0.92,1.08,0.92);}
   else{P.mesh.scale.lerp(GROUND_SQUASH,dt*12);}
-  // blink when invincible
   P.mesh.visible=P.iTimer<=0||Math.sin(t*22)>0;
 }
 
 // =============================================================
 //  CAMERA
 // =============================================================
-const camLook=new THREE.Vector3();
 function updateCamera(dt){
   camX=lerp(camX,P.x,dt*4.5);
   camY=lerp(camY,P.y+6,dt*3.5);
@@ -1354,28 +1574,28 @@ function updateCamera(dt){
 function updateHUD(){
   document.getElementById('hc').textContent=gd.hummus;
   document.getElementById('fc').textContent=gd.helped;
-  const px=P.x;
-  let zn='Zone 1: Falafel Village',bg=0x87CEEB,fg=0x87CEEB;
-  if(px>=500){zn='Zone 3: Aurora Peak';bg=0x0D0020;fg=0x0D0020;}
-  else if(px>=200){zn='Zone 2: Kindness Forest';bg=0x0A1F0A;fg=0x0A1F0A;}
+  var px=P.x;
+  var zn='Zone 1: Falafel Village',bg=0x87CEEB;
+  if(px>=500){zn='Zone 3: Aurora Peak';bg=0x0D0020;}
+  else if(px>=200){zn='Zone 2: Kindness Forest';bg=0x0A1F0A;}
   document.getElementById('zn').textContent=zn;
   renderer.setClearColor(bg);
-  scene.fog.color.setHex(fg);
+  scene.fog.color.setHex(bg);
   if(skyBgMat) skyBgMat.color.setHex(bg);
 }
 
 // =============================================================
 //  BUTTON HANDLERS
 // =============================================================
-document.getElementById('playBtn').addEventListener('click',()=>{ac();startGame();});
+document.getElementById('playBtn').addEventListener('click',function(){ac();startGame();});
 document.getElementById('resumeBtn').addEventListener('click',resumeGame);
-document.getElementById('menuBtn').addEventListener('click',()=>{
+document.getElementById('menuBtn').addEventListener('click',function(){
   gs=GS.MENU;
   document.getElementById('pause-screen').style.display='none';
   document.getElementById('hud').style.display='none';
   document.getElementById('menu-screen').style.display='flex';
 });
-document.getElementById('againBtn').addEventListener('click',()=>{
+document.getElementById('againBtn').addEventListener('click',function(){
   document.getElementById('win-screen').style.display='none';
   startGame();
 });
@@ -1393,17 +1613,16 @@ buildBridges();
 buildBackground();
 buildPlayer();
 
-// Camera init
 camX=5; camY=10;
 
 // =============================================================
 //  MAIN LOOP
 // =============================================================
-let lastT=0;
+var lastT=0;
 function loop(t){
   requestAnimationFrame(loop);
-  const sec=t/1000;
-  const dt=Math.min((t-lastT)/1000,0.05);
+  var sec=t/1000;
+  var dt=Math.min((t-lastT)/1000,0.05);
   lastT=t;
 
   if(gs===GS.PLAY){
