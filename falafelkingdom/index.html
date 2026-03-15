@@ -231,7 +231,6 @@ body{overflow:hidden;background:#08060f;font-family:'Comic Sans MS','Comic Sans'
 const CFG = {
   sfx: true, music: true, hints: true, shake: true,
   GRAV: -0.016, JUMP: 0.32, JUMP_HOLD_BONUS: 0.12, JUMP_HOLD_TIME: 180,
-  MOVE: 0.13, AIR: 0.55, FRICTION: 0.82, ICE_FRICTION: 0.985,
   CAM_LERP: 0.07, CAM_OFF_Y: 8, CAM_OFF_Z: 15, CAM_LOOKAHEAD: 3,
   COLLECT_DIST: 2.0, SHARE_DIST: 2.2, BULLY_HIT_DIST: 1.0,
   SPRING_VEL: 0.7, BOOST_VEL: 0.5, CRUMBLE_TIME: 1500
@@ -242,7 +241,7 @@ const PHYS = {
   JUMP_VEL:   CFG.JUMP  * 60,       // 19.2 GU/s
   SPRING_VEL: CFG.SPRING_VEL * 60,  // 42 GU/s
   BOOST_VEL:  CFG.BOOST_VEL * 60,   // 30 GU/s
-  MAX_H_VEL:  0.35 * 60,            // 21 GU/s
+  MAX_H_VEL:  9,                     // 9 GU/s top speed (was 21)
   JUMP_HOLD:  0.0006 * 60,          // per-step hold bonus
 };
 
@@ -331,7 +330,7 @@ function tryLoadModel(relPath) {
 }
 
 // Swap procedural mesh for loaded GLB model (progressive enhancement)
-function swapMeshWhenLoaded(placeholder, relPath, scaleX, scaleY, scaleZ) {
+function swapMeshWhenLoaded(placeholder, relPath, scaleX, scaleY, scaleZ, pObj) {
   tryLoadModel(relPath).then(model => {
     if (!model || !placeholder || !placeholder.parent) return;
     model.scale.set(scaleX, scaleY, scaleZ);
@@ -339,6 +338,7 @@ function swapMeshWhenLoaded(placeholder, relPath, scaleX, scaleY, scaleZ) {
     model.rotation.copy(placeholder.rotation);
     placeholder.parent.add(model);
     placeholder.parent.remove(placeholder);
+    if (pObj) pObj.mesh = model;
   });
 }
 
@@ -362,6 +362,7 @@ let portalGroup = null, portalActive = false;
 let shakeTimer = 0, shakeIntensity = 0;
 let vel = {x:0,y:0,z:0}, onGround = false, onIce = false;
 let jumpHeld = false, jumpHoldTime = 0, jumpConsumed = false;
+let coyoteFrames = 0; // grace period after leaving platform edge
 const keys = {w:false,a:false,s:false,d:false,space:false};
 let gameInitialized = false;
 
@@ -865,9 +866,7 @@ function loadIsland(idx) {
     platforms.push(pObj);
     // Create Cannon.js physics body (static box) for collision
     addPlatformPhysBody(pObj);
-    // Progressively swap procedural mesh for Quaternius GLB if available
-    const modelKey = pd.modelType || 'Modular Platforms/Single Cube/glTF/Cube_Grass_Single.gltf';
-    swapMeshWhenLoaded(mesh, modelKey, pd.w, pd.h, pd.d);
+    // Procedural canvas-textured mesh is visually correct — no GLB swap needed
   });
 
   // Jars
@@ -945,6 +944,7 @@ function createPlayer(spawn) {
   vel = {x:0,y:0,z:0};
   onGround = false;
   jumpConsumed = false;
+  coyoteFrames = 0;
   // Create Cannon.js physics body for the player (capsule approximated as sphere)
   createPlayerPhysBody(spawn);
 }
@@ -983,11 +983,11 @@ function makeFalafelNPC(x,y,z,happy=false) {
   const re = new THREE.Mesh(eyeGeo,eyeMat); re.position.set(0.18,0.1,0.44);
   grp.add(le); grp.add(re);
   if (!happy) {
-    // Tear drops
+    // Tear drops — tagged so they can be hidden when falafel becomes happy
     const tearGeo = new THREE.SphereGeometry(0.05,6,6);
     const tearMat = new THREE.MeshBasicMaterial({color:0x88CCFF,transparent:true,opacity:0.8});
-    const lt = new THREE.Mesh(tearGeo,tearMat); lt.position.set(-0.18,-0.05,0.44);
-    const rt = new THREE.Mesh(tearGeo,tearMat); rt.position.set(0.18,-0.05,0.44);
+    const lt = new THREE.Mesh(tearGeo,tearMat); lt.position.set(-0.18,-0.05,0.44); lt.userData.isTear=true;
+    const rt = new THREE.Mesh(tearGeo,tearMat); rt.position.set(0.18,-0.05,0.44); rt.userData.isTear=true;
     grp.add(lt); grp.add(rt);
   }
   // Float label over head when sad
@@ -1357,7 +1357,14 @@ function runGameLogic() {
         f.happy=true; G.jarsHeld--; G.falafelsHappy++; G.score+=50;
         f.group.userData.happyStart = Date.now();
         sfx('share'); emitParticles('share',f.x,f.y,f.z,14); showFloat('💛 Falafel is happy!');
-        f.group.children.forEach(c => { if (c.material && c.geometry && c.geometry.type==='SphereGeometry' && c.geometry.parameters && c.geometry.parameters.radius > 0.3) c.material.color.setHex(0xE8C07A); });
+        f.group.children.forEach(c => {
+          if (!c.material) return;
+          if (c.userData && c.userData.isTear) { c.visible = false; return; }
+          if (c.geometry && c.geometry.parameters && c.geometry.parameters.radius > 0.3) {
+            c.material.color.setHex(0xFFD700);
+            if (c.material.emissive) { c.material.emissive.setHex(0xFF69B4); c.material.emissiveIntensity = 0.5; }
+          }
+        });
         updateHUD();
         if (G.falafelsHappy === G.falafelsTotal) activatePortal();
       }
@@ -1395,12 +1402,25 @@ function updatePhysics() {
 
   if (cannonReady && playerBody) {
     // ── Cannon.js path ────────────────────────────────────────────────
-    const friction = onIce ? CFG.ICE_FRICTION : CFG.FRICTION;
-    const ctrl = onGround ? 1.0 : CFG.AIR;
-    const spd = CFG.MOVE * ctrl * 60; // scale per-frame → per-second
     const v = playerBody.velocity;
 
-    // Wind zones (add to Cannon.js velocity)
+    // ── Smooth Interland-style movement via target-velocity lerp ──────
+    const maxH = onIce ? PHYS.MAX_H_VEL * 1.3 : PHYS.MAX_H_VEL;
+    let tx = 0, tz = 0;
+    if (keys.a) tx -= maxH;
+    if (keys.d) tx += maxH;
+    if (keys.w) tz -= maxH;
+    if (keys.s) tz += maxH;
+    // Normalize diagonal inputs so diagonal ≠ faster
+    if (tx !== 0 && tz !== 0) { tx *= 0.7071; tz *= 0.7071; }
+
+    // Lerp toward target — fast on ground, sluggish in air
+    const accel = onGround ? (onIce ? 0.06 : 0.20) : 0.05;
+    const brake = onGround ? (onIce ? 0.97 : 0.70) : 0.96;
+    if (tx !== 0) v.x += (tx - v.x) * accel; else v.x *= brake;
+    if (tz !== 0) v.z += (tz - v.z) * accel; else v.z *= brake;
+
+    // Wind zones (added on top after movement)
     mechanics.filter(m=>m.type==='wind').forEach(wm => {
       const hx=wm.pos.x,hy=wm.pos.y,hz=wm.pos.z;
       if (Math.abs(player.position.x-hx)<wm.w/2+0.3 && Math.abs(player.position.y-hy)<wm.h/2+0.3 && Math.abs(player.position.z-hz)<wm.d/2+0.3) {
@@ -1408,15 +1428,9 @@ function updatePhysics() {
       }
     });
 
-    if (keys.w) v.z -= spd;
-    if (keys.s) v.z += spd;
-    if (keys.a) v.x -= spd;
-    if (keys.d) v.x += spd;
-
-    v.x *= friction; v.z *= friction;
+    // Hard speed cap after all influences
     const hspd = Math.sqrt(v.x*v.x + v.z*v.z);
-    const maxH = PHYS.MAX_H_VEL;
-    if (hspd > maxH) { v.x *= maxH/hspd; v.z *= maxH/hspd; }
+    if (hspd > maxH * 1.5) { v.x *= maxH * 1.5 / hspd; v.z *= maxH * 1.5 / hspd; }
 
     // Jump hold bonus
     if (jumpHeld && jumpHoldTime < CFG.JUMP_HOLD_TIME) { v.y += PHYS.JUMP_HOLD; jumpHoldTime++; }
@@ -1432,13 +1446,16 @@ function updatePhysics() {
       if (c.bi !== playerBody && c.bj !== playerBody) continue;
       // ni points from bi → bj; if player is bj, ni.y > 0 = platform below
       const normalY = (c.bj === playerBody) ? c.ni.y : -c.ni.y;
-      if (normalY > 0.5) {
+      if (normalY > 0.3) {  // lower threshold = more reliable ground detection on edges
         onGround = true;
         const platBody = (c.bi === playerBody) ? c.bj : c.bi;
         if (platBody._ice) onIce = true;
         break;
       }
     }
+    // Coyote time — allow jump for a few frames after walking off an edge
+    if (onGround) { coyoteFrames = 6; }
+    else { coyoteFrames = Math.max(0, coyoteFrames - 1); }
 
     // Land sound / shake
     if (onGround && !prevGround && v.y < -2) {
@@ -1472,16 +1489,19 @@ function updatePhysics() {
     vel.y += CFG.GRAV;
     if (jumpHeld && jumpHoldTime < CFG.JUMP_HOLD_TIME) { vel.y += 0.0006; jumpHoldTime++; }
 
-    const friction = onIce ? CFG.ICE_FRICTION : CFG.FRICTION;
-    const ctrl = onGround ? 1.0 : CFG.AIR;
-    const spd = CFG.MOVE * ctrl;
-    if (keys.w) vel.z -= spd;
-    if (keys.s) vel.z += spd;
-    if (keys.a) vel.x -= spd;
-    if (keys.d) vel.x += spd;
-    vel.x *= friction; vel.z *= friction;
-    const hspd = Math.sqrt(vel.x*vel.x + vel.z*vel.z);
-    if (hspd > 0.35) { vel.x *= 0.35/hspd; vel.z *= 0.35/hspd; }
+    // ── Smooth movement via target-velocity lerp (matches Cannon path) ─
+    const maxV = 0.15; // GU/frame ≈ 9 GU/s
+    let tx = 0, tz = 0;
+    if (keys.a) tx -= maxV;
+    if (keys.d) tx += maxV;
+    if (keys.w) tz -= maxV;
+    if (keys.s) tz += maxV;
+    if (tx !== 0 && tz !== 0) { tx *= 0.7071; tz *= 0.7071; }
+
+    const accel = onGround ? (onIce ? 0.06 : 0.20) : 0.05;
+    const brake = onGround ? (onIce ? 0.97 : 0.70) : 0.96;
+    if (tx !== 0) vel.x += (tx - vel.x) * accel; else vel.x *= brake;
+    if (tz !== 0) vel.z += (tz - vel.z) * accel; else vel.z *= brake;
 
     // Wind zones
     mechanics.filter(m=>m.type==='wind').forEach(wm => {
@@ -1518,6 +1538,9 @@ function updatePhysics() {
         }
       }
     });
+    // Coyote time
+    if (onGround) { coyoteFrames = 6; }
+    else { coyoteFrames = Math.max(0, coyoteFrames - 1); }
   }
 
   runGameLogic();
@@ -1738,7 +1761,8 @@ function goScreen(id) {
 // ── Input ─────────────────────────────────────────────────────────────
 function handleSpace() {
   if (!G.active || G.paused) return;
-  if (onGround && !jumpConsumed) {
+  if ((onGround || coyoteFrames > 0) && !jumpConsumed) {
+    coyoteFrames = 0; // consume coyote window immediately
     if (cannonReady && playerBody) {
       playerBody.velocity.y = PHYS.JUMP_VEL;
     } else {
