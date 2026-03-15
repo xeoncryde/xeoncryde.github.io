@@ -331,7 +331,7 @@ function tryLoadModel(relPath) {
 }
 
 // Swap procedural mesh for loaded GLB model (progressive enhancement)
-function swapMeshWhenLoaded(placeholder, relPath, scaleX, scaleY, scaleZ) {
+function swapMeshWhenLoaded(placeholder, relPath, scaleX, scaleY, scaleZ, pObj) {
   tryLoadModel(relPath).then(model => {
     if (!model || !placeholder || !placeholder.parent) return;
     model.scale.set(scaleX, scaleY, scaleZ);
@@ -339,6 +339,7 @@ function swapMeshWhenLoaded(placeholder, relPath, scaleX, scaleY, scaleZ) {
     model.rotation.copy(placeholder.rotation);
     placeholder.parent.add(model);
     placeholder.parent.remove(placeholder);
+    if (pObj) pObj.mesh = model;
   });
 }
 
@@ -866,8 +867,9 @@ function loadIsland(idx) {
     // Create Cannon.js physics body (static box) for collision
     addPlatformPhysBody(pObj);
     // Progressively swap procedural mesh for Quaternius GLB if available
+    // Divide by 2 because Quaternius cube models are ~2 units per side
     const modelKey = pd.modelType || 'Modular Platforms/Single Cube/glTF/Cube_Grass_Single.gltf';
-    swapMeshWhenLoaded(mesh, modelKey, pd.w, pd.h, pd.d);
+    swapMeshWhenLoaded(mesh, modelKey, pd.w/2, pd.h/2, pd.d/2, pObj);
   });
 
   // Jars
@@ -1357,7 +1359,16 @@ function runGameLogic() {
         f.happy=true; G.jarsHeld--; G.falafelsHappy++; G.score+=50;
         f.group.userData.happyStart = Date.now();
         sfx('share'); emitParticles('share',f.x,f.y,f.z,14); showFloat('💛 Falafel is happy!');
-        f.group.children.forEach(c => { if (c.material && c.geometry && c.geometry.type==='SphereGeometry' && c.geometry.parameters && c.geometry.parameters.radius > 0.3) c.material.color.setHex(0xE8C07A); });
+        f.group.children.forEach(c => {
+          if (!c.material) return;
+          if (c.geometry && c.geometry.parameters && c.geometry.parameters.radius > 0.3) {
+            c.material.color.setHex(0xFFD700);
+            if (c.material.emissive) { c.material.emissive.setHex(0xFF69B4); c.material.emissiveIntensity = 0.5; }
+          }
+          if (c.geometry && c.geometry.parameters && c.geometry.parameters.radius < 0.1 && c.material.color && c.material.color.getHex() === 0x88ccff) { // 0x88ccff = tear drop colour
+            c.visible = false;
+          }
+        });
         updateHUD();
         if (G.falafelsHappy === G.falafelsTotal) activatePortal();
       }
