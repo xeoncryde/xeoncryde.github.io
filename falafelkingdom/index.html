@@ -438,6 +438,11 @@
             from { opacity: 0; transform: translateY(20px); } 
             to { opacity: 1; transform: translateY(0); } 
         }
+        @keyframes popIn {
+            0%   { transform: scale(0.4) translateY(20px); opacity: 0; }
+            70%  { transform: scale(1.08) translateY(-4px); opacity: 1; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
         
         .menu-buttons { display: flex; flex-direction: column; align-items: center; gap: 4px; }
         
@@ -748,6 +753,23 @@
     <button class="secondary" onclick="location.reload()">MAIN MENU</button>
 </div>
 
+<!-- Level-complete celebration overlay (non-blocking, auto-dismisses) -->
+<div id="level-complete-overlay" class="hidden" style="
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  z-index: 50; pointer-events: none; text-align: center;">
+  <div id="lc-inner" style="
+    background: rgba(255,248,220,0.96); color: #3E2723;
+    padding: 28px 52px; border-radius: 22px;
+    box-shadow: 0 12px 50px rgba(0,0,0,0.28);
+    border: 3px solid #F4D03F;
+    animation: popIn 0.4s cubic-bezier(0.22,1,0.36,1);
+  ">
+    <div id="lc-emoji" style="font-size: 52px; line-height: 1;">🌟</div>
+    <div id="lc-title" style="font-size: 30px; font-weight: 800; color: #D4A820; margin: 6px 0 4px; letter-spacing: 2px; text-shadow: 1px 2px 0 #5D4037;">ZONE 1 COMPLETE!</div>
+    <div id="lc-msg"   style="font-size: 18px; color: #5D4037; font-weight: 500;">Wonderful!</div>
+  </div>
+</div>
+
 <script>
     // Game settings
     let settings = {
@@ -859,6 +881,11 @@
     let keys = { w: false, a: false, s: false, d: false, space: false };
     let canJump = false;
     let gameInitialized = false;
+
+    // Combo tracking for quick successive shares
+    let comboCount = 0;
+    let lastShareTime = 0;
+    let comboResetTimer = null;
     
     let game = {
         level: 1,
@@ -868,10 +895,11 @@
         mega: false,
         active: false,
         paused: false,
-        checkpoint: null,   // {x,y,z,zone} — last activated checkpoint
+        checkpoint: null,   // kept for visual glow, no longer used for respawn
         wasElevated: false,
         hasLanded: false,
-        pendingStart: false // set while cutscene plays before first game start
+        pendingStart: false, // set while cutscene plays before first game start
+        transitioning: false // true while level-complete overlay is showing
     };
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1401,6 +1429,7 @@
             addJarInZone(6, 1, -12, 1);
             addJarInZone(3, 1, -17, 1);
             addJarInZone(-2, 1, -17, 1);
+            addJarInZone(2, 1, -6, 1);   // extra jar on main platform (safety)
             
             // Falafels waiting on main platform
             addFalafelInZone(-3, 1, -5, 1);
@@ -1435,6 +1464,7 @@
             addJarInZone(2, 9, -38, 2);
             addJarInZone(-6, 9, -36, 2);
             addJarInZone(-3, 9, -32, 2);
+            addJarInZone(-9, 9, -33, 2);  // extra jar on main platform
             
             // Falafels scattered
             addFalafelInZone(-10, 9, -32, 2);
@@ -1469,6 +1499,7 @@
             addJarInZone(2, 17, -60, 3);
             addJarInZone(-4, 18, -68, 3);
             addJarInZone(-6, 17, -56, 3);
+            addJarInZone(-8, 17, -55, 3);  // extra jar on main platform
             
             // Falafels
             addFalafelInZone(-8, 17, -54, 3);
@@ -1504,6 +1535,7 @@
             addJarInZone(-8, 25, -82, 4);
             addJarInZone(-2, 25, -82, 4);
             addJarInZone(-6, 25, -88, 4);
+            addJarInZone(0, 25, -84, 4);   // extra jar on main platform
             
             // Falafels in safer spots
             addFalafelInZone(-12, 25, -82, 4);
@@ -1541,6 +1573,7 @@
             addJarInZone(2, 34, -118, 5);
             addJarInZone(-14, 34, -118, 5);
             addJarInZone(-6, 33, -110, 5);
+            addJarInZone(-4, 33, -108, 5);  // extra jar on main platform
             
             addFalafelInZone(-8, 33, -108, 5);
             addFalafelInZone(-4, 33, -108, 5);
@@ -1573,6 +1606,7 @@
             addJarInZone(2, 42, -145, 6);
             addJarInZone(-6, 43, -150, 6);
             addJarInZone(-8, 41, -140, 6);
+            addJarInZone(-3, 41, -139, 6);  // extra jar on main platform
             
             addFalafelInZone(-4, 41, -138, 6);
             addFalafelInZone(-10, 41, -138, 6);
@@ -1603,6 +1637,7 @@
             addJarInZone(-6, 49, -174, 7);
             addJarInZone(-8, 49, -180, 7);
             addJarInZone(-2, 49, -170, 7);
+            addJarInZone(-4, 49, -172, 7);  // extra jar on main platform
             
             addFalafelInZone(-4, 49, -170, 7);
             addFalafelInZone(-10, 49, -170, 7);
@@ -1637,6 +1672,7 @@
             addJarInZone(-8, 57, -214, 8);
             addJarInZone(-2, 57, -202, 8);
             addJarInZone(0, 57, -210, 8);
+            addJarInZone(-4, 57, -205, 8);  // extra jar on main platform
             
             addFalafelInZone(-4, 57, -202, 8);
             addFalafelInZone(-10, 57, -202, 8);
@@ -1674,6 +1710,7 @@
             addJarInZone(-2, 65, -234, 9);
             addJarInZone(0, 65, -242, 9);
             addJarInZone(-10, 65, -248, 9);
+            addJarInZone(-4, 65, -236, 9);  // extra jar on main platform
             
             addFalafelInZone(-4, 65, -234, 9);
             addFalafelInZone(-10, 65, -234, 9);
@@ -1715,6 +1752,7 @@
             addJarInZone(-8, 73, -286, 10);
             addJarInZone(-2, 73, -290, 10);
             addJarInZone(-6, 73, -278, 10);
+            addJarInZone(-4, 73, -277, 10);  // extra jar on main platform
             
             addFalafelInZone(-4, 73, -276, 10);
             addFalafelInZone(-10, 73, -276, 10);
@@ -2151,15 +2189,57 @@ function addFalafel(x,y,z,sad) {
         f.sadMouth.visible = false;
         f.blush.visible = true;
         
-        // Change color to happy
+        // Change color to happy gold
         f.mesh.material.color.setHex(0xF5CBA7);
         
-        // Animate jump
+        // Multi-step bounce animation (squish → jump → settle)
         sound('happy');
         game.score++; updateHUD();
-        f.mesh.scale.set(1.3,1.3,1.3);
-        setTimeout(()=> f.mesh.scale.set(1,1,1), 300);
+        f.bouncePhase = Math.random() * Math.PI * 2; // for ongoing gentle bob
+        f.mesh.scale.set(1.4, 0.7, 1.4);             // squish wide
+        setTimeout(() => {
+            f.mesh.position.y = f.originalY + 1.2;   // launch up
+            f.mesh.scale.set(0.85, 1.35, 0.85);       // stretch tall
+        }, 100);
+        setTimeout(() => {
+            f.mesh.position.y = f.originalY + 0.3;
+            f.mesh.scale.set(1.1, 0.9, 1.1);
+        }, 240);
+        setTimeout(() => {
+            f.mesh.position.y = f.originalY;
+            f.mesh.scale.set(1, 1, 1);
+        }, 360);
+
+        // Combo tracking — share multiple falafels quickly for bonus feedback
+        const now = Date.now();
+        if (now - lastShareTime < 3000) {
+            comboCount++;
+        } else {
+            comboCount = 1;
+        }
+        lastShareTime = now;
+        clearTimeout(comboResetTimer);
+        comboResetTimer = setTimeout(() => { comboCount = 0; }, 3500);
+
+        if (comboCount === 2) {
+            showHint('🎯 DOUBLE! Keep going!');
+        } else if (comboCount === 3) {
+            showHint('🔥 TRIPLE SHARE! You\'re on fire!');
+        } else if (comboCount >= 4) {
+            showHint('🌟 COMBO ×' + comboCount + '! INCREDIBLE!');
+        }
+
         checkWin();
+    }
+    // Animate happy falafels with a gentle continuous bob + slow spin
+    function updateFalafels() {
+        const t = Date.now() * 0.001;
+        falafels.forEach(f => {
+            if (f.shared) {
+                f.mesh.position.y = f.originalY + Math.sin(t * 2.5 + (f.bouncePhase || 0)) * 0.18;
+                f.mesh.rotation.y += 0.025;
+            }
+        });
     }
     function updatePhysics() {
         if(!game.active || game.paused) return;
@@ -2377,6 +2457,7 @@ function addFalafel(x,y,z,sad) {
     }
 
     function checkWin() {
+        if (game.transitioning) return; // already celebrating, don't re-trigger
         updateGates();
         const zone = game.level;
         const zf = falafels.filter(f => f.zoneId === zone);
@@ -2879,16 +2960,23 @@ function addFalafel(x,y,z,sad) {
     }
 
     function retryLevel() {
-        const currentLevel = game.level; // preserve level
+        const currentLevel = game.level; // preserve zone
+        // Clear any pending transition state and hide overlays
+        game.transitioning = false;
+        document.getElementById('level-complete-overlay').classList.add('hidden');
         game.score = 0;
         game.total = 0;
         game.hummusCount = 0;
         game.wasElevated = false;
         game.hasLanded = false;
         game.checkpoint = null;
-        // Always rebuild from zone 1 — the whole mountain is created in one loadLevel(1) call
+        // Reset combo state
+        comboCount = 0;
+        lastShareTime = 0;
+        clearTimeout(comboResetTimer);
+        // Rebuild entire mountain — all falafels reset to sad, all jars reappear
         loadLevel(1);
-        // Jump to correct zone if above zone 1
+        // Teleport to the correct zone if above zone 1
         if (currentLevel > 1) {
             gates.forEach(g => { if (g.zoneId < currentLevel) openGate(g); });
             game.level = currentLevel;
@@ -2899,6 +2987,7 @@ function addFalafel(x,y,z,sad) {
         game.paused = false;
         game.active = true;
         showScreen(null);
+        updateHUD();
     }
     
     function nextLevel() {
@@ -2915,49 +3004,23 @@ function addFalafel(x,y,z,sad) {
     }
 
     function gameOver(reason) {
+        if (!game.active) return; // ignore if already dead
         sound('fail');
-        if (game.checkpoint) {
-            // Respawn at last checkpoint — no menu, just a brief flash
-            game.active = false;
-            showHint('💨 Respawning at checkpoint...');
-            setTimeout(() => {
-                if (!gameInitialized) return;
-                // Restore player at checkpoint position
-                player.position.set(game.checkpoint.x, game.checkpoint.y, game.checkpoint.z);
-                velocity.x = 0; velocity.y = 0; velocity.z = 0;
-                game.wasElevated = false;
-                game.hasLanded = false;
-                game.active = true;
-                // Restore the zone if player fell from a higher zone
-                if (game.checkpoint.zone && game.level !== game.checkpoint.zone) {
-                    game.level = game.checkpoint.zone;
-                    game.total = falafels.filter(f => f.zoneId === game.level).length;
-                    // Re-open all gates below checkpoint zone
-                    gates.forEach(g => {
-                        if (g.zoneId < game.checkpoint.zone) {
-                            openGate(g);
-                        }
-                    });
-                    updateHUD();
-                }
-            }, 1000);
+        game.active = false;
+        // Always show the death screen — never silently respawn
+        const icon  = document.getElementById('death-icon');
+        const title = document.getElementById('death-title');
+        const msg   = document.getElementById('death-reason');
+        if (reason === 'bully') {
+            if (icon)  icon.textContent  = '😵';
+            if (title) title.textContent = 'SQUISHED! 🔥';
+            if (msg)   msg.textContent   = 'A Burnt Bully got you! The sad falafels need you — try again!';
         } else {
-            // No checkpoint — show transparent death popup over the game
-            game.active = false;
-            const icon = document.getElementById('death-icon');
-            const title = document.getElementById('death-title');
-            const msg = document.getElementById('death-reason');
-            if (reason === 'bully') {
-                if (icon) icon.textContent = '😵';
-                if (title) title.textContent = 'SQUISHED! 🔥';
-                if (msg) msg.textContent = 'A Burnt Bully got you! Watch out for those dark spiky monsters.';
-            } else {
-                if (icon) icon.textContent = '😢';
-                if (title) title.textContent = 'OH NO! 😱';
-                if (msg) msg.textContent = 'You fell off the mountain! Use platforms carefully.';
-            }
-            document.getElementById('death-popup').classList.remove('hidden');
+            if (icon)  icon.textContent  = '😢';
+            if (title) title.textContent = 'OH NO! 😱';
+            if (msg)   msg.textContent   = 'You fell off the mountain! The falafels are counting on you!';
         }
+        document.getElementById('death-popup').classList.remove('hidden');
     }
     
     function retryFromDeathPopup() {
@@ -2977,12 +3040,22 @@ function addFalafel(x,y,z,sad) {
             sound('unlock');
             return;
         }
-        // Pause game while showing level complete screen
-        game.active = false;
-        const msgs = ["Wonderful! 🌟", "Amazing! ✨", "So Cute! 🥰", "Fantastic! 🎉", "Incredible! 🔥", "Superstar! ⭐", "On Fire! 🔥", "Unstoppable! 💪", "Almost There! 🏔️", "YOU DID IT! 🌟"];
-        document.getElementById('lvl-msg').innerText = msgs[game.level - 1] || '🎊 Great Job!';
-        showHint('🎊 All falafels are happy! Zone complete!');
-        showScreen('level-menu');
+        // Show non-blocking celebration overlay — game world keeps running
+        game.transitioning = true;
+        const emojis = ['🌟','✨','🥰','🎉','🔥','⭐','💜','💪','🏔️','🏆'];
+        const msgs   = ["Wonderful! 🌟", "Amazing! ✨", "So Cute! 🥰", "Fantastic! 🎉",
+                        "Incredible! 🔥", "Superstar! ⭐", "On Fire! 💜", "Unstoppable! 💪",
+                        "Almost There! 🏔️", "YOU DID IT! 🏆"];
+        document.getElementById('lc-emoji').textContent = emojis[game.level - 1] || '🎊';
+        document.getElementById('lc-title').textContent = 'ZONE ' + game.level + ' COMPLETE!';
+        document.getElementById('lc-msg').textContent   = msgs[game.level - 1] || 'Great Job!';
+        document.getElementById('level-complete-overlay').classList.remove('hidden');
+        // Auto-advance after 2.5 s — player can already walk through the open gate
+        setTimeout(() => {
+            document.getElementById('level-complete-overlay').classList.add('hidden');
+            game.transitioning = false;
+            nextLevel();
+        }, 2500);
     }
 
     // ── Clouds ────────────────────────────────────────────────────────────────
@@ -3040,6 +3113,7 @@ function addFalafel(x,y,z,sad) {
         updatePhysics();
         updateBullies();
         updateCheckpoints();
+        updateFalafels();
         updateClouds();
         renderer.render(scene, camera);
     }
