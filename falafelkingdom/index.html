@@ -9,110 +9,109 @@
         
         /* UI */
         #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; }
-        .hud { padding: 20px; color: #5D6D7E; text-shadow: 1px 1px 0 #fff; font-weight: bold; font-size: 20px; display: flex; justify-content: space-between; align-items: flex-start; }
-        .controls { text-align: center; color: #5D6D7E; text-shadow: 1px 1px 0 #fff; padding-bottom: 20px; font-size: 16px; }
-        .key { background: rgba(255,255,255,0.95); color: #5D6D7E; padding: 3px 8px; border-radius: 6px; font-weight: bold; margin: 0 3px; border: 2px solid #AED6F1; }
+        .hud { padding: 20px; color: #3E2723; text-shadow: 1px 1px 0 rgba(255,255,255,0.8); font-weight: bold; font-size: 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .controls { text-align: center; color: #3E2723; text-shadow: 1px 1px 0 rgba(255,255,255,0.8); padding-bottom: 20px; font-size: 16px; }
+        .key { background: rgba(255,248,220,0.95); color: #3E2723; padding: 3px 8px; border-radius: 6px; font-weight: bold; margin: 0 3px; border: 2px solid #D4A820; }
         
-        /* Menus - AAA Polished Design */
+        /* Menus - Warm Interland-inspired Design */
         .menu { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: linear-gradient(180deg, #0a0a12 0%, #12162a 50%, #1a1f35 100%);
+            background: linear-gradient(180deg, #87CEEB 0%, #B8E4F0 40%, #C8EFA0 80%, #8BC34A 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            pointer-events: auto; z-index: 20; color: #fff;
+            pointer-events: auto; z-index: 20; color: #3E2723;
         }
         .hidden { display: none !important; }
         
-        h1 { font-size: 56px; color: #fff; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 6px; font-weight: 300; }
-        h2 { font-size: 22px; color: rgba(255,255,255,0.6); margin: 0 0 30px 0; font-weight: 300; letter-spacing: 2px; }
-        h3 { font-size: 28px; color: #fff; margin: 0 0 25px 0; font-weight: 300; letter-spacing: 3px; }
+        h1 { font-size: 56px; color: #D4A820; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 6px; font-weight: 800; text-shadow: 2px 3px 0 #5D4037, 0 0 20px rgba(212,168,32,0.4); }
+        h2 { font-size: 22px; color: #5D4037; margin: 0 0 30px 0; font-weight: 500; letter-spacing: 2px; }
+        h3 { font-size: 28px; color: #D4A820; margin: 0 0 25px 0; font-weight: 800; letter-spacing: 3px; text-shadow: 1px 2px 0 #5D4037; }
         
-        /* Premium Button Styling */
+        /* Warm Playful Button Styling */
         button { 
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.25); 
-            color: #fff; 
-            padding: 18px 50px; 
-            font-size: 14px; 
-            border-radius: 2px; 
+            background: rgba(255,248,220,0.92);
+            border: 2px solid #D4A820; 
+            color: #5D4037; 
+            padding: 16px 45px; 
+            font-size: 15px; 
+            border-radius: 25px; 
             cursor: pointer; 
             margin: 6px; 
-            font-weight: 500; 
+            font-weight: 600; 
             text-transform: uppercase; 
-            letter-spacing: 3px;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
-            min-width: 260px;
+            letter-spacing: 2px;
+            transition: all 0.2s ease; 
+            min-width: 250px;
             position: relative;
             overflow: hidden;
             font-family: inherit;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-        button::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.5s;
-        }
-        button:hover::before { transform: translateX(100%); }
         button:hover { 
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.5);
-            box-shadow: 0 0 30px rgba(255,255,255,0.1);
+            background: #F4D03F;
+            border-color: #C9A227;
+            color: #3E2723;
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
         }
-        button:active { transform: scale(0.98); }
-        button:disabled { opacity: 0.3; cursor: not-allowed; }
-        button.small { padding: 14px 35px; font-size: 13px; min-width: 180px; }
+        button:active { transform: scale(0.97); }
+        button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        button.small { padding: 12px 30px; font-size: 13px; min-width: 180px; }
         button.primary {
-            background: linear-gradient(135deg, #c9a227 0%, #f4d03f 50%, #c9a227 100%);
-            border: none;
-            color: #1a1a2e;
-            font-weight: 600;
-            box-shadow: 0 4px 20px rgba(201, 162, 39, 0.3);
+            background: linear-gradient(135deg, #F4D03F 0%, #F7DC6F 50%, #F4D03F 100%);
+            border: 2px solid #C9A227;
+            color: #3E2723;
+            font-weight: 700;
+            box-shadow: 0 5px 20px rgba(201, 162, 39, 0.4);
         }
         button.primary:hover { 
-            box-shadow: 0 6px 30px rgba(201, 162, 39, 0.5);
-            transform: translateY(-2px);
+            background: linear-gradient(135deg, #F7DC6F 0%, #FAE67A 50%, #F7DC6F 100%);
+            box-shadow: 0 8px 25px rgba(201, 162, 39, 0.55);
+            transform: translateY(-3px) scale(1.03);
         }
         button.secondary { 
-            background: transparent;
-            color: rgba(255,255,255,0.8);
-            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,248,220,0.9);
+            color: #5D4037;
+            border: 2px solid #D7B87A;
         }
         button.secondary:hover { 
-            background: rgba(255,255,255,0.05);
-            border-color: rgba(255,255,255,0.4);
+            background: rgba(255,248,220,1);
+            border-color: #C9A227;
+            transform: translateY(-2px) scale(1.02);
         }
         button.danger { 
-            background: transparent;
-            border-color: rgba(180, 60, 60, 0.5);
-            color: #e07070;
+            background: rgba(255,204,188,0.9);
+            border-color: #BF360C;
+            color: #BF360C;
         }
-        button.danger:hover { background: rgba(180, 60, 60, 0.2); }
+        button.danger:hover { 
+            background: rgba(255,204,188,1);
+            border-color: #D32F2F;
+            transform: translateY(-2px) scale(1.02);
+        }
         
         .info-box { 
-            background: rgba(255,255,255,0.03); 
+            background: rgba(255,248,220,0.92); 
             padding: 25px 35px; 
-            border-radius: 4px; 
+            border-radius: 16px; 
             margin-top: 30px; 
             text-align: center; 
             line-height: 2.2; 
-            border: 1px solid rgba(255,255,255,0.08); 
-            color: rgba(255,255,255,0.6);
+            border: 2px solid #D4A820; 
+            color: #5D4037;
             max-width: 500px;
-            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
         }
-        .info-box b { color: #f4d03f; }
+        .info-box b { color: #C9A227; font-weight: 700; }
         .key { 
-            background: rgba(255,255,255,0.1); 
-            color: #fff; 
+            background: #F4D03F; 
+            color: #3E2723; 
             padding: 4px 12px; 
-            border-radius: 3px; 
-            font-weight: 600; 
+            border-radius: 8px; 
+            font-weight: 700; 
             margin: 0 4px; 
             font-size: 12px;
             letter-spacing: 1px;
-            border: 1px solid rgba(255,255,255,0.15);
+            border: 1px solid #C9A227;
         }
         
         /* Certificate */
@@ -147,14 +146,14 @@
         
         #msg { 
             position: absolute; top: 20%; width: 100%; text-align: center; 
-            font-size: 28px; color: #f4d03f; 
-            text-shadow: 0 0 40px rgba(244, 208, 63, 0.5);
-            display: none; font-weight: 300; pointer-events: none; letter-spacing: 4px;
+            font-size: 28px; color: #D4A820; 
+            text-shadow: 0 2px 8px rgba(62,39,35,0.4), 0 0 30px rgba(212,168,32,0.4);
+            display: none; font-weight: 700; pointer-events: none; letter-spacing: 2px;
         }
         .footer { 
             position: absolute; bottom: 20px; width: 100%; text-align: center; 
-            color: rgba(255,255,255,0.3); font-size: 12px; pointer-events: none; 
-            font-weight: 300; letter-spacing: 2px;
+            color: rgba(62,39,35,0.5); font-size: 12px; pointer-events: none; 
+            font-weight: 500; letter-spacing: 2px;
         }
         
         #load-status { color: #e07070; font-weight: 400; margin-top: 15px; display: none; letter-spacing: 1px; }
@@ -171,22 +170,26 @@
         
         /* Enhanced main menu */
         #main-menu {
-            background: linear-gradient(180deg, #08080f 0%, #0d1020 40%, #141828 100%);
+            background: linear-gradient(180deg, #87CEEB 0%, #B8E4F0 40%, #C8EFA0 80%, #8BC34A 100%);
             position: relative;
             overflow: hidden;
         }
         #main-menu::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(ellipse at 50% 0%, rgba(201, 162, 39, 0.08) 0%, transparent 60%);
+            bottom: 0; left: 0; right: 0; height: 120px;
+            background: linear-gradient(0deg, rgba(139,195,74,0.5) 0%, transparent 100%);
             pointer-events: none;
         }
         .menu-stars { position: absolute; width: 100%; height: 100%; pointer-events: none; }
-        .menu-star { position: absolute; background: #fff; border-radius: 50%; animation: twinkle 3s infinite; }
+        .menu-star { position: absolute; background: rgba(255,255,255,0.75); border-radius: 50%; animation: starDrift 6s ease-in-out infinite; }
+        @keyframes starDrift {
+            0%, 100% { opacity: 0.5; transform: translateX(0) scale(1); }
+            50% { opacity: 0.85; transform: translateX(8px) scale(1.1); }
+        }
         @keyframes twinkle {
-            0%, 100% { opacity: 0.1; }
-            50% { opacity: 0.6; }
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
         }
         
         /* Logo styling */
@@ -203,20 +206,20 @@
         
         .menu-title { 
             font-size: 72px; 
-            color: #fff;
-            font-weight: 200;
-            letter-spacing: 12px;
+            color: #D4A820;
+            font-weight: 800;
+            letter-spacing: 8px;
             margin: 0 0 8px 0;
             text-transform: uppercase;
-            text-shadow: 0 0 60px rgba(201, 162, 39, 0.4);
+            text-shadow: 3px 4px 0 #3E2723, 0 0 40px rgba(212,168,32,0.5);
         }
         .menu-subtitle { 
-            color: rgba(255,255,255,0.4); 
+            color: #795548; 
             font-size: 14px; 
             margin: 0 0 40px 0; 
-            letter-spacing: 6px; 
+            letter-spacing: 4px; 
             text-transform: uppercase;
-            font-weight: 300;
+            font-weight: 600;
         }
         .menu-divider { 
             width: 60px; height: 1px; 
@@ -243,38 +246,39 @@
             width: 800px;
             height: 400px;
             overflow: hidden;
-            border-radius: 4px;
-            background: linear-gradient(180deg, #1a2040 0%, #2d1f4a 50%, #1a1530 100%);
+            border-radius: 12px;
+            background: linear-gradient(180deg, #87CEEB 0%, #B8E4F0 55%, #C8EFA0 85%, #8BC34A 100%);
         }
         .cutscene-text-display {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(0,0,0,0.85);
-            padding: 30px 50px;
+            background: rgba(255,248,220,0.96);
+            padding: 25px 50px;
             min-height: 120px;
         }
         .cutscene-speaker {
-            color: #f4d03f;
+            color: #C9A227;
             font-size: 14px;
             letter-spacing: 3px;
             margin-bottom: 10px;
             text-transform: uppercase;
+            font-weight: 700;
         }
         .cutscene-dialogue {
-            color: rgba(255,255,255,0.9);
+            color: #3E2723;
             font-size: 18px;
             line-height: 1.7;
-            font-weight: 300;
-            letter-spacing: 1px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
-        .cutscene-dialogue .highlight { color: #f4d03f; }
+        .cutscene-dialogue .highlight { color: #C9A227; font-weight: 700; }
         .typing-cursor {
             display: inline-block;
             width: 2px;
             height: 1em;
-            background: #f4d03f;
+            background: #C9A227;
             margin-left: 2px;
             animation: blink 0.8s infinite;
         }
@@ -413,12 +417,12 @@
         .cutscene-dot { 
             width: 8px; height: 8px; 
             border-radius: 50%; 
-            background: rgba(255,255,255,0.2);
+            background: rgba(62,39,35,0.2);
             transition: all 0.3s;
         }
         .cutscene-dot.active { 
-            background: #f4d03f;
-            box-shadow: 0 0 10px rgba(244, 208, 63, 0.5);
+            background: #D4A820;
+            box-shadow: 0 0 10px rgba(212, 168, 32, 0.5);
         }
         .cutscene-buttons {
             display: flex;
@@ -441,34 +445,37 @@
         .level-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 25px 0; }
         .level-btn { 
             width: 65px; height: 65px; 
-            border-radius: 4px; 
+            border-radius: 12px; 
             font-size: 20px; 
             display: flex; align-items: center; justify-content: center; 
             position: relative; overflow: hidden;
-            font-weight: 300;
+            font-weight: 700;
             letter-spacing: 1px;
+            min-width: unset;
+            padding: 0;
         }
         .level-btn.completed { 
-            background: rgba(88, 214, 141, 0.2);
-            border-color: rgba(88, 214, 141, 0.5);
-            color: #58D68D;
+            background: rgba(88, 214, 141, 0.4);
+            border-color: #3CB371;
+            color: #1E8449;
         }
-        .level-btn.completed:hover { background: rgba(88, 214, 141, 0.3); }
+        .level-btn.completed:hover { background: rgba(88, 214, 141, 0.6); transform: translateY(-2px) scale(1.05); }
         .level-btn.current { 
-            background: rgba(244, 208, 63, 0.2);
-            border-color: rgba(244, 208, 63, 0.5);
-            color: #f4d03f;
+            background: rgba(244, 208, 63, 0.6);
+            border-color: #C9A227;
+            color: #3E2723;
             animation: pulse 2s infinite;
         }
         .level-btn.locked { 
-            background: rgba(255,255,255,0.03);
-            border-color: rgba(255,255,255,0.1);
-            color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.4);
+            border-color: rgba(93,64,55,0.25);
+            color: rgba(93,64,55,0.4);
             cursor: not-allowed;
         }
+        .level-btn.locked:hover { transform: none; box-shadow: none; }
         .level-btn .star { 
             position: absolute; top: 4px; right: 6px; 
-            font-size: 10px; color: #58D68D;
+            font-size: 10px; color: #27AE60;
         }
         
         @keyframes pulse {
@@ -478,26 +485,26 @@
         
         /* Settings Panel */
         .settings-panel { 
-            background: rgba(255,255,255,0.05); 
+            background: rgba(255,248,220,0.93); 
             padding: 35px 45px; 
-            border-radius: 4px; 
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
+            border-radius: 16px; 
+            border: 2px solid #D4A820;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         .setting-row { 
             display: flex; justify-content: space-between; align-items: center; 
             margin: 0; padding: 18px 0; 
-            border-bottom: 1px solid rgba(255,255,255,0.1); 
+            border-bottom: 1px solid rgba(212,168,32,0.3); 
         }
         .setting-row:last-child { border-bottom: none; }
-        .setting-label { font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.7); letter-spacing: 1px; }
+        .setting-label { font-size: 14px; font-weight: 700; color: #5D4037; letter-spacing: 1px; }
         .toggle-switch { 
             position: relative; width: 50px; height: 26px; 
-            background: rgba(255,255,255,0.15); 
+            background: rgba(93,64,55,0.2); 
             border-radius: 13px; cursor: pointer; 
             transition: background 0.3s; 
         }
-        .toggle-switch.on { background: rgba(88, 214, 141, 0.5); }
+        .toggle-switch.on { background: rgba(88, 214, 141, 0.6); }
         .toggle-knob { 
             position: absolute; top: 3px; left: 3px; 
             width: 20px; height: 20px; 
@@ -508,25 +515,26 @@
         
         /* Controls Display */
         .controls-display { 
-            background: rgba(255,255,255,0.05); 
+            background: rgba(255,248,220,0.93); 
             padding: 35px 45px; 
-            border-radius: 4px; 
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
+            border-radius: 16px; 
+            border: 2px solid #D4A820;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         .control-item { display: flex; align-items: center; justify-content: space-between; margin: 15px 0; gap: 30px; }
         .control-keys { display: flex; gap: 6px; }
         .control-key { 
-            background: rgba(255,255,255,0.1); 
-            color: #fff; 
+            background: #F4D03F; 
+            color: #3E2723; 
             padding: 10px 16px; 
-            border-radius: 4px; 
-            font-weight: 500; 
+            border-radius: 8px; 
+            font-weight: 700; 
             font-size: 12px;
             letter-spacing: 1px;
-            border: 1px solid rgba(255,255,255,0.2);
+            border: 1px solid #C9A227;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .control-desc { font-size: 14px; color: rgba(255,255,255,0.6); font-weight: 300; letter-spacing: 1px; }
+        .control-desc { font-size: 14px; color: #5D4037; font-weight: 500; letter-spacing: 0.5px; }
         
         /* Back button container */
         .back-container { position: absolute; top: 20px; left: 20px; z-index: 30; }
@@ -539,9 +547,9 @@
 
 <div id="ui">
     <div class="hud">
-        <div id="lvl-txt">Level 1</div>
-        <div id="hummus-txt" style="color: #F5CBA7; text-shadow: 1px 1px 0 #5D4037;">Hummus: 0</div>
-        <div id="score-txt">Happy Falafels: 0/0</div>
+        <div id="lvl-txt" style="color: #D4A820; text-shadow: 1px 1px 0 #3E2723;">Level 1</div>
+        <div id="hummus-txt" style="color: #C9A227; text-shadow: 1px 1px 0 rgba(255,255,255,0.8);">🧆 Hummus: 0</div>
+        <div id="score-txt" style="color: #fff; text-shadow: 1px 1px 0 #3E2723;">Happy Falafels: 0/0</div>
         <div style="width: 160px; height: 18px; background: rgba(255,255,255,0.8); border-radius: 12px; overflow: hidden; border: 3px solid #AED6F1; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
             <div id="prog-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #82E0AA 0%, #58D68D 100%); border-radius: 10px;"></div>
         </div>
@@ -556,7 +564,7 @@
 </div>
 
 <!-- Cutscene -->
-<div id="cutscene" class="menu hidden" style="background: #000; z-index: 50;">
+<div id="cutscene" class="menu hidden" style="background: linear-gradient(180deg, #87CEEB 0%, #B8E4F0 60%, #8BC34A 100%); z-index: 50;">
     <div class="cutscene-container">
         <div class="cutscene-scene" id="cutscene-scene">
             <!-- Scene elements will be added dynamically -->
@@ -635,9 +643,9 @@
             <span class="control-desc">Climb ladders</span>
         </div>
     </div>
-    <div style="margin-top: 30px; color: rgba(255,255,255,0.5); font-size: 13px; line-height: 1.8; letter-spacing: 1px; max-width: 400px; text-align: center;">
-        Make all falafels happy by sharing hummus.<br>
-        Avoid burnt bullies and don't fall off the mountain.
+    <div style="margin-top: 30px; color: #795548; font-size: 13px; line-height: 1.8; letter-spacing: 0.5px; max-width: 400px; text-align: center; font-weight: 500;">
+        Make all falafels happy by sharing hummus! 🧆<br>
+        Avoid burnt bullies and don't fall off the mountain! 🏔️
     </div>
     <button class="secondary small" onclick="showMainMenu()" style="margin-top: 25px;">BACK</button>
 </div>
@@ -689,6 +697,42 @@
     <h2>You fell off the mountain...</h2>
     <button class="primary" onclick="retryLevel()">TRY AGAIN</button>
     <button class="secondary" onclick="location.reload()">MAIN MENU</button>
+</div>
+
+<!-- Death Popup Overlay (shown over the game) -->
+<div id="death-popup" class="hidden" style="
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; pointer-events: auto;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+">
+  <div style="
+    background: rgba(255,248,220,0.97); color: #3E2723;
+    padding: 40px 50px; border-radius: 20px;
+    text-align: center; max-width: 450px;
+    box-shadow: 0 10px 50px rgba(0,0,0,0.4);
+    border: 3px solid #F4D03F;
+  ">
+    <div style="font-size: 60px; margin-bottom: 10px;" id="death-icon">😢</div>
+    <h2 style="font-size: 28px; margin: 0 0 10px 0; color: #BF360C;" id="death-title">OH NO!</h2>
+    <p style="font-size: 16px; color: #5D4037; margin-bottom: 25px; line-height: 1.5;" id="death-reason">You fell off the mountain!</p>
+    <div style="display: flex; gap: 15px; justify-content: center;">
+      <button onclick="retryFromDeathPopup()" style="
+        background: #F4D03F; color: #3E2723; border: 2px solid #C9A227;
+        padding: 14px 30px; border-radius: 25px; font-size: 15px;
+        font-weight: bold; cursor: pointer; font-family: inherit;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2); min-width: unset;
+        transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px;
+      " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">🔄 TRY AGAIN</button>
+      <button onclick="location.reload()" style="
+        background: #FFCCBC; color: #BF360C; border: 2px solid #FF8A65;
+        padding: 14px 30px; border-radius: 25px; font-size: 15px;
+        font-weight: bold; cursor: pointer; font-family: inherit;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2); min-width: unset;
+        transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px;
+      " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">🏠 MAIN MENU</button>
+    </div>
+  </div>
 </div>
 
 <!-- Certificate -->
@@ -1280,7 +1324,7 @@
             g.mesh.position.y += 0.35;
             if (++count >= 28) clearInterval(iv);
         }, 16);
-        showHint('Path open! Keep climbing ⬆');
+        showHint('🎉 Path open! Keep climbing ⬆️');
     }
     
     function loadLevel(lvl) {
@@ -1394,8 +1438,8 @@
             
             // Falafels scattered
             addFalafelInZone(-10, 9, -32, 2);
-            addFalafelInZone(-2, 9, -38, 2);
-            addFalafelInZone(-6, 9, -38, 2);
+            addFalafelInZone(2, 9, -38, 2);
+            addFalafelInZone(-6, 9, -35, 2);
             addFalafelInZone(0, 9, -34, 2);
             
             // Moving platforms to reach ladder
@@ -2084,9 +2128,9 @@ function addFalafel(x,y,z,sad) {
         if(near && nearestFalafel) {
             if(game.hummusCount > 0) {
                 share(nearestFalafel);
-                showHint("Shared!");
+                showHint("🌟 Shared the love!");
             } else {
-                showHint("You need hummus! Find a jar first.");
+                showHint("🧆 Find a hummus jar first! Look around the platform.");
             }
             return; // Don't jump when near a falafel
         }
@@ -2224,7 +2268,7 @@ function addFalafel(x,y,z,sad) {
                         // Fell from a platform onto the grass floor → restart
                         if (p === window._colFloor && game.wasElevated) {
                             game.wasElevated = false;
-                            gameOver();
+                            gameOver('fall');
                             return;
                         }
                         player.position.y = platformTop + 0.5;
@@ -2293,16 +2337,31 @@ function addFalafel(x,y,z,sad) {
             }
         });
 
-        bullies.forEach(b => { if(player.position.distanceTo(b.mesh.position) < 1.0) gameOver(); });
+        bullies.forEach(b => { if(player.position.distanceTo(b.mesh.position) < 1.0) gameOver('bully'); });
         
         jars.forEach(j => {
             if(j.active && player.position.distanceTo(j.mesh.position) < 1.5) {
                 j.active = false; j.mesh.visible = false;
                 game.hummusCount++; sound('collect'); updateHUD(); checkWin();
+                showHint('✨ +1 Hummus! Now find a sad falafel 🧆');
             }
         });
 
-        if(player.position.y < -10) gameOver();
+        // Proximity hint: near sad falafel but no hummus → point to nearest jar
+        if (game.hummusCount === 0 && !window._jarHintCooldown) {
+            const zone = game.level;
+            const nearSad = falafels.some(f => !f.shared && f.zoneId === zone &&
+                player.position.distanceTo(f.mesh.position) < 2.5);
+            if (nearSad) {
+                const activeJars = jars.filter(j => j.active && j.zoneId === zone);
+                if (activeJars.length > 0) {
+                    showHint('🔍 Find a hummus jar first! Look around nearby.');
+                    window._jarHintCooldown = setTimeout(() => { window._jarHintCooldown = null; }, 6000);
+                }
+            }
+        }
+
+        if(player.position.y < -10) gameOver('fall');
 
         // Soft boundary — mountain spans x≈-11 to +3, z≈0 to -99
         // Allow generous wiggle room beyond that, just stop the player walking into empty void
@@ -2321,10 +2380,9 @@ function addFalafel(x,y,z,sad) {
         updateGates();
         const zone = game.level;
         const zf = falafels.filter(f => f.zoneId === zone);
-        const zj = jars.filter(j => j.zoneId === zone);
         if (!zf.length) return;
-        const left = zj.filter(j => j.active).length + zf.filter(f => !f.shared).length;
-        if (left === 0) levelComplete();
+        const allHappy = zf.every(f => f.shared);
+        if (allHappy) levelComplete();
     }
 
     function updateHUD() {
@@ -2336,7 +2394,7 @@ function addFalafel(x,y,z,sad) {
         // Update hummus count display if exists
         const hummusDisplay = document.getElementById('hummus-txt');
         if(hummusDisplay) {
-            hummusDisplay.innerText = `Hummus: ${game.hummusCount}`;
+            hummusDisplay.innerText = `🧆 Hummus: ${game.hummusCount}`;
         }
         
         if(game.mega) {
@@ -2422,139 +2480,258 @@ function addFalafel(x,y,z,sad) {
     }
     
     function renderCutsceneScene(sceneName) {
-        const scene = document.getElementById('cutscene-scene');
-        scene.innerHTML = '';
-        
-        // Background elements
-        const bg = document.createElement('div');
-        bg.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, #1a2040 0%, #2d3060 50%, #1a2030 100%);';
-        scene.appendChild(bg);
-        
-        // Mountain
-        const mountain = document.createElement('div');
-        mountain.className = 'scene-element scene-mountain';
-        scene.appendChild(mountain);
-        
-        // Sun/Moon
-        const sun = document.createElement('div');
-        sun.className = 'scene-element scene-sun';
-        scene.appendChild(sun);
-        
-        // Scene-specific elements
+        const sceneEl = document.getElementById('cutscene-scene');
+        sceneEl.innerHTML = '';
+
+        // Create a canvas that fills the scene element
+        const canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 400;
+        canvas.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%;';
+        sceneEl.appendChild(canvas);
+        const ctx = canvas.getContext('2d');
+
+        // ── Sky gradient background ─────────────────────────────────────────
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, 400);
+        if (sceneName === 'sad') {
+            skyGrad.addColorStop(0, '#6A8BAA');
+            skyGrad.addColorStop(0.65, '#8AAFC8');
+            skyGrad.addColorStop(0.85, '#9DC88C');
+            skyGrad.addColorStop(1, '#6B9A3A');
+        } else {
+            skyGrad.addColorStop(0, '#87CEEB');
+            skyGrad.addColorStop(0.65, '#B8E4F0');
+            skyGrad.addColorStop(0.85, '#C8EFA0');
+            skyGrad.addColorStop(1, '#8BC34A');
+        }
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, 800, 400);
+
+        // ── Mountain silhouette ─────────────────────────────────────────────
+        ctx.fillStyle = sceneName === 'sad' ? '#2A4A30' : '#3A6040';
+        ctx.beginPath();
+        ctx.moveTo(0, 400);
+        ctx.lineTo(100, 200); ctx.lineTo(200, 260);
+        ctx.lineTo(320, 130); ctx.lineTo(420, 190);
+        ctx.lineTo(540, 90);  ctx.lineTo(640, 170);
+        ctx.lineTo(800, 210); ctx.lineTo(800, 400);
+        ctx.closePath(); ctx.fill();
+
+        // ── Snow caps ──────────────────────────────────────────────────────
+        ctx.fillStyle = 'rgba(240,240,255,0.8)';
+        [[320, 130, 30], [540, 90, 35]].forEach(([mx, my, sz]) => {
+            ctx.beginPath();
+            ctx.moveTo(mx, my); ctx.lineTo(mx - sz, my + sz * 1.2); ctx.lineTo(mx + sz, my + sz * 1.2);
+            ctx.closePath(); ctx.fill();
+        });
+
+        // ── Grass ground ───────────────────────────────────────────────────
+        ctx.fillStyle = sceneName === 'sad' ? '#6B9A3A' : '#8BC34A';
+        ctx.fillRect(0, 340, 800, 60);
+
+        // ── Clouds ─────────────────────────────────────────────────────────
+        [[120, 60], [350, 40], [600, 75]].forEach(([cx, cy]) => {
+            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            [[0, 0, 25], [28, -8, 20], [-24, 5, 18], [12, 8, 16]].forEach(([dx, dy, r]) => {
+                ctx.beginPath(); ctx.arc(cx + dx, cy + dy, r, 0, Math.PI * 2); ctx.fill();
+            });
+        });
+
+        // ── Sun / moon ─────────────────────────────────────────────────────
+        if (sceneName !== 'sad') {
+            const sunGrad = ctx.createRadialGradient(680, 55, 8, 680, 55, 40);
+            sunGrad.addColorStop(0, '#FFF8A0'); sunGrad.addColorStop(0.5, '#F4D03F'); sunGrad.addColorStop(1, 'rgba(244,208,63,0)');
+            ctx.fillStyle = sunGrad;
+            ctx.beginPath(); ctx.arc(680, 55, 40, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#FFF8A0';
+            ctx.beginPath(); ctx.arc(680, 55, 20, 0, Math.PI * 2); ctx.fill();
+        } else {
+            ctx.fillStyle = 'rgba(200,210,230,0.6)';
+            ctx.beginPath(); ctx.arc(680, 55, 22, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // ── Platform strip ─────────────────────────────────────────────────
+        const platGrad = ctx.createLinearGradient(0, 330, 0, 345);
+        platGrad.addColorStop(0, '#D4A820'); platGrad.addColorStop(1, '#A07010');
+        ctx.fillStyle = platGrad;
+        ctx.fillRect(50, 330, 700, 12);
+        ctx.fillStyle = '#C8EFA0'; ctx.fillRect(50, 330, 700, 3);
+
+        // ── Character helpers ──────────────────────────────────────────────
+        function drawFalafel(x, y, happy, scale) {
+            scale = scale || 1;
+            const r = 35 * scale;
+            ctx.save(); ctx.translate(x, y);
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            ctx.beginPath(); ctx.ellipse(0, r + 5, r * 0.8, r * 0.2, 0, 0, Math.PI * 2); ctx.fill();
+            // Body gradient
+            const bodyGrad = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.05, 0, 0, r);
+            bodyGrad.addColorStop(0, happy ? '#F5D880' : '#D4A860');
+            bodyGrad.addColorStop(0.6, happy ? '#D4A820' : '#B08040');
+            bodyGrad.addColorStop(1, happy ? '#A07818' : '#8B6030');
+            ctx.fillStyle = bodyGrad;
+            ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+            // Sesame dots
+            ctx.fillStyle = 'rgba(100,60,0,0.3)';
+            [[-r*0.1, -r*0.6], [r*0.3, -r*0.4], [-r*0.45, -r*0.15], [r*0.5, 0.1*r]].forEach(([dx, dy]) => {
+                ctx.beginPath(); ctx.ellipse(dx, dy, 2.5*scale, 1.8*scale, 0.5, 0, Math.PI*2); ctx.fill();
+            });
+            // Blush
+            if (happy) {
+                ctx.fillStyle = 'rgba(255,120,120,0.35)';
+                ctx.beginPath(); ctx.ellipse(-r * 0.48, r * 0.18, r * 0.22, r * 0.14, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(r * 0.48, r * 0.18, r * 0.22, r * 0.14, 0, 0, Math.PI * 2); ctx.fill();
+            }
+            // Eyes
+            ctx.fillStyle = '#2C2C2C';
+            ctx.beginPath(); ctx.arc(-r * 0.27, -r * 0.1, r * 0.13, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(r * 0.27, -r * 0.1, r * 0.13, 0, Math.PI * 2); ctx.fill();
+            // Eye shine
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(-r * 0.21, -r * 0.17, r * 0.055, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(r * 0.33, -r * 0.17, r * 0.055, 0, Math.PI * 2); ctx.fill();
+            // Mouth
+            ctx.strokeStyle = '#5C4030'; ctx.lineWidth = 2.5 * scale; ctx.lineCap = 'round';
+            ctx.beginPath();
+            if (happy) { ctx.arc(0, r * 0.12, r * 0.24, 0.15, Math.PI - 0.15); }
+            else { ctx.arc(0, r * 0.4, r * 0.24, -Math.PI + 0.15, -0.15); }
+            ctx.stroke();
+            // Tears
+            if (!happy) {
+                ctx.fillStyle = 'rgba(90,160,220,0.85)';
+                ctx.beginPath(); ctx.arc(-r * 0.27, r * 0.12, r * 0.07, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(r * 0.27, r * 0.12, r * 0.07, 0, Math.PI * 2); ctx.fill();
+                // Tear streak
+                ctx.strokeStyle = 'rgba(90,160,220,0.5)'; ctx.lineWidth = r * 0.06;
+                ctx.beginPath(); ctx.moveTo(-r*0.27, r*0.15); ctx.lineTo(-r*0.27, r*0.45); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(r*0.27, r*0.15); ctx.lineTo(r*0.27, r*0.45); ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function drawBully(x, y, scale) {
+            scale = scale || 1;
+            const r = 28 * scale;
+            ctx.save(); ctx.translate(x, y);
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.beginPath(); ctx.ellipse(0, r + 4, r * 0.75, r * 0.2, 0, 0, Math.PI * 2); ctx.fill();
+            // Spiky outline
+            const spikes = 9;
+            ctx.fillStyle = '#2D1F10';
+            ctx.beginPath();
+            for (let i = 0; i < spikes * 2; i++) {
+                const angle = (i / (spikes * 2)) * Math.PI * 2 - Math.PI / 2;
+                const rad = i % 2 === 0 ? r * 1.35 : r * 0.78;
+                if (i === 0) ctx.moveTo(Math.cos(angle) * rad, Math.sin(angle) * rad);
+                else ctx.lineTo(Math.cos(angle) * rad, Math.sin(angle) * rad);
+            }
+            ctx.closePath(); ctx.fill();
+            // Dark body
+            const bg = ctx.createRadialGradient(-r*0.2, -r*0.2, r*0.05, 0, 0, r*0.85);
+            bg.addColorStop(0, '#4A3020'); bg.addColorStop(1, '#1A0E08');
+            ctx.fillStyle = bg;
+            ctx.beginPath(); ctx.arc(0, 0, r * 0.8, 0, Math.PI * 2); ctx.fill();
+            // Red glowing eyes
+            ctx.fillStyle = '#FF2020';
+            ctx.fillRect(-r * 0.38, -r * 0.22, r * 0.22, r * 0.12);
+            ctx.fillRect(r * 0.16, -r * 0.22, r * 0.22, r * 0.12);
+            // Angry brows
+            ctx.strokeStyle = '#FF5050'; ctx.lineWidth = 2 * scale; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(-r * 0.42, -r * 0.35); ctx.lineTo(-r * 0.14, -r * 0.26); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(r * 0.42, -r * 0.35); ctx.lineTo(r * 0.14, -r * 0.26); ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawJar(x, y, scale) {
+            scale = scale || 1;
+            const w = 26 * scale, h = 38 * scale;
+            ctx.save(); ctx.translate(x - w / 2, y - h);
+            // Lid
+            ctx.fillStyle = '#D4A820';
+            ctx.beginPath(); ctx.roundRect(-2, -5, w + 4, 10, 3); ctx.fill();
+            // Jar body gradient
+            const jg = ctx.createLinearGradient(0, 0, w, h);
+            jg.addColorStop(0, '#FFF8DC'); jg.addColorStop(0.5, '#FFFAE8'); jg.addColorStop(1, '#E8D4A0');
+            ctx.fillStyle = jg;
+            ctx.beginPath(); ctx.roundRect(0, 0, w, h, [3, 3, 10, 10]); ctx.fill();
+            // Label highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.beginPath(); ctx.roundRect(3, 4, w * 0.35, h * 0.45, 2); ctx.fill();
+            // Hummus top
+            const hg = ctx.createLinearGradient(0, 3, 0, 14);
+            hg.addColorStop(0, '#F5E688'); hg.addColorStop(1, '#D4C048');
+            ctx.fillStyle = hg;
+            ctx.beginPath(); ctx.roundRect(3, 3, w - 6, 12 * scale, 3); ctx.fill();
+            // Paprika dot
+            ctx.fillStyle = '#C83018';
+            ctx.beginPath(); ctx.arc(w / 2, 9 * scale, 4 * scale, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+        }
+
+        // ── Scene-specific content ──────────────────────────────────────────
         if (sceneName === 'intro' || sceneName === 'happy') {
-            // Happy falafels
-            for (let i = 0; i < 3; i++) {
-                const falafel = document.createElement('div');
-                falafel.className = 'scene-element scene-falafel happy';
-                falafel.style.bottom = '80px';
-                falafel.style.left = (250 + i * 150) + 'px';
-                falafel.style.animation = 'float 2s ease-in-out infinite';
-                falafel.style.animationDelay = (i * 0.3) + 's';
-                scene.appendChild(falafel);
-            }
-            // Hummus jars
-            for (let i = 0; i < 2; i++) {
-                const jar = document.createElement('div');
-                jar.className = 'scene-element scene-jar';
-                jar.style.bottom = '60px';
-                jar.style.left = (320 + i * 180) + 'px';
-                scene.appendChild(jar);
-            }
+            drawJar(240, 330, 1.1); drawJar(440, 330, 1.1); drawJar(580, 330, 0.9);
+            drawFalafel(280, 310, true, 1.0);
+            drawFalafel(400, 305, true, 1.1);
+            drawFalafel(520, 310, true, 0.95);
         } else if (sceneName === 'attack') {
-            // Bullies attacking
-            for (let i = 0; i < 3; i++) {
-                const bully = document.createElement('div');
-                bully.className = 'scene-element scene-bully';
-                bully.style.top = (80 + i * 40) + 'px';
-                bully.style.left = (200 + i * 200) + 'px';
-                bully.style.animation = 'float 1s ease-in-out infinite';
-                bully.style.animationDelay = (i * 0.2) + 's';
-                scene.appendChild(bully);
-            }
-            // Scared falafels
-            for (let i = 0; i < 2; i++) {
-                const falafel = document.createElement('div');
-                falafel.className = 'scene-element scene-falafel sad';
-                falafel.style.bottom = '80px';
-                falafel.style.left = (300 + i * 200) + 'px';
-                scene.appendChild(falafel);
-            }
+            drawFalafel(220, 315, false, 1.0);
+            drawFalafel(400, 318, false, 0.9);
+            drawBully(160, 195, 1.3);
+            drawBully(360, 170, 1.4);
+            drawBully(560, 185, 1.2);
         } else if (sceneName === 'sad') {
-            // Sad falafels with tears (represented by color)
-            for (let i = 0; i < 4; i++) {
-                const falafel = document.createElement('div');
-                falafel.className = 'scene-element scene-falafel sad';
-                falafel.style.bottom = '80px';
-                falafel.style.left = (180 + i * 120) + 'px';
-                scene.appendChild(falafel);
-                
-                // Tear drops
-                const tear = document.createElement('div');
-                tear.style.cssText = `position: absolute; bottom: 130px; left: ${195 + i * 120}px; width: 8px; height: 8px; background: #5DADE2; border-radius: 50%; animation: float 1s ease-in-out infinite reverse; animation-delay: ${i * 0.2}s;`;
-                scene.appendChild(tear);
+            drawFalafel(150, 316, false, 0.85);
+            drawFalafel(290, 314, false, 0.9);
+            drawFalafel(430, 316, false, 0.85);
+            drawFalafel(570, 314, false, 0.9);
+            // Rain drops
+            ctx.strokeStyle = 'rgba(90,160,220,0.5)'; ctx.lineWidth = 1.5;
+            for (let i = 0; i < 20; i++) {
+                const rx = 60 + (i * 37) % 680, ry = 30 + (i * 53) % 280;
+                ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx - 2, ry + 12); ctx.stroke();
             }
-            // Dark overlay
-            sun.style.opacity = '0.3';
         } else if (sceneName === 'hope') {
-            // Scattered jars
             for (let i = 0; i < 5; i++) {
-                const jar = document.createElement('div');
-                jar.className = 'scene-element scene-jar';
-                jar.style.bottom = (60 + Math.random() * 100) + 'px';
-                jar.style.left = (100 + i * 140) + 'px';
-                jar.style.animation = 'float 2s ease-in-out infinite';
-                jar.style.animationDelay = (i * 0.3) + 's';
-                scene.appendChild(jar);
+                drawJar(100 + i * 155, 295 + (i % 2) * 30, 1.1 + (i % 3) * 0.1);
             }
-            // Sparkle effect
-            for (let i = 0; i < 8; i++) {
-                const sparkle = document.createElement('div');
-                sparkle.style.cssText = `position: absolute; width: 4px; height: 4px; background: #f4d03f; border-radius: 50%; top: ${100 + Math.random() * 200}px; left: ${100 + Math.random() * 600}px; animation: twinkle 1.5s infinite; animation-delay: ${Math.random() * 2}s;`;
-                scene.appendChild(sparkle);
+            // Sparkles
+            ctx.fillStyle = '#F4D03F';
+            for (let i = 0; i < 14; i++) {
+                const sx = 70 + (i * 53) % 660, sy = 60 + (i * 41) % 240;
+                ctx.save(); ctx.translate(sx, sy);
+                ctx.beginPath();
+                for (let p = 0; p < 4; p++) {
+                    const a = (p / 4) * Math.PI * 2;
+                    const r1 = 6, r2 = 2;
+                    ctx.lineTo(Math.cos(a) * r1, Math.sin(a) * r1);
+                    ctx.lineTo(Math.cos(a + Math.PI / 4) * r2, Math.sin(a + Math.PI / 4) * r2);
+                }
+                ctx.closePath(); ctx.fill(); ctx.restore();
             }
         } else if (sceneName === 'mission') {
-            // Player falafel (hero)
-            const hero = document.createElement('div');
-            hero.className = 'scene-element scene-falafel happy';
-            hero.style.bottom = '80px';
-            hero.style.left = '380px';
-            hero.style.transform = 'scale(1.3)';
-            hero.style.boxShadow = '0 0 30px rgba(244, 208, 63, 0.5)';
-            scene.appendChild(hero);
-            
-            // Bullies to avoid
-            const bully = document.createElement('div');
-            bully.className = 'scene-element scene-bully';
-            bully.style.bottom = '180px';
-            bully.style.left = '550px';
-            bully.style.animation = 'float 1.5s ease-in-out infinite';
-            scene.appendChild(bully);
-            
-            // Jar to collect
-            const jar = document.createElement('div');
-            jar.className = 'scene-element scene-jar';
-            jar.style.bottom = '150px';
-            jar.style.left = '200px';
-            jar.style.animation = 'float 2s ease-in-out infinite';
-            scene.appendChild(jar);
+            drawFalafel(400, 310, true, 1.4);
+            drawBully(590, 220, 1.2);
+            drawJar(200, 275, 1.3);
+            // Dashed arrow pointing from player toward jar
+            ctx.strokeStyle = '#F4D03F'; ctx.lineWidth = 3; ctx.setLineDash([6, 4]);
+            ctx.beginPath(); ctx.moveTo(370, 295); ctx.lineTo(230, 260); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#F4D03F';
+            ctx.beginPath(); ctx.moveTo(218, 258); ctx.lineTo(238, 248); ctx.lineTo(235, 266); ctx.closePath(); ctx.fill();
         } else if (sceneName === 'ready') {
-            // Triumphant scene
-            const hero = document.createElement('div');
-            hero.className = 'scene-element scene-falafel happy';
-            hero.style.bottom = '200px';
-            hero.style.left = '375px';
-            hero.style.transform = 'scale(1.5)';
-            hero.style.boxShadow = '0 0 50px rgba(244, 208, 63, 0.7)';
-            hero.style.animation = 'float 2s ease-in-out infinite';
-            scene.appendChild(hero);
-            
-            // Sparkles around hero
+            drawFalafel(400, 295, true, 1.8);
+            // Star burst ring
             for (let i = 0; i < 12; i++) {
-                const sparkle = document.createElement('div');
                 const angle = (i / 12) * Math.PI * 2;
-                const radius = 80 + Math.random() * 40;
-                sparkle.style.cssText = `position: absolute; width: 6px; height: 6px; background: #f4d03f; border-radius: 50%; top: ${200 + Math.sin(angle) * radius}px; left: ${390 + Math.cos(angle) * radius}px; animation: twinkle 1s infinite; animation-delay: ${i * 0.1}s;`;
-                scene.appendChild(sparkle);
+                const dist = 95 + (i % 3) * 15;
+                const sx = 400 + Math.cos(angle) * dist;
+                const sy = 270 + Math.sin(angle) * dist * 0.65;
+                const sr = 3.5 + (i % 2) * 2;
+                ctx.fillStyle = i % 3 === 0 ? '#F4D03F' : (i % 3 === 1 ? '#FF9800' : '#FFF176');
+                ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill();
             }
         }
     }
@@ -2702,14 +2879,23 @@ function addFalafel(x,y,z,sad) {
     }
 
     function retryLevel() {
-        game.level = 1;
+        const currentLevel = game.level; // preserve level
         game.score = 0;
         game.total = 0;
         game.hummusCount = 0;
         game.wasElevated = false;
         game.hasLanded = false;
         game.checkpoint = null;
+        // Always rebuild from zone 1 — the whole mountain is created in one loadLevel(1) call
         loadLevel(1);
+        // Jump to correct zone if above zone 1
+        if (currentLevel > 1) {
+            gates.forEach(g => { if (g.zoneId < currentLevel) openGate(g); });
+            game.level = currentLevel;
+            game.total = falafels.filter(f => f.zoneId === currentLevel).length;
+            const sp = ZONE_SPAWN[currentLevel];
+            if (sp && player) player.position.set(sp[0], sp[1], sp[2]);
+        }
         game.paused = false;
         game.active = true;
         showScreen(null);
@@ -2728,7 +2914,7 @@ function addFalafel(x,y,z,sad) {
         updateHUD();
     }
 
-    function gameOver() {
+    function gameOver(reason) {
         sound('fail');
         if (game.checkpoint) {
             // Respawn at last checkpoint — no menu, just a brief flash
@@ -2756,11 +2942,27 @@ function addFalafel(x,y,z,sad) {
                 }
             }, 1000);
         } else {
-            // No checkpoint — restart from the very bottom
+            // No checkpoint — show transparent death popup over the game
             game.active = false;
-            document.querySelector('#retry-menu h2').innerText = 'You start from the bottom...';
-            showScreen('retry-menu');
+            const icon = document.getElementById('death-icon');
+            const title = document.getElementById('death-title');
+            const msg = document.getElementById('death-reason');
+            if (reason === 'bully') {
+                if (icon) icon.textContent = '😵';
+                if (title) title.textContent = 'SQUISHED! 🔥';
+                if (msg) msg.textContent = 'A Burnt Bully got you! Watch out for those dark spiky monsters.';
+            } else {
+                if (icon) icon.textContent = '😢';
+                if (title) title.textContent = 'OH NO! 😱';
+                if (msg) msg.textContent = 'You fell off the mountain! Use platforms carefully.';
+            }
+            document.getElementById('death-popup').classList.remove('hidden');
         }
+    }
+    
+    function retryFromDeathPopup() {
+        document.getElementById('death-popup').classList.add('hidden');
+        retryLevel();
     }
     
     function levelComplete() {
@@ -2777,8 +2979,9 @@ function addFalafel(x,y,z,sad) {
         }
         // Pause game while showing level complete screen
         game.active = false;
-        const msgs = ["Wonderful!", "Amazing!", "So Cute!", "Fantastic!", "Incredible!", "Superstar!", "On Fire! 🔥", "Unstoppable!", "Almost There!", "YOU DID IT! 🌟"];
-        document.getElementById('lvl-msg').innerText = msgs[game.level - 1] || 'Great Job!';
+        const msgs = ["Wonderful! 🌟", "Amazing! ✨", "So Cute! 🥰", "Fantastic! 🎉", "Incredible! 🔥", "Superstar! ⭐", "On Fire! 🔥", "Unstoppable! 💪", "Almost There! 🏔️", "YOU DID IT! 🌟"];
+        document.getElementById('lvl-msg').innerText = msgs[game.level - 1] || '🎊 Great Job!';
+        showHint('🎊 All falafels are happy! Zone complete!');
         showScreen('level-menu');
     }
 
