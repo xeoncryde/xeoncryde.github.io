@@ -1,0 +1,59 @@
+Falafel Kingdom — Island Adventure
+Folder Structure
+=================
+
+falafelkingdom/
+├── index.html              ← Original game (keep as backup)
+├── index_20.html           ← NEW overhaul game (play this!)
+├── SETUP_GUIDE.md          ← How to set up and play
+├── TEXTURES_TO_DOWNLOAD.md ← Where to get free textures
+├── FOLDER_STRUCTURE.txt    ← This file
+└── textures/               ← Optional: create this folder for better visuals
+    ├── sand/
+    │   ├── diffuse.jpg     ← Base color (tan/golden)
+    │   ├── normal.jpg      ← Surface bumps
+    │   └── roughness.jpg   ← Roughness map
+    ├── stone/
+    │   ├── diffuse.jpg
+    │   ├── normal.jpg
+    │   └── roughness.jpg
+    ├── grass/
+    │   ├── diffuse.jpg
+    │   └── normal.jpg
+    ├── coral/
+    │   ├── diffuse.jpg
+    │   └── normal.jpg
+    ├── gold/
+    │   ├── diffuse.jpg
+    │   ├── normal.jpg
+    │   ├── roughness.jpg
+    │   └── metallic.jpg    ← Metalness map (white = fully metallic)
+    ├── mossy/
+    │   ├── diffuse.jpg
+    │   └── normal.jpg
+    ├── white/              ← Sky Bridge platforms
+    │   └── diffuse.jpg
+    ├── crystal/
+    │   ├── diffuse.jpg     ← Blue-cyan ice texture
+    │   └── normal.jpg
+    ├── mystic/             ← Forest Grove platforms
+    │   └── diffuse.jpg
+    ├── star/               ← Starlight Peak platforms
+    │   └── diffuse.jpg     ← Deep space texture
+    ├── throne/             ← Final island platforms
+    │   ├── diffuse.jpg
+    │   └── metallic.jpg
+    └── hdri/
+        ├── sunrise.exr     ← HDRI for warm islands (Islands 1-5)
+        ├── golden.exr      ← Golden hour (Islands 4, 10)
+        └── night.exr       ← Night sky (Island 9)
+
+
+NOTES:
+------
+• The game runs perfectly without the textures/ folder.
+  Built-in procedural textures are used as fallback.
+• Texture files should be 2048×2048 for best quality.
+• Smaller sizes (512×512, 1024×1024) also work fine.
+• All textures from Poly Haven (polyhaven.com) are CC0 licensed (free to use).
+• See TEXTURES_TO_DOWNLOAD.md for exact download links.
