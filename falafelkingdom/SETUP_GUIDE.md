@@ -2,16 +2,29 @@
 ## Setup Guide
 
 The game works **completely out of the box** with no setup required.
-Open `index_20.html` in any modern browser and play immediately.
+Open `index.html` in any modern browser and play immediately.
 
-### Optional: External Textures (for enhanced visuals)
+> **Tip:** If you want full 3D Quaternius models, see [`DOWNLOAD_MODELS.md`](DOWNLOAD_MODELS.md).
 
-The game uses procedurally generated canvas textures by default.
-For higher-quality visuals, you can add real PBR textures:
+### Optional: 3D Models (Quaternius Ultimate Platformer Pack)
 
-1. Download the textures listed in `TEXTURES_TO_DOWNLOAD.md`
-2. Place them in the folder structure described in `FOLDER_STRUCTURE.txt`
-3. The game will automatically use them if present
+The game uses procedurally generated geometry by default and falls back to it
+automatically when models are missing. To upgrade to Quaternius 3D assets:
+
+1. Download the pack from **https://quaternius.com/packs/ultimateplatformer.html** (CC0, free)
+2. Rename and copy GLB files into `models/quaternius/` subfolders (see `DOWNLOAD_MODELS.md`)
+3. Serve the game through a local HTTP server (needed for GLB loading):
+   ```bash
+   python3 -m http.server 8080
+   # Open http://localhost:8080
+   ```
+4. Models load progressively — the game is always playable even during loading
+
+### Physics Engine
+
+The game uses **Cannon.js** (loaded automatically from CDN) for physics when
+available, providing gravity simulation and platform collision detection.
+If the CDN is unreachable, a built-in AABB physics fallback activates silently.
 
 ### Controls
 

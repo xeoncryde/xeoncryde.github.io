@@ -3,8 +3,7 @@ Folder Structure
 =================
 
 falafelkingdom/
-├── index.html              ← Original game (keep as backup)
-├── index_20.html           ← NEW overhaul game (play this!)
+├── index.html              ← Complete overhaul game (play this!)
 ├── SETUP_GUIDE.md          ← How to set up and play
 ├── TEXTURES_TO_DOWNLOAD.md ← Where to get free textures
 ├── FOLDER_STRUCTURE.txt    ← This file
