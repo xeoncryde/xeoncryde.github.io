@@ -219,9 +219,9 @@ body{overflow:hidden;background:#08060f;font-family:'Comic Sans MS','Comic Sans'
 </div>
 <div id="tjb" ontouchstart="handleSpace()">⬆</div>
 
-<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js" crossorigin="anonymous"></script>
 <script>
 // =====================================================================
 // FALAFEL KINGDOM — Island Adventure  (index.html)
@@ -231,17 +231,18 @@ body{overflow:hidden;background:#08060f;font-family:'Comic Sans MS','Comic Sans'
 const CFG = {
   sfx: true, music: true, hints: true, shake: true,
   GRAV: -0.016, JUMP: 0.32, JUMP_HOLD_BONUS: 0.12, JUMP_HOLD_TIME: 180,
-  CAM_LERP: 0.07, CAM_OFF_Y: 8, CAM_OFF_Z: 15, CAM_LOOKAHEAD: 3,
-  COLLECT_DIST: 2.0, SHARE_DIST: 2.2, BULLY_HIT_DIST: 1.0,
-  SPRING_VEL: 0.7, BOOST_VEL: 0.5, CRUMBLE_TIME: 1500
+  CAM_LERP: 0.07, CAM_OFF_Y: 9, CAM_OFF_Z: 18, CAM_LOOKAHEAD: 2,
+  COLLECT_DIST: 2.2, SHARE_DIST: 2.4, BULLY_HIT_DIST: 1.1,
+  SPRING_VEL: 0.7, BOOST_VEL: 0.46, CRUMBLE_TIME: 1500
 };
 // Cannon.js scaled equivalents (per-frame → per-second, vel in GU/s)
 const PHYS = {
   GRAVITY:    CFG.GRAV  * 60 * 60,  // -57.6 GU/s²
   JUMP_VEL:   CFG.JUMP  * 60,       // 19.2 GU/s
   SPRING_VEL: CFG.SPRING_VEL * 60,  // 42 GU/s
-  BOOST_VEL:  CFG.BOOST_VEL * 60,   // 30 GU/s
-  MAX_H_VEL:  9,                     // 9 GU/s top speed (was 21)
+  BOOST_VEL:  25,                    // 25 GU/s horizontal boost
+  BOOST_JUMP: 28,                    // 28 GU/s vertical on boost (7+ unit jump)
+  MAX_H_VEL:  7,                     // 7 GU/s comfortable top speed
   JUMP_HOLD:  0.0006 * 60,          // per-step hold bonus
 };
 
@@ -470,265 +471,308 @@ function buildTextures() {
 // ── Island Definitions ─────────────────────────────────────────────────
 // Each island: sky BG, fog, lighting, platforms, jars, falafels, bullies, mechanic
 const ISLANDS = [
-  // ISLAND 0: Sandy Steps — Spring Pads
-  { name:'Sandy Steps', sub:'A warm welcome awaits', mech:'✦ Spring Pads ✦', mechHint:'Yellow pads launch you to floating platforms!',
-    story:'The Falafel Kingdom once bloomed in golden sunlight. Then one dark morning, the Burnt Bullies stole every jar of hummus and scattered the falafels across the floating islands. You — brave little falafel — must bring the hummus home. Your journey begins here, on the sunny Sandy Steps.',
-    bgTop:0x87CEEB, bgBot:0xFFD580, fogColor:0xFFE8A0, fogDensity:0.018,
-    sunColor:0xFFF5CC, sunPos:[20,40,10], ambColor:0xADD8F0, ambBot:0x806040,
-    bloomStr:0.6, colorTint:'#FFE070',
+  // ISLAND 0: Sandy Paradise
+  { name:"Sandy Paradise", sub:"A warm welcome to the Kingdom", mech:"✶ Free Exploration ✶",
+    mechHint:"Explore the beach! Find all the hummus jars and share with the falafels.",
+    story:"The Falafel Kingdom once bloomed in golden sunlight. Then one dark morning, the Burnt Bullies stole every jar of hummus and scattered the falafels across the floating islands. You — brave little falafel — must bring the hummus home. Your journey begins here, on the warm Sandy Paradise.",
+    bgTop:0x87CEEB, bgBot:0xFFD580, fogColor:0xFFEEB0, fogDensity:0.009,
+    sunColor:0xFFFDE0, sunPos:[30,55,20], ambColor:0xBBDFF0, ambBot:0x907060,
+    bloomStr:0.5, colorTint:"#FFE060",
     platforms:[
-      // Main island
-      {x:0,y:0,z:0,w:14,h:1,d:14,tex:'sand',col:0xE8C970},
-      // Side stepping stones
-      {x:-8,y:1.5,z:-6,w:4,h:1,d:4,tex:'sand',col:0xF0D080},
-      {x:8,y:2,z:-4,w:4,h:1,d:4,tex:'sand',col:0xF0D080},
-      {x:0,y:3,z:-10,w:5,h:1,d:5,tex:'sand',col:0xE8C070},
-      {x:-6,y:4.5,z:-16,w:4,h:1,d:4,tex:'sand',col:0xE0B860},
-      {x:6,y:4,z:-14,w:4,h:1,d:4,tex:'sand',col:0xE8C070},
-      {x:0,y:6,z:-20,w:6,h:1,d:6,tex:'sand',col:0xD4A840},  // exit platform
+      {x:0,   y:0, z:18, w:55, h:2, d:38, tex:"sand", col:0xE8C970},
+      {x:0,   y:0, z:-22,w:55, h:2, d:38, tex:"sand", col:0xE8D080},
+      {x:-36, y:0, z:5,  w:16, h:2, d:60, tex:"sand", col:0xE0C060},
+      {x:36,  y:0, z:5,  w:16, h:2, d:60, tex:"sand", col:0xE0C060},
+      {x:-22, y:2, z:14, w:18, h:1.5, d:20, tex:"sand", col:0xF0D090},
+      {x:22,  y:2, z:14, w:18, h:1.5, d:20, tex:"sand", col:0xF0D090},
+      {x:-28, y:2, z:-22,w:20, h:1.5, d:22, tex:"sand", col:0xECC880},
+      {x:28,  y:2, z:-22,w:20, h:1.5, d:22, tex:"sand", col:0xECC880},
+      {x:-32, y:1, z:0,  w:10, h:1,   d:14, tex:"sand", col:0xEACA70},
+      {x:32,  y:1, z:0,  w:10, h:1,   d:14, tex:"sand", col:0xEACA70},
+      {x:0,   y:4, z:-48,w:34, h:2,   d:22, tex:"stone",col:0xD0B890},
+      {x:0,   y:7, z:-57,w:26, h:2,   d:16, tex:"stone",col:0xC8A878},
+      {x:0,   y:10,z:-65,w:20, h:2,   d:14, tex:"stone",col:0xBFA068},
     ],
-    springs:[
-      {x:-8,y:1.5,z:-3.5,dst:{x:0,y:4,z:-20}},
-      {x:8,y:2,z:-1.5,dst:{x:6,y:5,z:-14}},
-    ],
-    jars:[
-      {x:-1,y:1,z:2},{x:3,y:1,z:-1},
-    ],
-    falafels:[
-      {x:2,y:1,z:3},{x:-3,y:1,z:1},
-    ],
-    bullies:[{x:-2,y:1,z:-1,range:4,speed:0.012}],
-    portal:{x:0,y:7,z:-22},
-    spawn:{x:0,y:2,z:5}
+    jars:[{x:16,y:1.5,z:22},{x:-22,y:3.5,z:12},{x:28,y:3.5,z:-24}],
+    falafels:[{x:-14,y:1.5,z:22},{x:0,y:11.5,z:-63}],
+    bullies:[],
+    portal:{x:0,y:11.5,z:-68},
+    spawn:{x:0,y:1.5,z:30}
   },
-
-  // ISLAND 1: Coral Beach — Tidal Platforms
-  { name:'Coral Beach', sub:'First allies are found', mech:'✦ Tidal Platforms ✦', mechHint:'Pink platforms bob on the tide — time your jumps!',
-    story:'Word spread among the scattered falafels that someone was coming to help. Here on Coral Beach, the tide-pools sing with gentle rhythms. The coral platforms rise and fall with the ocean\'s breath. Three falafels wait here, eyes wide with hopeful tears.',
-    bgTop:0x4090C8, bgBot:0x80E8F8, fogColor:0xA0D8F0, fogDensity:0.016,
-    sunColor:0xFFFFE0, sunPos:[15,35,8], ambColor:0x60B8E0, ambBot:0x306040,
-    bloomStr:0.5, colorTint:'#80E8F8',
+  // ISLAND 1: Coral Kingdom
+  { name:"Coral Kingdom", sub:"First allies found in the reef", mech:"✶ Tidal Platforms ✶",
+    story:"Word spread among the scattered falafels that someone was coming to help. Here on Coral Kingdom, the tide-pools sing with gentle rhythms. The coral platforms rise and fall with the ocean's breath. Three falafels wait here, eyes wide with hopeful tears.",
+    bgTop:0x3A88C8, bgBot:0x70D8F0, fogColor:0x90C8E8, fogDensity:0.011,
+    sunColor:0xFFFFF0, sunPos:[20,45,10], ambColor:0x50A8D8, ambBot:0x205060,
+    bloomStr:0.6, colorTint:"#70D8F8",
     platforms:[
-      {x:0,y:0,z:0,w:12,h:1,d:10,tex:'coral',col:0xE87870},
-      {x:-9,y:1,z:-4,w:4,h:1,d:4,tex:'coral',col:0xFF9090},
-      {x:9,y:1,z:-4,w:4,h:1,d:4,tex:'coral',col:0xFF9090},
-      {x:-5,y:2,z:-12,w:4,h:1,d:4,tex:'sand',col:0xFFB8A0},
-      {x:5,y:2,z:-14,w:4,h:1,d:4,tex:'sand',col:0xFFB8A0},
-      {x:0,y:3,z:-20,w:5,h:1,d:5,tex:'coral',col:0xE06060},
-      {x:0,y:5,z:-26,w:6,h:1,d:6,tex:'sand',col:0xF0A890},
+      {x:0,   y:0, z:18, w:50, h:2, d:38, tex:"coral", col:0xE07870},
+      {x:0,   y:0, z:-22,w:50, h:2, d:38, tex:"coral", col:0xD06868},
+      {x:-38, y:2, z:8,  w:20, h:2, d:28, tex:"coral", col:0xFF9898},
+      {x:38,  y:2, z:8,  w:20, h:2, d:28, tex:"coral", col:0xFF9898},
+      {x:-38, y:2, z:-28,w:20, h:2, d:26, tex:"coral", col:0xE88080},
+      {x:38,  y:2, z:-28,w:20, h:2, d:26, tex:"coral", col:0xE88080},
+      {x:0,   y:4, z:-35,w:22, h:2, d:20, tex:"coral", col:0xD06060},
+      {x:0,   y:7, z:-43,w:16, h:2, d:16, tex:"coral", col:0xC05050},
+      {x:0,   y:10,z:-50,w:12, h:2, d:12, tex:"coral", col:0xB04040},
     ],
     tidalPlatforms:[
-      {x:-9,y:1,z:-4,amp:1.8,speed:0.8},
-      {x:9,y:1,z:-4,amp:1.5,speed:1.0},
-      {x:-5,y:2,z:-12,amp:2.0,speed:0.7},
-      {x:5,y:2,z:-14,amp:2.0,speed:0.9},
+      {x:-38,y:2,z:8,  amp:2.2,speed:0.8},
+      {x:38, y:2,z:8,  amp:2.2,speed:1.0},
+      {x:-38,y:2,z:-28,amp:2.0,speed:0.7},
+      {x:38, y:2,z:-28,amp:2.0,speed:0.9},
     ],
-    jars:[{x:-2,y:1,z:2},{x:2,y:1,z:-1},{x:-9,y:2,z:-4}],
-    falafels:[{x:1,y:1,z:3},{x:-2,y:1,z:1},{x:5,y:3,z:-14}],
-    bullies:[{x:-1,y:1,z:-2,range:4,speed:0.012},{x:1,y:1,z:-4,range:3.5,speed:0.014}],
-    portal:{x:0,y:6,z:-28},
-    spawn:{x:0,y:2,z:4}
+    jars:[{x:10,y:1.5,z:22},{x:-38,y:4.5,z:8},{x:38,y:4.5,z:-28},{x:0,y:11.5,z:-48}],
+    falafels:[{x:-14,y:1.5,z:20},{x:38,y:4.5,z:8},{x:0,y:5.5,z:-33}],
+    bullies:[{x:6,y:1.5,z:10,range:6,speed:0.010},{x:-6,y:1.5,z:-18,range:5,speed:0.011}],
+    portal:{x:0,y:11.5,z:-53},
+    spawn:{x:0,y:1.5,z:30}
   },
-
-  // ISLAND 2: Green Valley — Wind Zones
-  { name:'Green Valley', sub:'Nature provides refuge', mech:'✦ Wind Zones ✦', mechHint:'Blue air currents push you sideways — use them to reach far platforms!',
-    story:'Nestled in eternal green, this valley is where the oldest falafels live. They remember the Kingdom before the Bullies came. The wind here has a life of its own — it blows in great currents, carrying seeds and sometimes little falafel friends across impossible gaps.',
-    bgTop:0x3A7830, bgBot:0x90E060, fogColor:0x90D870, fogDensity:0.02,
-    sunColor:0xF0FFE0, sunPos:[10,30,10], ambColor:0x50A040, ambBot:0x203818,
-    bloomStr:0.4, colorTint:'#A0E840',
+  // ISLAND 2: Enchanted Forest
+  { name:"Enchanted Forest", sub:"Nature provides refuge", mech:"✶ Wind Zones ✶",
+    story:"Deep in the mystical grove, the trees whisper ancient secrets. Five falafels found sanctuary here, protected by the magic that pulses through the roots. The wind here has a life of its own — it blows in great currents, carrying seeds and sometimes falafel friends across impossible gaps.",
+    bgTop:0x1A3020, bgBot:0x7CC050, fogColor:0x608040, fogDensity:0.015,
+    sunColor:0xD0FFB0, sunPos:[10,30,10], ambColor:0x3A7030, ambBot:0x101810,
+    bloomStr:0.7, colorTint:"#80E060",
     platforms:[
-      {x:0,y:0,z:0,w:12,h:1,d:10,tex:'grass',col:0x609040},
-      {x:-10,y:2,z:-5,w:3,h:1,d:3,tex:'grass',col:0x507830},
-      {x:10,y:2,z:-5,w:3,h:1,d:3,tex:'grass',col:0x507830},
-      {x:-14,y:3.5,z:-12,w:3,h:1,d:3,tex:'grass',col:0x608040},
-      {x:14,y:3.5,z:-12,w:3,h:1,d:3,tex:'grass',col:0x608040},
-      {x:0,y:4,z:-18,w:4,h:1,d:4,tex:'grass',col:0x509030},
-      {x:-7,y:5,z:-24,w:3,h:1,d:3,tex:'grass',col:0x406820},
-      {x:7,y:5,z:-24,w:3,h:1,d:3,tex:'grass',col:0x406820},
-      {x:0,y:6,z:-30,w:6,h:1,d:6,tex:'grass',col:0x508038},
+      {x:0,   y:0, z:18, w:60, h:2, d:38, tex:"grass", col:0x5A8840},
+      {x:0,   y:0, z:-22,w:60, h:2, d:38, tex:"grass", col:0x508038},
+      {x:0,   y:0, z:-58,w:50, h:2, d:30, tex:"grass", col:0x587848},
+      {x:-36, y:3, z:10, w:22, h:2, d:32, tex:"mossy", col:0x406830},
+      {x:36,  y:3, z:10, w:22, h:2, d:32, tex:"mossy", col:0x406830},
+      {x:-36, y:3, z:-40,w:22, h:2, d:28, tex:"mossy", col:0x3A6028},
+      {x:36,  y:3, z:-40,w:22, h:2, d:28, tex:"mossy", col:0x3A6028},
+      {x:-16, y:2, z:-8, w:12, h:1.5,d:14, tex:"mossy", col:0x487038},
+      {x:16,  y:2, z:-8, w:12, h:1.5,d:14, tex:"mossy", col:0x487038},
+      {x:0,   y:6, z:-52,w:22, h:2, d:20, tex:"mossy", col:0x507040},
+      {x:0,   y:9, z:-60,w:16, h:2, d:14, tex:"grass", col:0x5A8848},
     ],
     winds:[
-      {x:-5,y:3,z:-8,w:6,h:4,d:8,dir:{x:-0.06,y:0,z:0}},
-      {x:5,y:3,z:-8,w:6,h:4,d:8,dir:{x:0.06,y:0,z:0}},
-      {x:0,y:4.5,z:-14,w:8,h:4,d:6,dir:{x:0,y:0,z:-0.05}},
+      {x:-24,y:4,z:-2,w:12,h:8,d:22,dir:{x:-0.04,y:0,z:0}},
+      {x:24, y:4,z:-2,w:12,h:8,d:22,dir:{x:0.04, y:0,z:0}},
+      {x:0,  y:4,z:-36,w:22,h:8,d:14,dir:{x:0,y:0,z:-0.035}},
     ],
-    jars:[{x:-1,y:1,z:2},{x:2,y:1,z:0},{x:-10,y:3,z:-5},{x:10,y:3,z:-5}],
-    falafels:[{x:1,y:1,z:3},{x:-2,y:1,z:1},{x:-14,y:4.5,z:-12},{x:14,y:4.5,z:-12}],
-    bullies:[{x:0,y:1,z:-1,range:4,speed:0.013}],
-    portal:{x:0,y:7,z:-32},
-    spawn:{x:0,y:2,z:4}
+    jars:[{x:15,y:1.5,z:22},{x:-36,y:5,z:10},{x:36,y:5,z:-42},{x:0,y:1.5,z:-12},{x:0,y:10.5,z:-58}],
+    falafels:[{x:-14,y:1.5,z:22},{x:36,y:5,z:10},{x:-36,y:5,z:-42},{x:16,y:3.5,z:-8},{x:0,y:10.5,z:-61}],
+    bullies:[{x:0,y:1.5,z:-8,range:7,speed:0.009}],
+    portal:{x:0,y:10.5,z:-63},
+    spawn:{x:0,y:1.5,z:30}
   },
-
-  // ISLAND 3: Golden Meadow — Moving Platforms
-  { name:'Golden Meadow', sub:'The community is growing', mech:'✦ Moving Platforms ✦', mechHint:'Gold slabs drift side to side — jump on and ride!',
-    story:'Five falafels had gathered here hoping someone would find them. The meadow glows golden at all hours, as if the land itself is made of ancient hummus. The platforms float like rafts on a shimmering lake, drifting slowly back and forth.',
-    bgTop:0xC08820, bgBot:0xFFE060, fogColor:0xFFD060, fogDensity:0.015,
-    sunColor:0xFFEC80, sunPos:[25,45,5], ambColor:0xC8A040, ambBot:0x604820,
-    bloomStr:0.7, colorTint:'#FFD040',
+  // ISLAND 3: Sky Isles
+  { name:"Sky Isles", sub:"Reaching for new heights", mech:"✶ Air Boost Pads ✶",
+    mechHint:"Step on arrow pads to launch across the sky! Wind streams carry you further.",
+    story:"Five falafels drifted up here on thermals of warm air and could'nt get back down. The Sky Isles are ancient — platforms connected by invisible rivers of wind. The boost pads are relics of old magic left for travelers exactly like you.",
+    bgTop:0x0A1840, bgBot:0x3060C0, fogColor:0x5080B8, fogDensity:0.007,
+    sunColor:0xE0EEFF, sunPos:[20,65,0], ambColor:0x3060A0, ambBot:0x081828,
+    bloomStr:0.8, colorTint:"#5090FF",
     platforms:[
-      {x:0,y:0,z:0,w:12,h:1,d:10,tex:'gold',col:0xD4A820},
-      {x:0,y:2,z:-12,w:4,h:1,d:4,tex:'gold',col:0xE8C030},
-      {x:0,y:3.5,z:-22,w:4,h:1,d:4,tex:'gold',col:0xE0B820},
-      {x:0,y:5,z:-32,w:5,h:1,d:5,tex:'gold',col:0xC89018},
-      {x:0,y:6.5,z:-42,w:6,h:1,d:6,tex:'gold',col:0xD4A820},
-    ],
-    movingPlatforms:[
-      {x:0,y:2,z:-12,w:4,h:1,d:4,col:0xE8C030,axis:'x',min:-5,max:5,speed:0.025},
-      {x:0,y:3.5,z:-22,w:4,h:1,d:4,col:0xE0B820,axis:'x',min:-6,max:6,speed:0.02},
-      {x:0,y:5,z:-32,w:4,h:1,d:4,col:0xD4A020,axis:'x',min:-4,max:4,speed:0.03},
-    ],
-    jars:[{x:-1,y:1,z:2},{x:2,y:1,z:0},{x:1,y:1,z:-2},{x:0,y:7.5,z:-42},{x:2,y:7.5,z:-40}],
-    falafels:[{x:1,y:1,z:3},{x:-2,y:1,z:2},{x:2,y:1,z:-1},{x:0,y:7.5,z:-43},{x:-2,y:7.5,z:-41}],
-    bullies:[{x:-2,y:1,z:-1,range:4,speed:0.012},{x:2,y:1,z:-3,range:4,speed:0.011}],
-    portal:{x:0,y:7.5,z:-44},
-    spawn:{x:0,y:2,z:5}
-  },
-
-  // ISLAND 4: Sunset Cliffs — Crumbling Platforms
-  { name:'Sunset Cliffs', sub:'The team is building strength', mech:'✦ Crumbling Platforms ✦', mechHint:'Step on a cracked platform — it falls after 1.5s! Keep moving!',
-    story:'Six falafels found each other on these cliffs overlooking a painted sunset sky. But the cliffs themselves are crumbling — every step must be swift and sure. The bullies here are faster too, driven by the fading warmth of the dying day.',
-    bgTop:0xE05020, bgBot:0xFF9060, fogColor:0xFF8040, fogDensity:0.016,
-    sunColor:0xFF9040, sunPos:[30,30,5], ambColor:0xD06030, ambBot:0x402818,
-    bloomStr:0.65, colorTint:'#FF8040',
-    platforms:[
-      {x:0,y:0,z:0,w:12,h:1,d:8,tex:'stone',col:0x907060},
-      {x:-9,y:2,z:-5,w:3,h:1,d:3,tex:'stone',col:0x806050,crumble:true},
-      {x:9,y:2,z:-5,w:3,h:1,d:3,tex:'stone',col:0x806050,crumble:true},
-      {x:0,y:3.5,z:-12,w:4,h:1,d:4,tex:'stone',col:0x706050},
-      {x:-8,y:5,z:-18,w:3,h:1,d:3,tex:'stone',col:0x806060,crumble:true},
-      {x:8,y:5,z:-18,w:3,h:1,d:3,tex:'stone',col:0x806060,crumble:true},
-      {x:0,y:6,z:-24,w:3,h:1,d:3,tex:'stone',col:0x707060,crumble:true},
-      {x:0,y:7.5,z:-32,w:6,h:1,d:6,tex:'stone',col:0x908070},
-    ],
-    jars:[{x:-2,y:1,z:2},{x:2,y:1,z:0},{x:0,y:1,z:-1},{x:-9,y:3,z:-5},{x:9,y:3,z:-5},{x:0,y:4.5,z:-12}],
-    falafels:[{x:1,y:1,z:3},{x:-1,y:1,z:2},{x:2,y:1,z:-1},{x:0,y:4.5,z:-12},{x:-8,y:6,z:-18},{x:0,y:8.5,z:-33}],
-    bullies:[{x:-1,y:1,z:-1,range:4,speed:0.016},{x:2,y:1,z:-2,range:4,speed:0.015},{x:-2,y:1,z:-3,range:3,speed:0.014}],
-    portal:{x:0,y:8.5,z:-34},
-    spawn:{x:0,y:2,z:4}
-  },
-
-  // ISLAND 5: Forest Grove — Teleport Mushrooms
-  { name:'Forest Grove', sub:'Magic begins to awaken', mech:'✦ Teleport Mushrooms ✦', mechHint:'Step on a mushroom and teleport to its pair! Blue → Blue, Pink → Pink',
-    story:'Deep in the mystical grove, the trees whisper ancient secrets. Seven falafels found sanctuary here, protected by the magic that pulses through the roots. The mushroom circles have special power — step on one and the forest will carry you to its twin in an instant.',
-    bgTop:0x203030, bgBot:0x304828, fogColor:0x304838, fogDensity:0.022,
-    sunColor:0x80FFC0, sunPos:[5,25,10], ambColor:0x204030, ambBot:0x101820,
-    bloomStr:0.8, colorTint:'#60E890',
-    platforms:[
-      {x:0,y:0,z:0,w:12,h:1,d:10,tex:'mossy',col:0x507040},
-      {x:-10,y:2,z:-5,w:4,h:1,d:4,tex:'mossy',col:0x407035},
-      {x:10,y:2,z:-5,w:4,h:1,d:4,tex:'mossy',col:0x407035},
-      {x:-12,y:3,z:-14,w:4,h:1,d:4,tex:'mossy',col:0x3A6030},
-      {x:12,y:3,z:-14,w:4,h:1,d:4,tex:'mossy',col:0x3A6030},
-      {x:0,y:4,z:-20,w:5,h:1,d:5,tex:'mossy',col:0x487038},
-      {x:0,y:5.5,z:-30,w:6,h:1,d:6,tex:'mossy',col:0x506040},
-    ],
-    teleports:[
-      {a:{x:-10,y:2,z:-5},b:{x:12,y:3,z:-14}},
-      {a:{x:10,y:2,z:-5},b:{x:-12,y:3,z:-14}},
-    ],
-    jars:[{x:-1,y:1,z:2},{x:2,y:1,z:0},{x:1,y:1,z:-1},{x:-10,y:3,z:-5},{x:10,y:3,z:-5},{x:0,y:5,z:-20},{x:0,y:6.5,z:-30}],
-    falafels:[{x:1,y:1,z:3},{x:-1,y:1,z:2},{x:0,y:1,z:-1},{x:-12,y:4,z:-14},{x:12,y:4,z:-14},{x:-1,y:5,z:-19},{x:1,y:6.5,z:-31}],
-    bullies:[{x:0,y:1,z:-2,range:3,speed:0.009},{x:2,y:1,z:-3,range:3.5,speed:0.01}],
-    portal:{x:0,y:6.5,z:-32},
-    spawn:{x:0,y:2,z:4}
-  },
-
-  // ISLAND 6: Sky Bridge — Air Boost Pads
-  { name:'Sky Bridge', sub:'Reaching for new heights', mech:'✦ Air Boost Pads ✦', mechHint:'Step on an arrow pad and get launched in that direction!',
-    story:'Eight falafels drifted up here on thermals of warm air and couldn\'t get back down. The Sky Bridge is ancient — platforms connected by invisible rivers of wind. The boost pads are relics of an old magic that the kingdom\'s builders left for travelers exactly like you.',
-    bgTop:0x102040, bgBot:0x4080C8, fogColor:0x6090C8, fogDensity:0.012,
-    sunColor:0xE0F0FF, sunPos:[20,50,0], ambColor:0x4070A0, ambBot:0x102030,
-    bloomStr:0.6, colorTint:'#60A0FF',
-    platforms:[
-      {x:0,y:0,z:0,w:10,h:1,d:8,tex:'white',col:0xD0D8E8},
-      {x:-12,y:2,z:-6,w:3,h:1,d:3,tex:'white',col:0xC0C8D8},
-      {x:12,y:2,z:-6,w:3,h:1,d:3,tex:'white',col:0xC0C8D8},
-      {x:0,y:3,z:-14,w:3,h:1,d:3,tex:'white',col:0xB8C0D0},
-      {x:-10,y:4,z:-22,w:3,h:1,d:3,tex:'white',col:0xC0C8D8},
-      {x:10,y:4,z:-22,w:3,h:1,d:3,tex:'white',col:0xC0C8D8},
-      {x:0,y:5,z:-30,w:5,h:1,d:5,tex:'white',col:0xD0D8E8},
-      {x:0,y:6.5,z:-38,w:6,h:1,d:6,tex:'white',col:0xC8D0E0},
+      {x:0,   y:0, z:12, w:42, h:3, d:38, tex:"white", col:0xD0D8F0},
+      {x:-40, y:4, z:5,  w:22, h:3, d:24, tex:"white", col:0xC0C8E0},
+      {x:40,  y:4, z:5,  w:22, h:3, d:24, tex:"white", col:0xC0C8E0},
+      {x:0,   y:7, z:-22,w:24, h:3, d:22, tex:"white", col:0xB8C0D8},
+      {x:-35, y:7, z:-28,w:18, h:3, d:20, tex:"white", col:0xB0B8D0},
+      {x:35,  y:7, z:-28,w:18, h:3, d:20, tex:"white", col:0xB0B8D0},
+      {x:0,   y:11,z:-42,w:20, h:3, d:20, tex:"white", col:0xA8B0D0},
+      {x:0,   y:15,z:-54,w:16, h:3, d:16, tex:"white", col:0xA0A8C8},
+      {x:0,   y:19,z:-62,w:14, h:3, d:14, tex:"white", col:0xD0D8F8},
     ],
     boostPads:[
-      {x:-4,y:0,z:0,dir:{x:-1,y:0,z:0}},
-      {x:4,y:0,z:0,dir:{x:1,y:0,z:0}},
-      {x:0,y:0,z:-3,dir:{x:0,y:0,z:-1}},
+      {x:-8,y:1.5,z:8, dir:{x:-1,y:0,z:0}},
+      {x:8, y:1.5,z:8, dir:{x:1, y:0,z:0}},
+      {x:0, y:1.5,z:0, dir:{x:0, y:0,z:-1}},
+      {x:-38,y:5.5,z:2,dir:{x:0, y:0,z:-1}},
+      {x:38, y:5.5,z:2,dir:{x:0, y:0,z:-1}},
     ],
-    jars:[{x:-2,y:1,z:2},{x:2,y:1,z:1},{x:-12,y:3,z:-6},{x:12,y:3,z:-6},{x:0,y:4,z:-14},{x:-10,y:5,z:-22},{x:10,y:5,z:-22},{x:0,y:7.5,z:-38}],
-    falafels:[{x:1,y:1,z:3},{x:-1,y:1,z:2},{x:-12,y:3,z:-6},{x:12,y:3,z:-6},{x:0,y:4,z:-14},{x:-10,y:5,z:-22},{x:10,y:5,z:-22},{x:0,y:7.5,z:-39}],
-    bullies:[{x:0,y:1,z:-1,range:4,speed:0.012},{x:2,y:1,z:-2,range:3.5,speed:0.013}],
-    portal:{x:0,y:7.5,z:-40},
-    spawn:{x:0,y:2,z:4}
-  },
-
-  // ISLAND 7: Crystal Lake — Ice Physics
-  { name:'Crystal Lake', sub:'Clarity returns to the land', mech:'✦ Ice Physics ✦', mechHint:'Crystal platforms are slippery — you slide! Control your momentum!',
-    story:'Nine falafels were encased in crystals by the Bullies\' last cruel trick. The ice is melting now, thanks to the warmth you bring, but the crystal platforms are still slippery as glass. Slide carefully — the lake below is cold, but the falafels here are worth every stumble.',
-    bgTop:0x082848, bgBot:0x4090C0, fogColor:0x80C0D8, fogDensity:0.015,
-    sunColor:0xD0F0FF, sunPos:[10,40,10], ambColor:0x4080A0, ambBot:0x082030,
-    bloomStr:0.9, colorTint:'#80E0FF',
-    platforms:[
-      {x:0,y:0,z:0,w:12,h:1,d:10,tex:'crystal',col:0x80C0D8,ice:true},
-      {x:-10,y:1.5,z:-6,w:4,h:1,d:4,tex:'crystal',col:0x70B0C8,ice:true},
-      {x:10,y:1.5,z:-6,w:4,h:1,d:4,tex:'crystal',col:0x70B0C8,ice:true},
-      {x:-7,y:3,z:-14,w:4,h:1,d:4,tex:'crystal',col:0x60A0B8,ice:true},
-      {x:7,y:3,z:-14,w:4,h:1,d:4,tex:'crystal',col:0x60A0B8,ice:true},
-      {x:0,y:4.5,z:-22,w:5,h:1,d:5,tex:'crystal',col:0x80B8D0,ice:true},
-      {x:0,y:6,z:-30,w:6,h:1,d:6,tex:'crystal',col:0x90C8E0,ice:true},
+    winds:[
+      {x:0,y:8, z:-12,w:20,h:9, d:12,dir:{x:0,y:0,z:-0.03}},
+      {x:0,y:12,z:-34,w:16,h:10,d:10,dir:{x:0,y:0,z:-0.03}},
     ],
-    jars:[{x:-2,y:1,z:2},{x:2,y:1,z:1},{x:0,y:1,z:-1},{x:-10,y:2.5,z:-6},{x:10,y:2.5,z:-6},{x:-7,y:4,z:-14},{x:7,y:4,z:-14},{x:0,y:5.5,z:-22},{x:0,y:7,z:-30}],
-    falafels:[{x:1,y:1,z:3},{x:-1,y:1,z:2},{x:2,y:1,z:0},{x:-10,y:2.5,z:-6},{x:10,y:2.5,z:-6},{x:-7,y:4,z:-14},{x:7,y:4,z:-14},{x:0,y:5.5,z:-22},{x:0,y:7,z:-31}],
-    bullies:[{x:-1,y:1,z:-1,range:4,speed:0.015},{x:2,y:1,z:-2,range:4,speed:0.013},{x:-2,y:1,z:-3,range:3,speed:0.012}],
-    portal:{x:0,y:7,z:-32},
-    spawn:{x:0,y:2,z:4}
+    jars:[{x:-10,y:1.5,z:15},{x:-40,y:5.5,z:5},{x:40,y:5.5,z:5},{x:0,y:8.5,z:-20},{x:0,y:20.5,z:-60}],
+    falafels:[{x:12,y:1.5,z:15},{x:-35,y:8.5,z:-28},{x:35,y:8.5,z:-28},{x:0,y:12.5,z:-40}],
+    bullies:[{x:0,y:1.5,z:6,range:6,speed:0.010}],
+    portal:{x:0,y:20.5,z:-64},
+    spawn:{x:0,y:1.5,z:24}
   },
-
-  // ISLAND 8: Starlight Peak — Star Sequence
-  { name:'Starlight Peak', sub:'Almost there — the stars align', mech:'✦ Star Sequence ✦', mechHint:'Touch glowing stars in order 1→2→3→4→5 to unlock the final jars!',
-    story:'Ten falafels climbed to the very peak of the known world and found themselves surrounded by stars close enough to touch. The Bullies followed, but even they seemed awed by the beauty. Touch the stars in the right order and the final hummus jars will appear, ready to make everyone happy.',
-    bgTop:0x020410, bgBot:0x181828, fogColor:0x181828, fogDensity:0.014,
-    sunColor:0xC0C0FF, sunPos:[10,50,10], ambColor:0x303060, ambBot:0x050510,
-    bloomStr:1.2, colorTint:'#8080FF',
+  // ISLAND 4: Crystal Caverns
+  { name:"Crystal Caverns", sub:"Clarity found deep underground", mech:"✶ Ice Physics ✶",
+    mechHint:"Crystal platforms are slippery — slide carefully! Control your momentum.",
+    story:"Nine falafels were encased in crystals by the Bullies' last cruel trick. The ice is melting now, but the crystal platforms are still slippery as glass. Slide carefully — the underground lake below is cold, but the falafels here are worth every stumble.",
+    bgTop:0x041020, bgBot:0x183060, fogColor:0x205080, fogDensity:0.013,
+    sunColor:0xA0C8FF, sunPos:[10,35,10], ambColor:0x2050A0, ambBot:0x040810,
+    bloomStr:1.0, colorTint:"#40A0FF",
     platforms:[
-      {x:0,y:0,z:0,w:14,h:1,d:12,tex:'star',col:0x302848},
-      {x:-10,y:2,z:-7,w:4,h:1,d:4,tex:'star',col:0x282040},
-      {x:10,y:2,z:-7,w:4,h:1,d:4,tex:'star',col:0x282040},
-      {x:0,y:3.5,z:-15,w:5,h:1,d:5,tex:'star',col:0x302848},
-      {x:-8,y:5,z:-22,w:4,h:1,d:4,tex:'star',col:0x282040},
-      {x:8,y:5,z:-22,w:4,h:1,d:4,tex:'star',col:0x282040},
-      {x:0,y:6.5,z:-30,w:7,h:1,d:7,tex:'star',col:0x382850},
+      {x:0,   y:0, z:18, w:56, h:2, d:36, tex:"crystal",col:0x70A8D0,ice:true},
+      {x:0,   y:0, z:-20,w:56, h:2, d:36, tex:"crystal",col:0x60A0C8,ice:true},
+      {x:0,   y:0, z:-54,w:48, h:2, d:28, tex:"crystal",col:0x5898C0,ice:true},
+      {x:-32, y:3, z:8,  w:22, h:2, d:26, tex:"crystal",col:0x5090B8,ice:true},
+      {x:32,  y:3, z:8,  w:22, h:2, d:26, tex:"crystal",col:0x5090B8,ice:true},
+      {x:-32, y:3, z:-38,w:22, h:2, d:24, tex:"crystal",col:0x4888B0,ice:true},
+      {x:32,  y:3, z:-38,w:22, h:2, d:24, tex:"crystal",col:0x4888B0,ice:true},
+      {x:0,   y:6, z:-45,w:26, h:2, d:22, tex:"crystal",col:0x6090C0,ice:true},
+      {x:0,   y:9, z:-53,w:20, h:2, d:18, tex:"crystal",col:0x70A0D0,ice:true},
+      {x:0,   y:12,z:-61,w:16, h:2, d:14, tex:"crystal",col:0x80B0E0,ice:true},
+    ],
+    jars:[{x:16,y:1.5,z:22},{x:-32,y:5,z:8},{x:32,y:5,z:-40},{x:0,y:1.5,z:-12},{x:-16,y:1.5,z:-28},{x:0,y:13.5,z:-59}],
+    falafels:[{x:-16,y:1.5,z:22},{x:32,y:5,z:8},{x:-32,y:5,z:-40},{x:0,y:7.5,z:-43},{x:0,y:13.5,z:-60}],
+    bullies:[{x:6,y:1.5,z:10,range:6,speed:0.011},{x:-6,y:1.5,z:-18,range:5,speed:0.012}],
+    portal:{x:0,y:13.5,z:-63},
+    spawn:{x:0,y:1.5,z:30}
+  },
+  // ISLAND 5: Lava Realm
+  { name:"Lava Realm", sub:"Through fire comes strength", mech:"✶ Crumbling Platforms ✶",
+    mechHint:"Cracked platforms fall after 1.5 seconds! Step quickly and keep moving.",
+    story:"The volcanic landscape burns with ancient power. Four falafels took shelter on the safe stone platforms above the lava flows. But the platforms here are old and crumbling — step quickly, keep moving, and trust your instincts.",
+    bgTop:0x220800, bgBot:0xC04010, fogColor:0xA03010, fogDensity:0.013,
+    sunColor:0xFF8030, sunPos:[30,35,5], ambColor:0xC04020, ambBot:0x3A1008,
+    bloomStr:0.9, colorTint:"#FF6020",
+    platforms:[
+      {x:0,   y:0, z:18, w:52, h:2, d:36, tex:"stone", col:0x504040},
+      {x:0,   y:0, z:-20,w:52, h:2, d:36, tex:"stone", col:0x483838},
+      {x:-32, y:0, z:8,  w:14, h:2, d:16, tex:"stone", col:0x604848,crumble:true},
+      {x:32,  y:0, z:8,  w:14, h:2, d:16, tex:"stone", col:0x604848,crumble:true},
+      {x:-36, y:3, z:-18,w:18, h:2, d:20, tex:"stone", col:0x584040},
+      {x:36,  y:3, z:-18,w:18, h:2, d:20, tex:"stone", col:0x584040},
+      {x:-20, y:0, z:-40,w:14, h:2, d:14, tex:"stone", col:0x604848,crumble:true},
+      {x:20,  y:0, z:-40,w:14, h:2, d:14, tex:"stone", col:0x604848,crumble:true},
+      {x:0,   y:5, z:-38,w:26, h:2, d:22, tex:"stone", col:0x605050},
+      {x:0,   y:8, z:-48,w:20, h:2, d:18, tex:"stone", col:0x706060},
+      {x:0,   y:11,z:-56,w:18, h:2, d:16, tex:"stone", col:0x806868},
+    ],
+    jars:[{x:14,y:1.5,z:22},{x:-32,y:1.5,z:8},{x:36,y:5,z:-20},{x:0,y:1.5,z:-8},{x:0,y:12.5,z:-54}],
+    falafels:[{x:-14,y:1.5,z:22},{x:32,y:1.5,z:8},{x:-36,y:5,z:-20},{x:0,y:9.5,z:-46}],
+    bullies:[{x:6,y:1.5,z:10,range:7,speed:0.013},{x:-6,y:1.5,z:-12,range:6,speed:0.012},{x:0,y:1.5,z:0,range:5,speed:0.011}],
+    portal:{x:0,y:12.5,z:-58},
+    spawn:{x:0,y:1.5,z:30}
+  },
+  // ISLAND 6: Garden of Wonders
+  { name:"Garden of Wonders", sub:"Peace blooms here again", mech:"✶ Teleport Mushrooms ✶",
+    mechHint:"Step on glowing mushrooms to teleport! Match colors for the right destination.",
+    story:"Six falafels found paradise in this magical garden. The flowers here remember the old kingdom's joy. Glowing mushroom rings offer shortcuts between distant garden sections. Collect the hummus jars hidden among the flowers and share the happiness.",
+    bgTop:0x3A1850, bgBot:0xD060A0, fogColor:0xC058A0, fogDensity:0.009,
+    sunColor:0xFFD0FF, sunPos:[15,40,10], ambColor:0x8040A0, ambBot:0x281040,
+    bloomStr:0.9, colorTint:"#E060FF",
+    platforms:[
+      {x:0,   y:0, z:18, w:66, h:2, d:42, tex:"grass", col:0x60A048},
+      {x:0,   y:0, z:-28,w:66, h:2, d:42, tex:"grass", col:0x589040},
+      {x:-42, y:3, z:10, w:22, h:2, d:36, tex:"grass", col:0x508838},
+      {x:42,  y:3, z:10, w:22, h:2, d:36, tex:"grass", col:0x508838},
+      {x:-42, y:3, z:-46,w:22, h:2, d:30, tex:"grass", col:0x488030},
+      {x:42,  y:3, z:-46,w:22, h:2, d:30, tex:"grass", col:0x488030},
+      {x:0,   y:5, z:-40,w:30, h:2, d:26, tex:"grass", col:0x609848},
+      {x:0,   y:8, z:-50,w:24, h:2, d:20, tex:"gold",  col:0xD4A820},
+      {x:0,   y:11,z:-58,w:18, h:2, d:16, tex:"gold",  col:0xE0B830},
+    ],
+    teleports:[
+      {a:{x:-42,y:3,z:10}, b:{x:42, y:3,z:-46}},
+      {a:{x:42, y:3,z:10}, b:{x:-42,y:3,z:-46}},
+    ],
+    jars:[{x:16,y:1.5,z:22},{x:-42,y:5,z:10},{x:42,y:5,z:-46},{x:0,y:1.5,z:-12},{x:0,y:6.5,z:-38},{x:-16,y:1.5,z:-28},{x:0,y:12.5,z:-56}],
+    falafels:[{x:-14,y:1.5,z:22},{x:42,y:5,z:10},{x:-42,y:5,z:-46},{x:0,y:6.5,z:-42},{x:16,y:1.5,z:-28},{x:0,y:12.5,z:-57}],
+    bullies:[{x:0,y:1.5,z:5,range:8,speed:0.008}],
+    portal:{x:0,y:12.5,z:-61},
+    spawn:{x:0,y:1.5,z:32}
+  },
+  // ISLAND 7: Ancient Ruins
+  { name:"Ancient Ruins", sub:"History holds many secrets", mech:"✶ Moving Platforms ✶",
+    story:"This ancient temple complex was the heart of the old Falafel Kingdom. Six falafels took refuge among the ruins, protected by the mystery that still lingers here. Moving stone slabs float between sections — ride them to reach hidden areas and recover the lost hummus.",
+    bgTop:0x201808, bgBot:0xA07830, fogColor:0x907028, fogDensity:0.012,
+    sunColor:0xFFE8A0, sunPos:[20,40,10], ambColor:0x987040, ambBot:0x281808,
+    bloomStr:0.6, colorTint:"#D0A840",
+    platforms:[
+      {x:0,   y:0, z:18, w:58, h:2, d:38, tex:"stone", col:0x988070},
+      {x:0,   y:0, z:-22,w:58, h:2, d:38, tex:"stone", col:0x908068},
+      {x:0,   y:2, z:0,  w:10, h:1.5,d:10, tex:"stone", col:0x908070},
+      {x:0,   y:4, z:-18,w:10, h:1.5,d:10, tex:"stone", col:0xA09080},
+      {x:0,   y:6, z:-30,w:10, h:1.5,d:10, tex:"stone", col:0xB0A090},
+      {x:-36, y:3, z:10, w:20, h:2, d:32, tex:"stone", col:0x887060},
+      {x:36,  y:3, z:10, w:20, h:2, d:32, tex:"stone", col:0x887060},
+      {x:-36, y:3, z:-40,w:20, h:2, d:28, tex:"stone", col:0x806860},
+      {x:36,  y:3, z:-40,w:20, h:2, d:28, tex:"stone", col:0x806860},
+      {x:0,   y:7, z:-38,w:28, h:2, d:22, tex:"stone", col:0xA09080},
+      {x:0,   y:10,z:-48,w:22, h:2, d:18, tex:"stone", col:0xB0A090},
+      {x:0,   y:13,z:-56,w:16, h:2, d:14, tex:"gold",  col:0xD4A820},
+    ],
+    movingPlatforms:[
+      {x:0,y:2, z:0,  w:10,h:1.5,d:10,col:0x908070,axis:"x",min:-22,max:22,speed:0.012},
+      {x:0,y:4, z:-18,w:10,h:1.5,d:10,col:0xA09080,axis:"x",min:-24,max:24,speed:0.010},
+      {x:0,y:6, z:-30,w:10,h:1.5,d:10,col:0xB0A090,axis:"x",min:-20,max:20,speed:0.014},
+    ],
+    jars:[{x:14,y:1.5,z:22},{x:-36,y:5,z:10},{x:36,y:5,z:-42},{x:0,y:1.5,z:-10},{x:0,y:11.5,z:-45},{x:0,y:14.5,z:-54}],
+    falafels:[{x:-14,y:1.5,z:22},{x:36,y:5,z:10},{x:-36,y:5,z:-42},{x:0,y:8.5,z:-36},{x:0,y:11.5,z:-47}],
+    bullies:[{x:6,y:1.5,z:10,range:6,speed:0.011},{x:-6,y:1.5,z:-16,range:6,speed:0.012}],
+    portal:{x:0,y:14.5,z:-58},
+    spawn:{x:0,y:1.5,z:30}
+  },
+  // ISLAND 8: Aurora Peak
+  { name:"Aurora Peak", sub:"Almost there — the stars align", mech:"✶ Star Sequence ✶",
+    story:"Seven falafels climbed to the very peak of the known world and found themselves surrounded by aurora lights close enough to touch. Touch the stars in the right order and the final hummus jars will appear, ready to make everyone happy.",
+    bgTop:0x030610, bgBot:0x101828, fogColor:0x121828, fogDensity:0.009,
+    sunColor:0x8090FF, sunPos:[10,65,10], ambColor:0x203060, ambBot:0x040510,
+    bloomStr:1.4, colorTint:"#6070FF",
+    platforms:[
+      {x:0,   y:0, z:18, w:58, h:2, d:38, tex:"white", col:0x3A3858},
+      {x:0,   y:0, z:-22,w:58, h:2, d:38, tex:"white", col:0x323050},
+      {x:-32, y:3, z:8,  w:22, h:2, d:26, tex:"white", col:0x2A2848},
+      {x:32,  y:3, z:8,  w:22, h:2, d:26, tex:"white", col:0x2A2848},
+      {x:0,   y:5, z:-35,w:26, h:2, d:22, tex:"white", col:0x242240},
+      {x:-26, y:8, z:-42,w:20, h:2, d:20, tex:"white", col:0x201E3A},
+      {x:26,  y:8, z:-42,w:20, h:2, d:20, tex:"white", col:0x201E3A},
+      {x:0,   y:12,z:-52,w:24, h:2, d:18, tex:"star",  col:0x282048},
+      {x:0,   y:15,z:-60,w:18, h:2, d:16, tex:"star",  col:0x302858},
+      {x:0,   y:19,z:-68,w:14, h:2, d:14, tex:"star",  col:0x382A60},
     ],
     stars:[
-      {x:-3,y:1,z:1,order:1},{x:3,y:1,z:-1,order:2},
-      {x:-10,y:3,z:-7,order:3},{x:10,y:3,z:-7,order:4},{x:0,y:4.5,z:-15,order:5}
+      {x:-10,y:1.5,z:15, order:1},
+      {x:12, y:1.5,z:5,  order:2},
+      {x:-30,y:4.5,z:5,  order:3},
+      {x:30, y:4.5,z:5,  order:4},
+      {x:0,  y:6.5,z:-32,order:5},
+      {x:-24,y:9.5,z:-40,order:6},
+      {x:0,  y:16.5,z:-58,order:7},
     ],
-    jars:[{x:-2,y:1,z:2},{x:2,y:1,z:1},{x:1,y:1,z:-1},{x:0,y:1,z:2},{x:0,y:7.5,z:-30},{x:1,y:7.5,z:-31},{x:-1,y:7.5,z:-30},{x:0,y:7.5,z:-29},{x:-1,y:7.5,z:-29},{x:1,y:7.5,z:-29}],
-    jarsLocked:6,  // last 6 jars only appear after star sequence complete
-    falafels:[{x:1,y:1,z:3},{x:-1,y:1,z:2},{x:0,y:1,z:-1},{x:-10,y:3,z:-7},{x:10,y:3,z:-7},{x:0,y:4.5,z:-15},{x:-8,y:6,z:-22},{x:8,y:6,z:-22},{x:-1,y:7.5,z:-30},{x:1,y:7.5,z:-30}],
-    bullies:[{x:0,y:1,z:-2,range:4,speed:0.011},{x:2,y:1,z:-3,range:4,speed:0.01},{x:-2,y:1,z:-2,range:3,speed:0.012},{x:1,y:1,z:0,range:3,speed:0.009}],
-    portal:{x:0,y:7.5,z:-32},
-    spawn:{x:0,y:2,z:5}
+    jars:[{x:12,y:1.5,z:22},{x:-14,y:1.5,z:8},{x:-32,y:5,z:8},{x:32,y:5,z:8},{x:0,y:6.5,z:-30},{x:0,y:13.5,z:-50},{x:-5,y:20.5,z:-66},{x:5,y:20.5,z:-66}],
+    jarsLocked:2,
+    falafels:[{x:-12,y:1.5,z:22},{x:14,y:1.5,z:8},{x:30,y:5,z:8},{x:-24,y:9.5,z:-40},{x:0,y:16.5,z:-57},{x:0,y:20.5,z:-66}],
+    bullies:[{x:6,y:1.5,z:8,range:5,speed:0.010},{x:-6,y:1.5,z:-10,range:5,speed:0.009},{x:0,y:6.5,z:-28,range:4,speed:0.011}],
+    portal:{x:0,y:20.5,z:-70},
+    spawn:{x:0,y:1.5,z:30}
   },
-
-  // ISLAND 9: The Throne — Boss Encounter
-  { name:'The Throne', sub:'Final victory — peace restored', mech:'✦ The Bully King ✦', mechHint:'Collect all jars and the Bully King will bow peacefully and leave!',
-    story:'You made it. The last falafel — the Queen of the Kingdom — sits upon her golden throne. The Bully King himself guards this place, but he is tired. He never truly wanted to steal the hummus — he was just hungry. Bring the last jar of hummus to the Queen and show him that kindness is stronger than anything.',
-    bgTop:0x201005, bgBot:0xC07020, fogColor:0xC08030, fogDensity:0.012,
-    sunColor:0xFFD070, sunPos:[20,40,10], ambColor:0xC08030, ambBot:0x402010,
-    bloomStr:1.0, colorTint:'#FFB030',
+  // ISLAND 9: The Throne Hall
+  { name:"The Throne Hall", sub:"Final victory — peace restored", mech:"✶ The Bully King ✶",
+    mechHint:"Collect all jars and every falafel will celebrate! The Bully King will bow peacefully.",
+    story:"You made it. The last falafel — the Queen of the Kingdom — sits upon her golden throne. The Bully King himself guards this place, but he is tired. He never truly wanted to steal the hummus — he was just hungry. Collect the last hummus jars and show everyone that kindness is stronger than anything.",
+    bgTop:0x180A04, bgBot:0xB06820, fogColor:0xA06018, fogDensity:0.008,
+    sunColor:0xFFD060, sunPos:[30,55,20], ambColor:0xC07828, ambBot:0x381808,
+    bloomStr:1.1, colorTint:"#FFB028",
     platforms:[
-      {x:0,y:0,z:0,w:18,h:1,d:16,tex:'throne',col:0xC89020},
-      {x:-12,y:2,z:-5,w:4,h:1,d:4,tex:'throne',col:0xD4A030},
-      {x:12,y:2,z:-5,w:4,h:1,d:4,tex:'throne',col:0xD4A030},
-      {x:0,y:3,z:-12,w:6,h:1,d:6,tex:'throne',col:0xE0B040},
-      {x:0,y:5,z:-22,w:8,h:1,d:8,tex:'throne',col:0xC89020},  // throne platform
+      {x:0,   y:0, z:22, w:68, h:2, d:44, tex:"throne",col:0xC89020},
+      {x:0,   y:0, z:-26,w:68, h:2, d:44, tex:"throne",col:0xD4A030},
+      {x:-42, y:3, z:12, w:18, h:2, d:42, tex:"throne",col:0xC09020},
+      {x:42,  y:3, z:12, w:18, h:2, d:42, tex:"throne",col:0xC09020},
+      {x:-42, y:3, z:-44,w:18, h:2, d:30, tex:"throne",col:0xB88818},
+      {x:42,  y:3, z:-44,w:18, h:2, d:30, tex:"throne",col:0xB88818},
+      {x:0,   y:5, z:-42,w:32, h:2, d:26, tex:"throne",col:0xE0B830},
+      {x:0,   y:8, z:-52,w:26, h:2, d:22, tex:"throne",col:0xEAC038},
+      {x:0,   y:12,z:-62,w:22, h:2, d:18, tex:"throne",col:0xF4D040},
+      {x:0,   y:15,z:-70,w:18, h:2, d:16, tex:"throne",col:0xFFDF50},
     ],
-    jars:[{x:-3,y:1,z:3},{x:3,y:1,z:3},{x:-12,y:3,z:-5},{x:12,y:3,z:-5},{x:-2,y:4,z:-12},{x:2,y:4,z:-12},
-          {x:-4,y:1,z:1},{x:4,y:1,z:1},{x:0,y:1,z:-3},{x:-2,y:3,z:-5},{x:2,y:3,z:-5}],
-    falafels:[{x:0,y:6,z:-22}],  // The Queen
-    bullies:[{x:0,y:1,z:-2,range:6,speed:0.01,boss:true}],  // Bully King
-    portal:{x:0,y:6,z:-24},
-    spawn:{x:0,y:2,z:6},
+    jars:[
+      {x:16,y:1.5,z:26},{x:-16,y:1.5,z:26},
+      {x:22,y:1.5,z:-5},{x:-22,y:1.5,z:-5},
+      {x:-42,y:5,z:12},{x:42,y:5,z:12},
+      {x:-42,y:5,z:-44},{x:42,y:5,z:-44},
+      {x:0,y:6.5,z:-40},{x:0,y:16.5,z:-68},
+    ],
+    falafels:[
+      {x:-14,y:1.5,z:26},{x:14,y:1.5,z:26},
+      {x:0,y:1.5,z:-5},{x:-34,y:5,z:8},
+      {x:34,y:5,z:8},{x:-34,y:5,z:-46},
+      {x:34,y:5,z:-46},{x:0,y:6.5,z:-42},
+      {x:0,y:9.5,z:-50},{x:0,y:16.5,z:-68},
+    ],
+    bullies:[{x:0,y:1.5,z:6,range:9,speed:0.009,boss:true}],
+    portal:{x:0,y:16.5,z:-72},
+    spawn:{x:0,y:1.5,z:34},
     final:true
   }
 ];
@@ -746,7 +790,7 @@ function initEngine() {
   scene.background = new THREE.Color(iso.bgTop);
   scene.fog = new THREE.FogExp2(iso.fogColor, iso.fogDensity);
 
-  camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 600);
+  camera = new THREE.PerspectiveCamera(62, innerWidth/innerHeight, 0.1, 800);
   camera.position.set(0, 10, 18);
 
   renderer = new THREE.WebGLRenderer({antialias:true, alpha:false});
@@ -796,19 +840,24 @@ function applyIslandLighting(iso) {
   sunLight = new THREE.DirectionalLight(iso.sunColor, 1.2);
   sunLight.position.set(...iso.sunPos);
   sunLight.castShadow = true;
-  sunLight.shadow.mapSize.set(1024,1024);
-  sunLight.shadow.camera.top=40; sunLight.shadow.camera.bottom=-40;
-  sunLight.shadow.camera.left=-40; sunLight.shadow.camera.right=40;
-  sunLight.shadow.camera.far=200;
+  sunLight.shadow.mapSize.set(2048,2048);
+  sunLight.shadow.camera.top=80; sunLight.shadow.camera.bottom=-80;
+  sunLight.shadow.camera.left=-80; sunLight.shadow.camera.right=80;
+  sunLight.shadow.camera.far=300;
   scene.add(sunLight);
   scene.background = new THREE.Color(iso.bgTop);
   scene.fog = new THREE.FogExp2(iso.fogColor, iso.fogDensity);
 }
 
 // ── Platform material ─────────────────────────────────────────────────
-function platMat(tex, col, ice=false) {
+function platMat(tex, col, ice=false, w=4, d=4) {
+  const base = TX[tex] || TX.stone;
+  const t = base.clone();
+  // Scale texture repeat with platform size so it always looks proportional
+  t.repeat.set(Math.max(1, Math.round(w / 4)), Math.max(1, Math.round(d / 4)));
+  t.needsUpdate = true;
   return new THREE.MeshStandardMaterial({
-    map: TX[tex] || TX.stone,
+    map: t,
     color: col,
     roughness: ice ? 0.05 : 0.75,
     metalness: ice ? 0.2 : 0.02,
@@ -850,7 +899,7 @@ function loadIsland(idx) {
   // Platforms
   iso.platforms.forEach(pd => {
     const geo = new THREE.BoxGeometry(pd.w, pd.h, pd.d);
-    const mat = platMat(pd.tex, pd.col, !!pd.ice);
+    const mat = platMat(pd.tex, pd.col, !!pd.ice, pd.w, pd.d);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(pd.x, pd.y, pd.z);
     mesh.castShadow = true; mesh.receiveShadow = true;
@@ -1048,10 +1097,11 @@ function buildPortal(pd) {
 }
 
 // ── Mechanic builders ─────────────────────────────────────────────────
-const starSequenceState = {next:1, done:false};
+const starSequenceState = {next:1, done:false, total:5};
 
 function buildMechanics(iso) {
   starSequenceState.next = 1;
+  starSequenceState.total = (iso.stars||[]).length || 5;
   starSequenceState.done = false;
 
   // Spring pads
@@ -1280,15 +1330,15 @@ function runGameLogic() {
   // Boost pads
   mechanics.filter(m=>m.type==='boost').forEach(bp => {
     const dx=px-bp.mesh.position.x, dz=pz-bp.mesh.position.z;
-    if (Math.abs(dx)<0.7 && Math.abs(dz)<0.7 && Math.abs(py-bp.mesh.position.y)<0.6 && onGround) {
+    if (Math.abs(dx)<0.9 && Math.abs(dz)<0.9 && Math.abs(py-bp.mesh.position.y)<0.8 && onGround) {
       if (playerBody) {
-        playerBody.velocity.x += bp.dir.x * PHYS.BOOST_VEL * 2.5;
-        playerBody.velocity.z += bp.dir.z * PHYS.BOOST_VEL * 2.5;
-        playerBody.velocity.y = 0.22 * 60;
+        playerBody.velocity.x = bp.dir.x * PHYS.BOOST_VEL;
+        playerBody.velocity.z = bp.dir.z * PHYS.BOOST_VEL;
+        playerBody.velocity.y = PHYS.BOOST_JUMP;
       } else {
-        vel.x += bp.dir.x * CFG.BOOST_VEL * 2.5;
-        vel.z += bp.dir.z * CFG.BOOST_VEL * 2.5;
-        vel.y = 0.22;
+        vel.x = bp.dir.x * CFG.BOOST_VEL;
+        vel.z = bp.dir.z * CFG.BOOST_VEL;
+        vel.y = CFG.JUMP * 1.45;
       }
       sfx('boost'); emitParticles('spring',px,py,pz,10); showFloat('💨 Boosted!');
     }
@@ -1319,23 +1369,23 @@ function runGameLogic() {
         if (sm.order===starSequenceState.next) {
           sm.touched=true; starSequenceState.next++;
           sfx('star'); emitParticles('portal',sm.mesh.position.x,sm.mesh.position.y,sm.mesh.position.z,14);
-          showFloat('⭐ Star '+sm.order+' / 5!');
+          showFloat('⭐ Star '+sm.order+' / '+starSequenceState.total+'!');
           sm.mesh.userData.star.material.emissiveIntensity=2.0;
-          if (starSequenceState.next > 5) {
+          if (starSequenceState.next > starSequenceState.total) {
             starSequenceState.done=true; showFloat('✨ Stars aligned! Final jars appear!'); sfx('win');
             jars.filter(j=>j.locked).forEach(j=>{ j.locked=false; j.active=true; j.group.children.forEach(c=>{if(c.material){c.material.transparent=false;c.material.opacity=1;c.material.color.setHex(0xFFF5CC);}});});
           }
         } else {
           starSequenceState.next=1;
           mechanics.filter(m=>m.type==='star').forEach(s2=>{ s2.touched=false; s2.mesh.userData.star.material.emissiveIntensity=0.6;});
-          showFloat('Try the stars in order: 1→2→3→4→5');
+          showFloat('Try the stars in order: 1→2→3→…→'+starSequenceState.total);
         }
       }
     });
   }
 
   // Fall detection
-  if (py < -12) { onGameOver(); return; }
+  if (py < -25) { onGameOver(); return; }
 
   // Collect jars
   jars.forEach(j => {
@@ -1415,22 +1465,22 @@ function updatePhysics() {
     if (tx !== 0 && tz !== 0) { tx *= 0.7071; tz *= 0.7071; }
 
     // Lerp toward target — fast on ground, sluggish in air
-    const accel = onGround ? (onIce ? 0.06 : 0.20) : 0.05;
-    const brake = onGround ? (onIce ? 0.97 : 0.70) : 0.96;
+    const accel = onGround ? (onIce ? 0.06 : 0.14) : 0.04;
+    const brake = onGround ? (onIce ? 0.97 : 0.72) : 0.96;
     if (tx !== 0) v.x += (tx - v.x) * accel; else v.x *= brake;
     if (tz !== 0) v.z += (tz - v.z) * accel; else v.z *= brake;
 
-    // Wind zones (added on top after movement)
+    // Wind zones (added on top after movement) — use same magnitude as AABB path
     mechanics.filter(m=>m.type==='wind').forEach(wm => {
       const hx=wm.pos.x,hy=wm.pos.y,hz=wm.pos.z;
       if (Math.abs(player.position.x-hx)<wm.w/2+0.3 && Math.abs(player.position.y-hy)<wm.h/2+0.3 && Math.abs(player.position.z-hz)<wm.d/2+0.3) {
-        v.x += wm.dir.x*60; v.z += wm.dir.z*60;
+        v.x += wm.dir.x * 3; v.z += wm.dir.z * 3;
       }
     });
 
-    // Hard speed cap after all influences
+    // Soft speed cap — only cap well above max to allow boost/spring effects
     const hspd = Math.sqrt(v.x*v.x + v.z*v.z);
-    if (hspd > maxH * 1.5) { v.x *= maxH * 1.5 / hspd; v.z *= maxH * 1.5 / hspd; }
+    if (hspd > maxH * 4) { v.x *= maxH * 4 / hspd; v.z *= maxH * 4 / hspd; }
 
     // Jump hold bonus
     if (jumpHeld && jumpHoldTime < CFG.JUMP_HOLD_TIME) { v.y += PHYS.JUMP_HOLD; jumpHoldTime++; }
@@ -1454,7 +1504,7 @@ function updatePhysics() {
       }
     }
     // Coyote time — allow jump for a few frames after walking off an edge
-    if (onGround) { coyoteFrames = 6; }
+    if (onGround) { coyoteFrames = 10; }
     else { coyoteFrames = Math.max(0, coyoteFrames - 1); }
 
     // Land sound / shake
@@ -1490,7 +1540,7 @@ function updatePhysics() {
     if (jumpHeld && jumpHoldTime < CFG.JUMP_HOLD_TIME) { vel.y += 0.0006; jumpHoldTime++; }
 
     // ── Smooth movement via target-velocity lerp (matches Cannon path) ─
-    const maxV = 0.15; // GU/frame ≈ 9 GU/s
+    const maxV = 0.117; // GU/frame ≈ 7 GU/s
     let tx = 0, tz = 0;
     if (keys.a) tx -= maxV;
     if (keys.d) tx += maxV;
@@ -1498,8 +1548,8 @@ function updatePhysics() {
     if (keys.s) tz += maxV;
     if (tx !== 0 && tz !== 0) { tx *= 0.7071; tz *= 0.7071; }
 
-    const accel = onGround ? (onIce ? 0.06 : 0.20) : 0.05;
-    const brake = onGround ? (onIce ? 0.97 : 0.70) : 0.96;
+    const accel = onGround ? (onIce ? 0.06 : 0.14) : 0.04;
+    const brake = onGround ? (onIce ? 0.97 : 0.72) : 0.96;
     if (tx !== 0) vel.x += (tx - vel.x) * accel; else vel.x *= brake;
     if (tz !== 0) vel.z += (tz - vel.z) * accel; else vel.z *= brake;
 
@@ -1539,7 +1589,7 @@ function updatePhysics() {
       }
     });
     // Coyote time
-    if (onGround) { coyoteFrames = 6; }
+    if (onGround) { coyoteFrames = 10; }
     else { coyoteFrames = Math.max(0, coyoteFrames - 1); }
   }
 
