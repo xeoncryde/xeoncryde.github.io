@@ -213,6 +213,8 @@ body{overflow:hidden;background:#08060f;font-family:'Segoe UI',Tahoma,Geneva,Ver
 <div id="tjb" ontouchstart="handleSpace()">⬆</div>
 
 <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
 <script>
 // =====================================================================
 // FALAFEL KINGDOM — Island Adventure  (index_20.html)
@@ -227,6 +229,106 @@ const CFG = {
   COLLECT_DIST: 2.0, SHARE_DIST: 2.2, BULLY_HIT_DIST: 1.0,
   SPRING_VEL: 0.7, BOOST_VEL: 0.5, CRUMBLE_TIME: 1500
 };
+// Cannon.js scaled equivalents (per-frame → per-second, vel in GU/s)
+const PHYS = {
+  GRAVITY:    CFG.GRAV  * 60 * 60,  // -57.6 GU/s²
+  JUMP_VEL:   CFG.JUMP  * 60,       // 19.2 GU/s
+  SPRING_VEL: CFG.SPRING_VEL * 60,  // 42 GU/s
+  BOOST_VEL:  CFG.BOOST_VEL * 60,   // 30 GU/s
+  MAX_H_VEL:  0.35 * 60,            // 21 GU/s
+  JUMP_HOLD:  0.0006 * 60,          // per-step hold bonus
+};
+
+// ── Cannon.js Physics ─────────────────────────────────────────────────
+let physWorld = null, playerBody = null;
+const platformBodies = [];
+let cannonReady = false;
+
+function initPhysicsWorld() {
+  if (typeof CANNON === 'undefined') return;
+  cannonReady = true;
+  physWorld = new CANNON.World();
+  physWorld.gravity.set(0, PHYS.GRAVITY, 0);
+  physWorld.broadphase = new CANNON.NaiveBroadphase();
+  physWorld.solver.iterations = 10;
+  physWorld.solver.tolerance = 0.01;
+  const pMat = new CANNON.Material('player');
+  const lMat = new CANNON.Material('level');
+  physWorld.addContactMaterial(new CANNON.ContactMaterial(pMat, lMat, { friction: 0, restitution: 0 }));
+  physWorld._pMat = pMat;
+  physWorld._lMat = lMat;
+}
+
+function createPlayerPhysBody(spawn) {
+  if (!physWorld) return;
+  if (playerBody) physWorld.removeBody(playerBody);
+  playerBody = new CANNON.Body({ mass: 1, material: physWorld._pMat, linearDamping: 0, angularDamping: 1 });
+  playerBody.addShape(new CANNON.Sphere(P_RADIUS));
+  playerBody.position.set(spawn.x, spawn.y + 1.5, spawn.z);
+  playerBody.allowSleep = false;
+  physWorld.addBody(playerBody);
+}
+
+function addPlatformPhysBody(p) {
+  if (!physWorld) return;
+  const body = new CANNON.Body({ mass: 0, material: physWorld._lMat });
+  body.addShape(new CANNON.Box(new CANNON.Vec3(p.w / 2, p.h / 2, p.d / 2)));
+  body.position.set(p.x, p.y, p.z);
+  if (p.ice) body._ice = true;
+  physWorld.addBody(body);
+  platformBodies.push(body);
+  p.physBody = body;
+}
+
+function clearPhysWorld() {
+  if (!physWorld) return;
+  platformBodies.forEach(b => physWorld.removeBody(b));
+  platformBodies.length = 0;
+  if (playerBody) { physWorld.removeBody(playerBody); playerBody = null; }
+}
+
+// ── GLTFLoader / Model system ─────────────────────────────────────────
+let gltfLoader = null;
+const modelCache = {};
+const MODEL_BASE = 'models/quaternius/';
+
+function initModelLoader() {
+  if (typeof THREE.GLTFLoader !== 'undefined') {
+    gltfLoader = new THREE.GLTFLoader();
+  }
+}
+
+function tryLoadModel(relPath) {
+  if (!gltfLoader) return Promise.resolve(null);
+  if (Object.prototype.hasOwnProperty.call(modelCache, relPath)) {
+    const cached = modelCache[relPath];
+    return Promise.resolve(cached ? cached.clone() : null);
+  }
+  return new Promise(resolve => {
+    gltfLoader.load(
+      MODEL_BASE + relPath,
+      gltf => {
+        gltf.scene.traverse(c => { if (c.isMesh) { c.receiveShadow = true; c.castShadow = true; } });
+        modelCache[relPath] = gltf.scene;
+        resolve(gltf.scene.clone());
+      },
+      undefined,
+      () => { modelCache[relPath] = null; resolve(null); }
+    );
+  });
+}
+
+// Swap procedural mesh for loaded GLB model (progressive enhancement)
+function swapMeshWhenLoaded(placeholder, relPath, scaleX, scaleY, scaleZ) {
+  tryLoadModel(relPath).then(model => {
+    if (!model || !placeholder || !placeholder.parent) return;
+    model.scale.set(scaleX, scaleY, scaleZ);
+    model.position.copy(placeholder.position);
+    model.rotation.copy(placeholder.rotation);
+    placeholder.parent.add(model);
+    placeholder.parent.remove(placeholder);
+  });
+}
 
 // ── Progress ──────────────────────────────────────────────────────────
 let completed = JSON.parse(localStorage.getItem('fk20_prog') || '[]');
@@ -377,12 +479,12 @@ const ISLANDS = [
       {x:8,y:2,z:-1.5,dst:{x:6,y:5,z:-14}},
     ],
     jars:[
-      {x:-1,y:1,z:2},{x:3,y:1,z:-1},{x:-8,y:2.5,z:-6},{x:8,y:3,z:-4},{x:0,y:7,z:-20},
+      {x:-1,y:1,z:2},{x:3,y:1,z:-1},
     ],
     falafels:[
-      {x:2,y:1,z:3},{x:-3,y:1,z:1},{x:0,y:4,z:-10},{x:-6,y:5.5,z:-16},
+      {x:2,y:1,z:3},{x:-3,y:1,z:1},
     ],
-    bullies:[{x:-2,y:1,z:-1,range:4,speed:0.015}],
+    bullies:[{x:-2,y:1,z:-1,range:4,speed:0.012}],
     portal:{x:0,y:7,z:-22},
     spawn:{x:0,y:2,z:5}
   },
@@ -408,8 +510,8 @@ const ISLANDS = [
       {x:-5,y:2,z:-12,amp:2.0,speed:0.7},
       {x:5,y:2,z:-14,amp:2.0,speed:0.9},
     ],
-    jars:[{x:-2,y:1,z:2},{x:2,y:1,z:-1},{x:-9,y:2,z:-4},{x:9,y:2,z:-4},{x:-5,y:3,z:-12},{x:0,y:4,z:-20}],
-    falafels:[{x:1,y:1,z:3},{x:-2,y:1,z:1},{x:5,y:3,z:-14},{x:0,y:6,z:-26},{x:-5,y:3,z:-12}],
+    jars:[{x:-2,y:1,z:2},{x:2,y:1,z:-1},{x:-9,y:2,z:-4}],
+    falafels:[{x:1,y:1,z:3},{x:-2,y:1,z:1},{x:5,y:3,z:-14}],
     bullies:[{x:-1,y:1,z:-2,range:4,speed:0.012},{x:1,y:1,z:-4,range:3.5,speed:0.014}],
     portal:{x:0,y:6,z:-28},
     spawn:{x:0,y:2,z:4}
@@ -437,9 +539,9 @@ const ISLANDS = [
       {x:5,y:3,z:-8,w:6,h:4,d:8,dir:{x:0.06,y:0,z:0}},
       {x:0,y:4.5,z:-14,w:8,h:4,d:6,dir:{x:0,y:0,z:-0.05}},
     ],
-    jars:[{x:-1,y:1,z:2},{x:2,y:1,z:0},{x:-10,y:3,z:-5},{x:10,y:3,z:-5},{x:0,y:5,z:-18},{x:-7,y:6,z:-24},{x:7,y:6,z:-24}],
-    falafels:[{x:1,y:1,z:3},{x:-2,y:1,z:1},{x:-14,y:4.5,z:-12},{x:14,y:4.5,z:-12},{x:0,y:7,z:-30},{x:0,y:5,z:-18}],
-    bullies:[{x:0,y:1,z:-1,range:4,speed:0.013},{x:2,y:1,z:-3,range:3,speed:0.01}],
+    jars:[{x:-1,y:1,z:2},{x:2,y:1,z:0},{x:-10,y:3,z:-5},{x:10,y:3,z:-5}],
+    falafels:[{x:1,y:1,z:3},{x:-2,y:1,z:1},{x:-14,y:4.5,z:-12},{x:14,y:4.5,z:-12}],
+    bullies:[{x:0,y:1,z:-1,range:4,speed:0.013}],
     portal:{x:0,y:7,z:-32},
     spawn:{x:0,y:2,z:4}
   },
@@ -462,7 +564,7 @@ const ISLANDS = [
       {x:0,y:3.5,z:-22,w:4,h:1,d:4,col:0xE0B820,axis:'x',min:-6,max:6,speed:0.02},
       {x:0,y:5,z:-32,w:4,h:1,d:4,col:0xD4A020,axis:'x',min:-4,max:4,speed:0.03},
     ],
-    jars:[{x:-1,y:1,z:2},{x:2,y:1,z:0},{x:1,y:1,z:-2},{x:0,y:7.5,z:-42},{x:2,y:7.5,z:-40},{x:-2,y:7.5,z:-42},{x:1,y:7.5,z:-44},{x:-1,y:7.5,z:-44}],
+    jars:[{x:-1,y:1,z:2},{x:2,y:1,z:0},{x:1,y:1,z:-2},{x:0,y:7.5,z:-42},{x:2,y:7.5,z:-40}],
     falafels:[{x:1,y:1,z:3},{x:-2,y:1,z:2},{x:2,y:1,z:-1},{x:0,y:7.5,z:-43},{x:-2,y:7.5,z:-41}],
     bullies:[{x:-2,y:1,z:-1,range:4,speed:0.012},{x:2,y:1,z:-3,range:4,speed:0.011}],
     portal:{x:0,y:7.5,z:-44},
@@ -485,7 +587,7 @@ const ISLANDS = [
       {x:0,y:6,z:-24,w:3,h:1,d:3,tex:'stone',col:0x707060,crumble:true},
       {x:0,y:7.5,z:-32,w:6,h:1,d:6,tex:'stone',col:0x908070},
     ],
-    jars:[{x:-2,y:1,z:2},{x:2,y:1,z:0},{x:0,y:1,z:-1},{x:-9,y:3,z:-5},{x:9,y:3,z:-5},{x:0,y:4.5,z:-12},{x:-8,y:6,z:-18},{x:8,y:6,z:-18},{x:0,y:8.5,z:-32}],
+    jars:[{x:-2,y:1,z:2},{x:2,y:1,z:0},{x:0,y:1,z:-1},{x:-9,y:3,z:-5},{x:9,y:3,z:-5},{x:0,y:4.5,z:-12}],
     falafels:[{x:1,y:1,z:3},{x:-1,y:1,z:2},{x:2,y:1,z:-1},{x:0,y:4.5,z:-12},{x:-8,y:6,z:-18},{x:0,y:8.5,z:-33}],
     bullies:[{x:-1,y:1,z:-1,range:4,speed:0.016},{x:2,y:1,z:-2,range:4,speed:0.015},{x:-2,y:1,z:-3,range:3,speed:0.014}],
     portal:{x:0,y:8.5,z:-34},
@@ -608,7 +710,8 @@ const ISLANDS = [
       {x:0,y:3,z:-12,w:6,h:1,d:6,tex:'throne',col:0xE0B040},
       {x:0,y:5,z:-22,w:8,h:1,d:8,tex:'throne',col:0xC89020},  // throne platform
     ],
-    jars:[{x:-3,y:1,z:3},{x:3,y:1,z:3},{x:-12,y:3,z:-5},{x:12,y:3,z:-5},{x:-2,y:4,z:-12},{x:2,y:4,z:-12}],
+    jars:[{x:-3,y:1,z:3},{x:3,y:1,z:3},{x:-12,y:3,z:-5},{x:12,y:3,z:-5},{x:-2,y:4,z:-12},{x:2,y:4,z:-12},
+          {x:-4,y:1,z:1},{x:4,y:1,z:1},{x:0,y:1,z:-3},{x:-2,y:3,z:-5},{x:2,y:3,z:-5}],
     falafels:[{x:0,y:6,z:-22}],  // The Queen
     bullies:[{x:0,y:1,z:-2,range:6,speed:0.01,boss:true}],  // Bully King
     portal:{x:0,y:6,z:-24},
@@ -664,6 +767,8 @@ function initEngine() {
   });
 
   buildTextures();
+  initPhysicsWorld();
+  initModelLoader();
   gameInitialized = true;
   animate();
 }
@@ -709,6 +814,8 @@ function clearScene() {
   platforms=[]; jars=[]; falafels=[]; bullies=[]; mechanics=[]; portalGroup=null; portalActive=false;
   // remove decorations
   scene.children.filter(c=>c.userData.deco).forEach(c=>scene.remove(c));
+  // clear Cannon.js bodies for this island
+  clearPhysWorld();
 }
 
 function loadIsland(idx) {
@@ -737,12 +844,18 @@ function loadIsland(idx) {
     scene.add(mesh);
     const isIce = !!pd.ice;
     const canCrumble = !!pd.crumble;
-    platforms.push({
+    const pObj = {
       mesh, x:pd.x, y:pd.y, z:pd.z, w:pd.w, h:pd.h, d:pd.d,
       ice:isIce, crumble:canCrumble,
       crumbleState:'intact', crumbleTimer:0, crumbleOrigY:pd.y,
       active:true
-    });
+    };
+    platforms.push(pObj);
+    // Create Cannon.js physics body (static box) for collision
+    addPlatformPhysBody(pObj);
+    // Progressively swap procedural mesh for Quaternius GLB if available
+    const modelKey = pd.modelType || 'platforms/cube.glb';
+    swapMeshWhenLoaded(mesh, modelKey, pd.w, pd.h, pd.d);
   });
 
   // Jars
@@ -820,6 +933,8 @@ function createPlayer(spawn) {
   vel = {x:0,y:0,z:0};
   onGround = false;
   jumpConsumed = false;
+  // Create Cannon.js physics body for the player (capsule approximated as sphere)
+  createPlayerPhysBody(spawn);
 }
 
 // ── Jar model ─────────────────────────────────────────────────────────
@@ -839,6 +954,8 @@ function makeJar(x,y,z,locked=false) {
   }
   grp.position.set(x,y,z);
   scene.add(grp);
+  // Progressive: swap with Quaternius jar model when available
+  if (!locked) swapMeshWhenLoaded(bowl, 'props/jar.glb', 0.65, 0.65, 0.65);
   return grp;
 }
 
@@ -893,6 +1010,9 @@ function makeBully(x,y,z,boss=false) {
   }
   grp.position.set(x,y,z);
   scene.add(grp);
+  // Progressive: swap with Quaternius enemy model when available
+  const enemyModel = boss ? 'enemies/bully_king.glb' : 'enemies/bully.glb';
+  swapMeshWhenLoaded(body, enemyModel, boss?1.4:1.1, boss?1.4:1.1, boss?1.4:1.1);
   return grp;
 }
 
@@ -1107,132 +1227,69 @@ function updateParticles() {
 
 // ── Physics ───────────────────────────────────────────────────────────
 const P_RADIUS = 0.52;
-function updatePhysics() {
-  if (!G.active || G.paused || !player) return;
 
-  // Gravity
-  vel.y += CFG.GRAV;
+// ── Shared game-logic checks (run regardless of physics backend) ───────
+function runGameLogic() {
+  if (!player) return;
+  const px = player.position.x, py = player.position.y, pz = player.position.z;
 
-  // Jump hold
-  if (jumpHeld && jumpHoldTime < CFG.JUMP_HOLD_TIME) {
-    vel.y += 0.0006;
-    jumpHoldTime++;
-  }
-
-  // Movement
-  const friction = onIce ? CFG.ICE_FRICTION : CFG.FRICTION;
-  const ctrl = onGround ? 1.0 : CFG.AIR;
-  const spd = CFG.MOVE * ctrl;
-  if (keys.w) vel.z -= spd;
-  if (keys.s) vel.z += spd;
-  if (keys.a) vel.x -= spd;
-  if (keys.d) vel.x += spd;
-
-  // Apply friction horizontally
-  vel.x *= friction;
-  vel.z *= friction;
-
-  // Clamp speed
-  const hspd = Math.sqrt(vel.x*vel.x + vel.z*vel.z);
-  const maxH = 0.35;
-  if (hspd > maxH) { vel.x *= maxH/hspd; vel.z *= maxH/hspd; }
-
-  // Wind check
-  let inWind = false;
-  mechanics.filter(m=>m.type==='wind').forEach(wm => {
-    const px=player.position.x, py=player.position.y, pz=player.position.z;
-    const hx=wm.pos.x, hy=wm.pos.y, hz=wm.pos.z;
-    if (Math.abs(px-hx)<wm.w/2+0.3 && Math.abs(py-hy)<wm.h/2+0.3 && Math.abs(pz-hz)<wm.d/2+0.3) {
-      vel.x += wm.dir.x; vel.z += wm.dir.z; inWind = true;
-    }
-  });
-
-  // Attempt move
-  player.position.x += vel.x;
-  player.position.y += vel.y;
-  player.position.z += vel.z;
-
-  // Collision
-  onGround = false;
-  onIce = false;
-  platforms.forEach(p => {
-    if (!p.active) return;
-    const hx = p.mesh.position.x, hy = p.mesh.position.y, hz = p.mesh.position.z;
-    const hw = p.w/2 + P_RADIUS, hh = p.h/2, hd = p.d/2 + P_RADIUS;
-    const px = player.position.x, py = player.position.y, pz = player.position.z;
-    if (Math.abs(px-hx)<hw && Math.abs(py-hy)<p.h/2+P_RADIUS+0.01 && Math.abs(pz-hz)<hd) {
-      // Top collision
-      if (vel.y <= 0 && py > hy) {
-        const topY = hy + p.h/2 + P_RADIUS;
-        if (py < topY + 0.3) {
-          player.position.y = topY;
-          const wasAir = !onGround && vel.y < -0.12;
-          if (wasAir) { sfx('land'); if(CFG.shake){shakeTimer=8;shakeIntensity=Math.min(0.15,Math.abs(vel.y)*0.5);} emitParticles('land',px,hy+p.h/2,pz,6); }
-          vel.y = 0; onGround = true;
-          if (p.ice) onIce = true;
-          // Crumble trigger
-          if (p.crumble && p.crumbleState==='intact') { p.crumbleState='crumbling'; p.crumbleTimer=Date.now(); sfx('crumble'); }
-        }
-      }
-      // Side collisions
-      else if (Math.abs(px-hx)<p.w/2+P_RADIUS && Math.abs(pz-hz)<p.d/2+P_RADIUS) {
-        if (vel.x > 0 && px < hx) { player.position.x = hx - p.w/2 - P_RADIUS; vel.x = 0; }
-        else if (vel.x < 0 && px > hx) { player.position.x = hx + p.w/2 + P_RADIUS; vel.x = 0; }
-        if (vel.z > 0 && pz < hz) { player.position.z = hz - p.d/2 - P_RADIUS; vel.z = 0; }
-        else if (vel.z < 0 && pz > hz) { player.position.z = hz + p.d/2 + P_RADIUS; vel.z = 0; }
-      }
-    }
-  });
-
-  // Crumbling update
+  // Crumbling platform update
   platforms.forEach(p => {
     if (!p.crumble || p.crumbleState !== 'crumbling') return;
     const elapsed = Date.now() - p.crumbleTimer;
-    // Shake
     p.mesh.position.x = p.x + (Math.random()-.5)*0.08*(1-elapsed/CFG.CRUMBLE_TIME);
+    if (p.physBody) p.physBody.position.x = p.mesh.position.x;
     if (elapsed > CFG.CRUMBLE_TIME) {
-      p.crumbleState = 'fallen';
-      p.active = false;
-      p.mesh.visible = false;
-      // Respawn after 4s
-      setTimeout(()=>{ p.mesh.position.set(p.x,p.y,p.z); p.mesh.visible=true; p.crumbleState='intact'; p.active=true; }, 4000);
+      p.crumbleState = 'fallen'; p.active = false; p.mesh.visible = false;
+      if (p.physBody) physWorld && physWorld.removeBody(p.physBody);
+      setTimeout(()=>{
+        p.mesh.position.set(p.x,p.y,p.z); p.mesh.visible=true;
+        p.crumbleState='intact'; p.active=true;
+        if (p.physBody && physWorld) physWorld.addBody(p.physBody);
+      }, 4000);
     }
   });
 
   // Spring pads
   mechanics.filter(m=>m.type==='spring').forEach(sp => {
-    const dx=player.position.x-sp.mesh.position.x, dz=player.position.z-sp.mesh.position.z;
-    if (Math.abs(dx)<0.8 && Math.abs(dz)<0.8 && Math.abs(player.position.y-sp.mesh.position.y)<0.8 && onGround) {
-      vel.y = CFG.SPRING_VEL; onGround=false; sfx('spring');
-      emitParticles('spring',player.position.x,player.position.y,player.position.z,12);
-      showFloat('🌟 Spring!');
+    const dx=px-sp.mesh.position.x, dz=pz-sp.mesh.position.z;
+    if (Math.abs(dx)<0.8 && Math.abs(dz)<0.8 && Math.abs(py-sp.mesh.position.y)<0.8 && onGround) {
+      if (playerBody) { playerBody.velocity.y = PHYS.SPRING_VEL; } else { vel.y = CFG.SPRING_VEL; }
+      onGround=false; sfx('spring');
+      emitParticles('spring',px,py,pz,12); showFloat('🌟 Spring!');
     }
   });
 
   // Boost pads
   mechanics.filter(m=>m.type==='boost').forEach(bp => {
-    const dx=player.position.x-bp.mesh.position.x, dz=player.position.z-bp.mesh.position.z;
-    if (Math.abs(dx)<0.7 && Math.abs(dz)<0.7 && Math.abs(player.position.y-bp.mesh.position.y)<0.6 && onGround) {
-      vel.x += bp.dir.x * CFG.BOOST_VEL * 2.5;
-      vel.z += bp.dir.z * CFG.BOOST_VEL * 2.5;
-      vel.y = 0.22; sfx('boost');
-      emitParticles('spring',player.position.x,player.position.y,player.position.z,10);
-      showFloat('💨 Boosted!');
+    const dx=px-bp.mesh.position.x, dz=pz-bp.mesh.position.z;
+    if (Math.abs(dx)<0.7 && Math.abs(dz)<0.7 && Math.abs(py-bp.mesh.position.y)<0.6 && onGround) {
+      if (playerBody) {
+        playerBody.velocity.x += bp.dir.x * PHYS.BOOST_VEL * 2.5;
+        playerBody.velocity.z += bp.dir.z * PHYS.BOOST_VEL * 2.5;
+        playerBody.velocity.y = 0.22 * 60;
+      } else {
+        vel.x += bp.dir.x * CFG.BOOST_VEL * 2.5;
+        vel.z += bp.dir.z * CFG.BOOST_VEL * 2.5;
+        vel.y = 0.22;
+      }
+      sfx('boost'); emitParticles('spring',px,py,pz,10); showFloat('💨 Boosted!');
     }
   });
 
   // Teleport mushrooms
   mechanics.filter(m=>m.type==='teleport').forEach(tp => {
-    if (tp.used) { tp.used=false; return; }  // cooldown frame
-    const dx=player.position.x-tp.mesh.position.x, dz=player.position.z-tp.mesh.position.z;
-    if (Math.abs(dx)<0.8 && Math.abs(dz)<0.8 && Math.abs(player.position.y-tp.mesh.position.y)<1.0) {
-      // find partner
+    if (tp.used) { tp.used=false; return; }
+    const dx=px-tp.mesh.position.x, dz=pz-tp.mesh.position.z;
+    if (Math.abs(dx)<0.8 && Math.abs(dz)<0.8 && Math.abs(py-tp.mesh.position.y)<1.0) {
       const partner = mechanics.find(m=>m.type==='teleport' && m.pos===tp.partner);
       if (partner) {
-        player.position.set(partner.pos.x, partner.pos.y+1.2, partner.pos.z);
-        vel.y=0.1; tp.used=true; partner.used=true;
-        sfx('teleport'); emitParticles('teleport',player.position.x,player.position.y,player.position.z,16);
-        showFloat('✨ Teleport!');
+        const tx=partner.pos.x, ty=partner.pos.y+1.2, tz=partner.pos.z;
+        player.position.set(tx, ty, tz);
+        if (playerBody) { playerBody.position.set(tx, ty, tz); playerBody.velocity.set(0,0.1*60,0); }
+        else { vel.y=0.1; }
+        tp.used=true; partner.used=true;
+        sfx('teleport'); emitParticles('teleport',tx,ty,tz,16); showFloat('✨ Teleport!');
       }
     }
   });
@@ -1240,25 +1297,20 @@ function updatePhysics() {
   // Star sequence
   if (!starSequenceState.done) {
     mechanics.filter(m=>m.type==='star' && !m.touched).forEach(sm => {
-      const dx=player.position.x-sm.mesh.position.x, dz=player.position.z-sm.mesh.position.z, dy=player.position.y-sm.mesh.position.y;
+      const dx=px-sm.mesh.position.x, dz=pz-sm.mesh.position.z, dy=py-sm.mesh.position.y;
       if (Math.sqrt(dx*dx+dy*dy+dz*dz)<1.0) {
         if (sm.order===starSequenceState.next) {
           sm.touched=true; starSequenceState.next++;
-          sfx('star');
-          emitParticles('portal',sm.mesh.position.x,sm.mesh.position.y,sm.mesh.position.z,14);
+          sfx('star'); emitParticles('portal',sm.mesh.position.x,sm.mesh.position.y,sm.mesh.position.z,14);
           showFloat('⭐ Star '+sm.order+' / 5!');
           sm.mesh.userData.star.material.emissiveIntensity=2.0;
           if (starSequenceState.next > 5) {
-            starSequenceState.done=true;
-            showFloat('✨ Stars aligned! Final jars appear!');
-            sfx('win');
-            // Unlock locked jars
-            jars.filter(j=>j.locked).forEach(j=>{ j.locked=false; j.active=true; j.group.children.forEach(c=>{if(c.material){c.material.transparent=false;c.material.opacity=1;c.material.color.setHex(0xFFF5CC);}}); });
+            starSequenceState.done=true; showFloat('✨ Stars aligned! Final jars appear!'); sfx('win');
+            jars.filter(j=>j.locked).forEach(j=>{ j.locked=false; j.active=true; j.group.children.forEach(c=>{if(c.material){c.material.transparent=false;c.material.opacity=1;c.material.color.setHex(0xFFF5CC);}});});
           }
         } else {
-          // Wrong order — reset
           starSequenceState.next=1;
-          mechanics.filter(m=>m.type==='star').forEach(s2=>{ s2.touched=false; s2.mesh.userData.star.material.emissiveIntensity=0.6; });
+          mechanics.filter(m=>m.type==='star').forEach(s2=>{ s2.touched=false; s2.mesh.userData.star.material.emissiveIntensity=0.6;});
           showFloat('Try the stars in order: 1→2→3→4→5');
         }
       }
@@ -1266,18 +1318,16 @@ function updatePhysics() {
   }
 
   // Fall detection
-  if (player.position.y < -12) { onGameOver(); }
+  if (py < -12) { onGameOver(); return; }
 
   // Collect jars
   jars.forEach(j => {
     if (!j.active) return;
-    const dx=player.position.x-j.x, dy=player.position.y-j.y, dz=player.position.z-j.z;
+    const dx=px-j.x, dy=py-j.y, dz=pz-j.z;
     if (Math.sqrt(dx*dx+dy*dy+dz*dz) < CFG.COLLECT_DIST) {
       j.active=false; j.group.visible=false; G.jarsHeld++;
       sfx('collect'); G.score+=10;
-      emitParticles('collect',j.x,j.y,j.z,12);
-      showFloat('🫙 Hummus jar collected!');
-      updateHUD();
+      emitParticles('collect',j.x,j.y,j.z,12); showFloat('🫙 Hummus jar collected!'); updateHUD();
     }
   });
 
@@ -1285,13 +1335,10 @@ function updatePhysics() {
   if (G.jarsHeld > 0) {
     falafels.forEach(f => {
       if (f.happy) return;
-      const dx=player.position.x-f.x, dy=player.position.y-f.y, dz=player.position.z-f.z;
+      const dx=px-f.x, dy=py-f.y, dz=pz-f.z;
       if (Math.sqrt(dx*dx+dy*dy+dz*dz) < CFG.SHARE_DIST) {
         f.happy=true; G.jarsHeld--; G.falafelsHappy++; G.score+=50;
-        sfx('share');
-        emitParticles('share',f.x,f.y,f.z,14);
-        showFloat('💛 Falafel is happy!');
-        // Change falafel color to happy
+        sfx('share'); emitParticles('share',f.x,f.y,f.z,14); showFloat('💛 Falafel is happy!');
         f.group.children.forEach(c => { if (c.material && c.geometry && c.geometry.type==='SphereGeometry' && c.geometry.parameters && c.geometry.parameters.radius > 0.3) c.material.color.setHex(0xE8C07A); });
         updateHUD();
         if (G.falafelsHappy === G.falafelsTotal) activatePortal();
@@ -1302,27 +1349,155 @@ function updatePhysics() {
   // Bully collision
   bullies.forEach(b => {
     if (b.bowed) return;
-    const dx=player.position.x-b.group.position.x, dy=player.position.y-b.group.position.y, dz=player.position.z-b.group.position.z;
+    const dx=px-b.group.position.x, dy=py-b.group.position.y, dz=pz-b.group.position.z;
     if (Math.sqrt(dx*dx+dy*dy+dz*dz) < CFG.BULLY_HIT_DIST) {
-      // Bounce player away
-      vel.x = dx*0.3; vel.z = dz*0.3; vel.y = 0.25;
+      if (playerBody) { playerBody.velocity.x=dx*0.3*60; playerBody.velocity.z=dz*0.3*60; playerBody.velocity.y=0.25*60; }
+      else { vel.x=dx*0.3; vel.z=dz*0.3; vel.y=0.25; }
       G.jarsHeld = Math.max(0, G.jarsHeld-1);
-      sfx('fail');
-      if (CFG.shake) { shakeTimer=14; shakeIntensity=0.2; }
-      emitParticles('land',player.position.x,player.position.y,player.position.z,8);
-      showFloat('😱 Ouch! Bully hit!');
-      updateHUD();
+      sfx('fail'); if (CFG.shake) { shakeTimer=14; shakeIntensity=0.2; }
+      emitParticles('land',px,py,pz,8); showFloat('😱 Ouch! Bully hit!'); updateHUD();
     }
   });
 
   // Portal entry
   if (portalActive && portalGroup) {
     const pp = portalGroup.position;
-    const dx=player.position.x-pp.x, dz=player.position.z-pp.z;
-    if (Math.sqrt(dx*dx+dz*dz)<1.4 && Math.abs(player.position.y-pp.y)<2.0) {
-      onIslandComplete();
-    }
+    if (Math.sqrt((px-pp.x)**2+(pz-pp.z)**2)<1.4 && Math.abs(py-pp.y)<2.0) onIslandComplete();
   }
+}
+
+// ── Physics (Cannon.js when loaded, custom AABB fallback) ─────────────
+function updatePhysics() {
+  if (!G.active || G.paused || !player) return;
+
+  if (cannonReady && playerBody) {
+    // ── Cannon.js path ────────────────────────────────────────────────
+    const friction = onIce ? CFG.ICE_FRICTION : CFG.FRICTION;
+    const ctrl = onGround ? 1.0 : CFG.AIR;
+    const spd = CFG.MOVE * ctrl * 60; // scale per-frame → per-second
+    const v = playerBody.velocity;
+
+    // Wind zones (add to Cannon.js velocity)
+    mechanics.filter(m=>m.type==='wind').forEach(wm => {
+      const hx=wm.pos.x,hy=wm.pos.y,hz=wm.pos.z;
+      if (Math.abs(v.x-hx)<wm.w/2+0.3 && Math.abs(player.position.y-hy)<wm.h/2+0.3 && Math.abs(player.position.z-hz)<wm.d/2+0.3) {
+        v.x += wm.dir.x*60; v.z += wm.dir.z*60;
+      }
+    });
+
+    if (keys.w) v.z -= spd;
+    if (keys.s) v.z += spd;
+    if (keys.a) v.x -= spd;
+    if (keys.d) v.x += spd;
+
+    v.x *= friction; v.z *= friction;
+    const hspd = Math.sqrt(v.x*v.x + v.z*v.z);
+    const maxH = PHYS.MAX_H_VEL;
+    if (hspd > maxH) { v.x *= maxH/hspd; v.z *= maxH/hspd; }
+
+    // Jump hold bonus
+    if (jumpHeld && jumpHoldTime < CFG.JUMP_HOLD_TIME) { v.y += PHYS.JUMP_HOLD; jumpHoldTime++; }
+
+    // Step physics world
+    physWorld.step(1/60);
+
+    // Detect onGround from Cannon.js contacts
+    const prevGround = onGround;
+    onGround = false; onIce = false;
+    for (let i = 0; i < physWorld.contacts.length; i++) {
+      const c = physWorld.contacts[i];
+      if (c.bi !== playerBody && c.bj !== playerBody) continue;
+      // ni points from bi → bj; if player is bj, ni.y > 0 = platform below
+      const normalY = (c.bj === playerBody) ? c.ni.y : -c.ni.y;
+      if (normalY > 0.5) {
+        onGround = true;
+        const platBody = (c.bi === playerBody) ? c.bj : c.bi;
+        if (platBody._ice) onIce = true;
+        break;
+      }
+    }
+
+    // Land sound / shake
+    if (onGround && !prevGround && v.y < -2) {
+      sfx('land');
+      if (CFG.shake) { shakeTimer=8; shakeIntensity=Math.min(0.15,Math.abs(v.y)*0.008); }
+      emitParticles('land',player.position.x,player.position.y,player.position.z,6);
+    }
+
+    // Sync Three.js position from physics body
+    player.position.copy(playerBody.position);
+    // Keep vel in sync for camera lookahead (convert GU/s → GU/frame)
+    vel.x = v.x / 60; vel.y = v.y / 60; vel.z = v.z / 60;
+
+    // Sync moving-platform physics bodies each frame
+    mechanics.filter(m=>m.type==='moving').forEach(m => {
+      if (m.plat && m.plat.physBody) {
+        m.plat.physBody.position.x = m.plat.mesh.position.x;
+        m.plat.physBody.position.z = m.plat.mesh.position.z;
+        m.plat.physBody.wakeUp && m.plat.physBody.wakeUp();
+      }
+    });
+    mechanics.filter(m=>m.type==='tidal').forEach(m => {
+      if (m.plat && m.plat.physBody) {
+        m.plat.physBody.position.y = m.plat.mesh.position.y;
+        m.plat.physBody.wakeUp && m.plat.physBody.wakeUp();
+      }
+    });
+
+  } else {
+    // ── Custom AABB physics fallback ──────────────────────────────────
+    vel.y += CFG.GRAV;
+    if (jumpHeld && jumpHoldTime < CFG.JUMP_HOLD_TIME) { vel.y += 0.0006; jumpHoldTime++; }
+
+    const friction = onIce ? CFG.ICE_FRICTION : CFG.FRICTION;
+    const ctrl = onGround ? 1.0 : CFG.AIR;
+    const spd = CFG.MOVE * ctrl;
+    if (keys.w) vel.z -= spd;
+    if (keys.s) vel.z += spd;
+    if (keys.a) vel.x -= spd;
+    if (keys.d) vel.x += spd;
+    vel.x *= friction; vel.z *= friction;
+    const hspd = Math.sqrt(vel.x*vel.x + vel.z*vel.z);
+    if (hspd > 0.35) { vel.x *= 0.35/hspd; vel.z *= 0.35/hspd; }
+
+    // Wind zones
+    mechanics.filter(m=>m.type==='wind').forEach(wm => {
+      const px=player.position.x, py=player.position.y, pz=player.position.z;
+      if (Math.abs(px-wm.pos.x)<wm.w/2+0.3 && Math.abs(py-wm.pos.y)<wm.h/2+0.3 && Math.abs(pz-wm.pos.z)<wm.d/2+0.3) {
+        vel.x += wm.dir.x; vel.z += wm.dir.z;
+      }
+    });
+
+    player.position.x += vel.x; player.position.y += vel.y; player.position.z += vel.z;
+
+    onGround = false; onIce = false;
+    platforms.forEach(p => {
+      if (!p.active) return;
+      const hx=p.mesh.position.x, hy=p.mesh.position.y, hz=p.mesh.position.z;
+      const hw=p.w/2+P_RADIUS, hd=p.d/2+P_RADIUS;
+      const px=player.position.x, py=player.position.y, pz=player.position.z;
+      if (Math.abs(px-hx)<hw && Math.abs(py-hy)<p.h/2+P_RADIUS+0.01 && Math.abs(pz-hz)<hd) {
+        if (vel.y <= 0 && py > hy) {
+          const topY = hy + p.h/2 + P_RADIUS;
+          if (py < topY + 0.3) {
+            player.position.y = topY;
+            const wasAir = !onGround && vel.y < -0.12;
+            if (wasAir) { sfx('land'); if(CFG.shake){shakeTimer=8;shakeIntensity=Math.min(0.15,Math.abs(vel.y)*0.5);} emitParticles('land',px,hy+p.h/2,pz,6); }
+            vel.y = 0; onGround = true;
+            if (p.ice) onIce = true;
+            if (p.crumble && p.crumbleState==='intact') { p.crumbleState='crumbling'; p.crumbleTimer=Date.now(); sfx('crumble'); }
+          }
+        } else if (Math.abs(px-hx)<p.w/2+P_RADIUS && Math.abs(pz-hz)<p.d/2+P_RADIUS) {
+          if (vel.x > 0 && px < hx) { player.position.x = hx-p.w/2-P_RADIUS; vel.x=0; }
+          else if (vel.x < 0 && px > hx) { player.position.x = hx+p.w/2+P_RADIUS; vel.x=0; }
+          if (vel.z > 0 && pz < hz) { player.position.z = hz-p.d/2-P_RADIUS; vel.z=0; }
+          else if (vel.z < 0 && pz > hz) { player.position.z = hz+p.d/2+P_RADIUS; vel.z=0; }
+        }
+      }
+    });
+  }
+
+  runGameLogic();
 }
 
 // ── Bully AI ──────────────────────────────────────────────────────────
@@ -1524,7 +1699,11 @@ function goScreen(id) {
 function handleSpace() {
   if (!G.active || G.paused) return;
   if (onGround && !jumpConsumed) {
-    vel.y = CFG.JUMP;
+    if (cannonReady && playerBody) {
+      playerBody.velocity.y = PHYS.JUMP_VEL;
+    } else {
+      vel.y = CFG.JUMP;
+    }
     onGround = false; jumpConsumed = true;
     jumpHeld = true; jumpHoldTime = 0;
     sfx('jump');
