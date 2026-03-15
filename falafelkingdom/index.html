@@ -56,6 +56,8 @@ body{overflow:hidden;background:#1a0a00;user-select:none}
   border:none;color:#5a2800;
   padding:18px 50px;font-size:17px;
   cursor:pointer;min-width:240px;min-height:68px;
+  image-rendering:-moz-crisp-edges;
+  image-rendering:-webkit-optimize-contrast;
   image-rendering:pixelated;
   transition:transform 0.1s,filter 0.1s;margin:6px;
   text-shadow:1px 1px 0 rgba(255,255,255,0.25);
@@ -151,7 +153,7 @@ const uiSounds = {};
   try {
     const audio = new Audio('models/ui/Sounds/' + name + '.ogg');
     audio.volume = 0.4;
-    audio.addEventListener('error', () => { uiSounds[name] = null; });
+    audio.addEventListener('error', () => { console.warn('UI sound failed to load:', name); uiSounds[name] = null; });
     uiSounds[name] = audio;
   } catch(e) { uiSounds[name] = null; }
 });
@@ -317,7 +319,7 @@ const PC={
   IACC:5,  IDEC:3,
   COY:0.12, JBUF:0.10, JHOLD:0.22, JHFRC:28,
   HW:0.52, HH:0.58,
-  VOID_Y:-8, VOID_PENALTY:3, SPIKE_PENALTY:3, ITIME:1.5,
+  VOID_Y:-8, VOID_PENALTY:3, SPIKE_PENALTY:3, LAVA_PENALTY:10, ITIME:1.5,
   CRUMBLE_DUR:1.2, CRUMBLE_RESPAWN:4,
   CP_FLASH_MS:280,
 };
@@ -1338,7 +1340,7 @@ function updatePlayer(dt){
     for(var i=0;i<hazards.length;i++){
       var h=hazards[i];
       if(P.x+PC.HW>h.minX&&P.x-PC.HW<h.maxX&&P.y+PC.HH>h.minY&&P.y-PC.HH<h.maxY){
-        if(h.type==='lava'){ respawn(Math.min(gd.hummus,10)); }
+        if(h.type==='lava'){ respawn(Math.min(gd.hummus,PC.LAVA_PENALTY)); }
         else { respawn(PC.SPIKE_PENALTY); }
         SFX.hurt(); return;
       }
