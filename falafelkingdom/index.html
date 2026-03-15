@@ -154,15 +154,22 @@ function beep(f1,f2,dur,type='sine',vol=0.25){
   }catch(e){}
 }
 function chord(fs,dur,vol=0.18){fs.forEach(f=>beep(f,f,dur,'sine',vol));}
+
+// Each multi-note SFX stores its timeout IDs so rapid calls don't stack up.
+let _sfxIds={};
+function seqBeeps(key,notes,gap){
+  (_sfxIds[key]||[]).forEach(id=>clearTimeout(id));
+  _sfxIds[key]=notes.map(([f1,f2,d,v],i)=>setTimeout(()=>beep(f1,f2,d,'sine',v),i*gap));
+}
 const SFX={
   pickup:()=>beep(440,880,0.15,'sine',0.22),
-  happy:()=>{chord([261.6,329.6,392],0.4,0.18);setTimeout(()=>chord([392,493.9,587.3],0.3,0.15),200);},
+  happy:()=>seqBeeps('happy',[[261.6,261.6,0.25,0.18],[329.6,329.6,0.25,0.18],[392,392,0.25,0.18],[493.9,587.3,0.3,0.15]],120),
   jump:()=>beep(220,420,0.1,'square',0.12),
   hurt:()=>beep(180,80,0.25,'sawtooth',0.2),
-  bridge:()=>[261.6,329.6,392,523.3].forEach((f,i)=>setTimeout(()=>beep(f,f*1.2,0.2,'sine',0.2),i*110)),
-  boss:()=>[261.6,329.6,392,523.3,659.3,783.9].forEach((f,i)=>setTimeout(()=>beep(f,f,0.25,'sine',0.22),i*130)),
+  bridge:()=>seqBeeps('bridge',[[261.6,313.9,0.2,0.2],[329.6,395.5,0.2,0.2],[392,470.4,0.2,0.2],[523.3,628,0.2,0.2]],110),
+  boss:()=>seqBeeps('boss',[[261.6,261.6,0.25,0.22],[329.6,329.6,0.25,0.22],[392,392,0.25,0.22],[523.3,523.3,0.25,0.22],[659.3,659.3,0.25,0.22],[783.9,783.9,0.3,0.25]],130),
   checkpoint:()=>beep(880,1046.5,0.25,'sine',0.18),
-  victory:()=>[523.3,659.3,783.9,1046.5,783.9,1046.5,1318.5].forEach((f,i)=>setTimeout(()=>beep(f,f,0.22,'sine',0.25),i*150)),
+  victory:()=>seqBeeps('victory',[[523.3,523.3,0.2,0.25],[659.3,659.3,0.2,0.25],[783.9,783.9,0.2,0.25],[1046.5,1046.5,0.2,0.28],[783.9,783.9,0.15,0.22],[1046.5,1046.5,0.2,0.28],[1318.5,1318.5,0.35,0.3]],150),
 };
 
 // ── Input ─────────────────────────────────────────────────────
@@ -192,6 +199,9 @@ const PC={
   IACC:5,  IDEC:3,
   COY:0.12, JBUF:0.10, JHOLD:0.22, JHFRC:28,
   HW:0.52, HH:0.58,
+  VOID_Y:-8, VOID_PENALTY:3, SPIKE_PENALTY:3, ITIME:1.5,
+  CRUMBLE_DUR:1.2, CRUMBLE_RESPAWN:4,
+  CP_FLASH_MS:280,
 };
 
 const P={
@@ -398,9 +408,9 @@ const FAL_DEFS=[
 
 // Bosses
 const BOSS_DEFS=[
-  {id:'mb1',x:236,y:2,type:'mini',need:10,label:'Need 10 \uD83E\uDED9 hummus to pass!'},
-  {id:'mb2',x:416,y:2,type:'mini',need:10,label:'Need 10 \uD83E\uDED9 hummus to pass!'},
-  {id:'final',x:722,y:3,type:'final',need:15,label:'FINAL BOSS: Need 15 \uD83E\uDED9 hummus!'},
+  {id:'mb1',x:236,y:2,type:'mini',need:10,label:'Need 10 🫙 hummus to pass!'},
+  {id:'mb2',x:416,y:2,type:'mini',need:10,label:'Need 10 🫙 hummus to pass!'},
+  {id:'final',x:722,y:3,type:'final',need:15,label:'FINAL BOSS: Need 15 🫙 hummus!'},
 ];
 
 // Bridges
@@ -814,7 +824,7 @@ function showMsg(txt,dur=2.5){
 function flashCP(){
   const el=document.getElementById('cpflash');
   el.style.display='block';
-  setTimeout(()=>el.style.display='none',280);
+  setTimeout(()=>el.style.display='none',PC.CP_FLASH_MS);
 }
 
 // =============================================================
@@ -846,7 +856,7 @@ function startGame(){
   });
   platforms.forEach(p=>{
     if(p.type==='crumble'){
-      p.fallen=false;p.crumbling=false;p.crumTimer=1.2;
+      p.fallen=false;p.crumbling=false;p.crumTimer=PC.CRUMBLE_DUR;
       p.mesh.visible=true;
       if(Array.isArray(p.mesh.material))p.mesh.material.forEach(m=>m.color&&m.color.setHex(0xA07020));
     }
@@ -993,7 +1003,7 @@ function respawn(loseHummus,teleport=true){
     P.x=gd.lastCP.x; P.y=gd.lastCP.y; P.z=gd.lastCP.z||0;
     P.vx=0; P.vy=0; P.onG=false;
   }
-  P.iTimer=1.5;
+  P.iTimer=PC.ITIME;
   if(lost>0) showMsg(`💔 Lost ${lost} 🫙! (${gd.hummus} left)`);
 }
 
@@ -1080,14 +1090,14 @@ function updatePlayer(dt){
   }
 
   // Void
-  if(P.y<-8){ respawn(3); return; }
+  if(P.y<PC.VOID_Y){ respawn(PC.VOID_PENALTY); return; }
 
   // Hazards
   if(P.iTimer<=0){
     for(const h of hazards){
       if(P.x+PC.HW>h.minX&&P.x-PC.HW<h.maxX&&P.y+PC.HH>h.minY&&P.y-PC.HH<h.maxY){
         if(h.type==='lava'){ respawn(gd.hummus); }
-        else { respawn(3); }
+        else { respawn(PC.SPIKE_PENALTY); }
         SFX.hurt(); return;
       }
     }
@@ -1097,7 +1107,7 @@ function updatePlayer(dt){
       if(dist2(P.x,P.y,b.x,b.y)<(b.type==='final'?2.0:1.5)){
         const dx=P.x-b.x;
         P.vx=(dx>=0?1:-1)*6; P.vy=5;
-        respawn(3,false); SFX.hurt(); P.iTimer=1.5; break;
+        respawn(PC.SPIKE_PENALTY,false); SFX.hurt(); P.iTimer=PC.ITIME; break;
       }
     }
   }
@@ -1163,15 +1173,15 @@ function updatePlatforms(dt){
       if(p.crumbling&&!p.fallen){
         p.crumTimer-=dt;
         // shake effect
-        p.mesh.position.x=p.startCX+(Math.random()-0.5)*0.1*(1-p.crumTimer/1.2);
+        p.mesh.position.x=p.startCX+(Math.random()-0.5)*0.1*(1-p.crumTimer/PC.CRUMBLE_DUR);
         if(p.crumTimer<=0){
-          p.fallen=true; p.mesh.visible=false; p.respTimer=4;
+          p.fallen=true; p.mesh.visible=false; p.respTimer=PC.CRUMBLE_RESPAWN;
         }
       }
       if(p.fallen){
         p.respTimer-=dt;
         if(p.respTimer<=0){
-          p.fallen=false; p.crumbling=false; p.crumTimer=1.2;
+          p.fallen=false; p.crumbling=false; p.crumTimer=PC.CRUMBLE_DUR;
           p.mesh.visible=true; p.mesh.position.x=p.startCX;
           if(Array.isArray(p.mesh.material))p.mesh.material.forEach(m=>m.color&&m.color.setHex(0xA07020));
         }
