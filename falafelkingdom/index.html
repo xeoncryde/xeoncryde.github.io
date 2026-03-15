@@ -231,6 +231,7 @@ body{overflow:hidden;background:#08060f;font-family:'Comic Sans MS','Comic Sans'
 const CFG = {
   sfx: true, music: true, hints: true, shake: true,
   GRAV: -0.016, JUMP: 0.32, JUMP_HOLD_BONUS: 0.12, JUMP_HOLD_TIME: 180,
+  // Camera offsets increased for larger island scales — wider view helps exploration
   CAM_LERP: 0.07, CAM_OFF_Y: 9, CAM_OFF_Z: 18, CAM_LOOKAHEAD: 2,
   COLLECT_DIST: 2.2, SHARE_DIST: 2.4, BULLY_HIT_DIST: 1.1,
   SPRING_VEL: 0.7, BOOST_VEL: 0.46, CRUMBLE_TIME: 1500
@@ -561,7 +562,7 @@ const ISLANDS = [
   // ISLAND 3: Sky Isles
   { name:"Sky Isles", sub:"Reaching for new heights", mech:"✶ Air Boost Pads ✶",
     mechHint:"Step on arrow pads to launch across the sky! Wind streams carry you further.",
-    story:"Five falafels drifted up here on thermals of warm air and could'nt get back down. The Sky Isles are ancient — platforms connected by invisible rivers of wind. The boost pads are relics of old magic left for travelers exactly like you.",
+    story:"Five falafels drifted up here on thermals of warm air and couldn't get back down. The Sky Isles are ancient — platforms connected by invisible rivers of wind. The boost pads are relics of old magic left for travelers exactly like you.",
     bgTop:0x0A1840, bgBot:0x3060C0, fogColor:0x5080B8, fogDensity:0.007,
     sunColor:0xE0EEFF, sunPos:[20,65,0], ambColor:0x3060A0, ambBot:0x081828,
     bloomStr:0.8, colorTint:"#5090FF",
@@ -1470,7 +1471,8 @@ function updatePhysics() {
     if (tx !== 0) v.x += (tx - v.x) * accel; else v.x *= brake;
     if (tz !== 0) v.z += (tz - v.z) * accel; else v.z *= brake;
 
-    // Wind zones (added on top after movement) — use same magnitude as AABB path
+    // Wind zones: dir values are per-frame GU/s nudges; multiply by 3 to give
+    // a satisfying push (~0.1 GU/s² acceleration) without being overwhelming
     mechanics.filter(m=>m.type==='wind').forEach(wm => {
       const hx=wm.pos.x,hy=wm.pos.y,hz=wm.pos.z;
       if (Math.abs(player.position.x-hx)<wm.w/2+0.3 && Math.abs(player.position.y-hy)<wm.h/2+0.3 && Math.abs(player.position.z-hz)<wm.d/2+0.3) {
