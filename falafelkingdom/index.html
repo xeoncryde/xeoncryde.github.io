@@ -258,8 +258,11 @@
         hintsEnabled: true
     };
     
-    // Level completion tracking
-    let completedLevels = [];
+    // Level completion tracking — persisted in localStorage
+    let completedLevels = JSON.parse(localStorage.getItem('fk_progress') || '[]');
+    function saveProgress() { localStorage.setItem('fk_progress', JSON.stringify(completedLevels)); }
+
+    let checkpoints = [];  // 3D checkpoint objects in the scene
 
     // Initialize game when DOM is ready and THREE is loaded
     function initGame() {
@@ -291,7 +294,10 @@
         hummusCount: 0,
         mega: false,
         active: false,
-        paused: false
+        paused: false,
+        checkpoint: null,   // {x,y,z,zone} — last activated checkpoint
+        wasElevated: false,
+        hasLanded: false
     };
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -403,24 +409,153 @@
         if (gameInitialized) return;
         
         scene = new THREE.Scene();
+        // Warm sky-blue gradient approximated with a solid + fog
         scene.background = new THREE.Color(0x87CEEB);
-        scene.fog = new THREE.Fog(0xB0E0E6, 30, 80);
+        // Deep fog — hides the grass edge, makes it feel vast
+        scene.fog = new THREE.FogExp2(0xC8E8F5, 0.0095);
 
-        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 800);
         camera.position.set(0, 10, 15);
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.getElementById('game-container').appendChild(renderer.domElement);
 
-        const hemi = new THREE.HemisphereLight(0xffffff, 0x87CEEB, 0.7);
+        // ── Shared platform textures (created once, reused) ─────────────────
+        function mkTex(w, h, drawFn) {
+            const c = document.createElement('canvas'); c.width=w; c.height=h;
+            drawFn(c.getContext('2d'));
+            const t = new THREE.CanvasTexture(c);
+            t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2,2);
+            return t;
+        }
+        window._texStone = mkTex(128,128,(ctx)=>{
+            ctx.fillStyle='#C8B090'; ctx.fillRect(0,0,128,128);
+            // Grout lines
+            ctx.strokeStyle='rgba(80,60,30,0.35)'; ctx.lineWidth=2;
+            [0,32,64,96,128].forEach(y=>{ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(128,y);ctx.stroke(); });
+            [0,32,64,96,128].forEach(x=>{ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,128);ctx.stroke(); });
+            // Noise
+            for(let i=0;i<300;i++){
+                ctx.fillStyle=`rgba(${Math.random()>0.5?'50,30,10':'200,180,140'},${0.05+Math.random()*0.12})`;
+                ctx.fillRect(Math.random()*128,Math.random()*128,2+Math.random()*4,2+Math.random()*4);
+            }
+        });
+        window._texEarth = mkTex(128,128,(ctx)=>{
+            ctx.fillStyle='#8B6040'; ctx.fillRect(0,0,128,128);
+            for(let i=0;i<500;i++){
+                const s=Math.random()>0.5;
+                ctx.fillStyle=`rgba(${s?'60,35,10':'140,100,55'},${0.06+Math.random()*0.18})`;
+                ctx.fillRect(Math.random()*128,Math.random()*128,1+Math.random()*5,1+Math.random()*5);
+            }
+        });
+        window._texGold = mkTex(128,128,(ctx)=>{
+            ctx.fillStyle='#D4A820'; ctx.fillRect(0,0,128,128);
+            for(let i=0;i<200;i++){
+                ctx.fillStyle=`rgba(${Math.random()>0.5?'255,220,80':'150,100,10'},${0.06+Math.random()*0.15})`;
+                ctx.fillRect(Math.random()*128,Math.random()*128,2+Math.random()*5,2+Math.random()*5);
+            }
+            // Embossed sesame dots
+            ctx.fillStyle='rgba(100,60,0,0.18)';
+            for(let i=0;i<30;i++) ctx.fillRect(Math.random()*128,Math.random()*128,4,3);
+        });
+        window._texPeach = mkTex(128,128,(ctx)=>{
+            ctx.fillStyle='#E8A878'; ctx.fillRect(0,0,128,128);
+            for(let i=0;i<300;i++){
+                ctx.fillStyle=`rgba(${Math.random()>0.5?'180,90,50':'255,200,150'},${0.05+Math.random()*0.12})`;
+                ctx.fillRect(Math.random()*128,Math.random()*128,2+Math.random()*4,2+Math.random()*4);
+            }
+        });
+
+        // Hemisphere light: sky blue above, warm green below
+        const hemi = new THREE.HemisphereLight(0xADD8F5, 0x55882A, 0.75);
         scene.add(hemi);
-        const dir = new THREE.DirectionalLight(0xfff5e6, 0.9);
-        dir.position.set(15, 25, 15);
+        const dir = new THREE.DirectionalLight(0xFFF5E0, 1.1);
+        dir.position.set(20, 40, 20);
         dir.castShadow = true;
-        dir.shadow.camera.top = 40; dir.shadow.camera.bottom = -40;
-        dir.shadow.camera.left = -40; dir.shadow.camera.right = 40;
+        dir.shadow.mapSize.set(2048, 2048);
+        dir.shadow.camera.top = 80; dir.shadow.camera.bottom = -80;
+        dir.shadow.camera.left = -80; dir.shadow.camera.right = 80;
+        dir.shadow.camera.far = 300;
         scene.add(dir);
+
+        // ── Invisible collision floor is added in loadLevel() ─────────────────
+        // (so it survives the platforms[] cleanup on each level load)
+        const grassCanvas = document.createElement('canvas');
+        grassCanvas.width = 256; grassCanvas.height = 256;
+        const gc = grassCanvas.getContext('2d');
+        // Base green
+        gc.fillStyle = '#4a7c2f'; gc.fillRect(0,0,256,256);
+        // Blade texture: random darker/lighter streaks
+        for (let i = 0; i < 2200; i++) {
+            const gx = Math.random()*256, gy = Math.random()*256;
+            const shade = Math.random();
+            gc.fillStyle = shade > 0.5
+                ? `rgba(30,60,10,${0.15+Math.random()*0.25})`
+                : `rgba(100,160,40,${0.1+Math.random()*0.2})`;
+            gc.fillRect(gx, gy, 1+Math.random()*2, 3+Math.random()*8);
+        }
+        const grassTex = new THREE.CanvasTexture(grassCanvas);
+        grassTex.wrapS = grassTex.wrapT = THREE.RepeatWrapping;
+        grassTex.repeat.set(120, 120);  // tile many times so no visible tiling at distance
+
+        const grassMat = new THREE.MeshStandardMaterial({
+            map: grassTex,
+            roughness: 0.95,
+            metalness: 0
+        });
+        const grassPlane = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), grassMat);
+        grassPlane.rotation.x = -Math.PI / 2;
+        grassPlane.position.y = -2.05;
+        grassPlane.receiveShadow = true;
+        scene.add(grassPlane);
+
+        // 3. Invisible wall boundary so player can't walk to the edge
+        // Soft: if they pass ±28 on X or Z from the mountain (x=-4,z=0) we push them back
+        // Done in updatePhysics via a clamp
+
+        // ── Distant mountain silhouettes ─────────────────────────────────────
+        const mtMat = new THREE.MeshStandardMaterial({
+            color: 0x3A6040, roughness: 1, fog: true, transparent: true, opacity: 0.7
+        });
+        const mtData = [
+            // [x, z, scale, yOffset]
+            [ -80, -160, 2.8, 0 ],
+            [ -40, -190, 3.5, 0 ],
+            [  20, -175, 2.2, 0 ],
+            [  70, -155, 3.0, 0 ],
+            [ 100, -140, 1.8, 0 ],
+            [ -110,-130, 2.5, 0 ],
+            [  50, -200, 4.0, 0 ],
+            [ -60, -210, 3.2, 0 ],
+            [ 120, -170, 2.1, 0 ],
+            [-130, -160, 2.9, 0 ],
+        ];
+        mtData.forEach(([mx, mz, sc]) => {
+            const mtGeo = new THREE.ConeGeometry(18 * sc, 32 * sc, 6);
+            const mt = new THREE.Mesh(mtGeo, mtMat.clone());
+            mt.material.color.setHSL(0.32 + Math.random()*0.06, 0.35, 0.22 + Math.random()*0.1);
+            mt.position.set(mx, 14 * sc - 4, mz);
+            scene.add(mt);
+            // Snow cap
+            const capGeo = new THREE.ConeGeometry(6 * sc, 8 * sc, 6);
+            const cap = new THREE.Mesh(capGeo, new THREE.MeshStandardMaterial({
+                color: 0xEEEEEE, roughness: 0.9, transparent: true, opacity: 0.75, fog: true
+            }));
+            cap.position.set(mx, (14 * sc - 4) + 15 * sc, mz);
+            scene.add(cap);
+        });
+
+        // ── Far sky tint planes (horizon gradient) ────────────────────────────
+        // Horizontal horizon band — warm orange strip far away
+        const horizGeo = new THREE.PlaneGeometry(2000, 60);
+        const horizMat = new THREE.MeshBasicMaterial({
+            color: 0xFFD080, transparent: true, opacity: 0.18, fog: false, depthWrite: false
+        });
+        const horiz = new THREE.Mesh(horizGeo, horizMat);
+        horiz.position.set(0, 22, -380);
+        scene.add(horiz);
 
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -445,6 +580,7 @@
         });
 
         gameInitialized = true;
+        createClouds();
         animate();
     }
 
@@ -536,14 +672,14 @@
         const mat = new THREE.MeshStandardMaterial({color:0x444444, transparent:true, opacity:0.7});
         const gate = new THREE.Group();
         
-        // Main barrier
-        const bar = new THREE.Mesh(new THREE.BoxGeometry(width, 2.5, 0.3), mat);
-        bar.position.y = 1.25; gate.add(bar);
+        // Main barrier — taller so it can't be jumped over (height 12 = well above max jump)
+        const bar = new THREE.Mesh(new THREE.BoxGeometry(width, 12, 0.3), mat);
+        bar.position.y = 6; gate.add(bar);
         
         // Posts
-        const postGeo = new THREE.CylinderGeometry(0.15,0.15,2.5);
-        const lp = new THREE.Mesh(postGeo, mat); lp.position.set(-width/2, 0, 0); gate.add(lp);
-        const rp = new THREE.Mesh(postGeo, mat); rp.position.set(width/2, 0, 0); gate.add(rp);
+        const postGeo = new THREE.CylinderGeometry(0.15,0.15,12);
+        const lp = new THREE.Mesh(postGeo, mat); lp.position.set(-width/2, 6, 0); gate.add(lp);
+        const rp = new THREE.Mesh(postGeo, mat); rp.position.set(width/2, 6, 0); gate.add(rp);
         
         // Sign
         const signCanvas = document.createElement('canvas');
@@ -555,30 +691,66 @@
         ctx.fillText('HAPPY!', 64, 50);
         const signTex = new THREE.CanvasTexture(signCanvas);
         const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.5,0.8), new THREE.MeshBasicMaterial({map:signTex}));
-        sign.position.set(0, 1.8, 0.16); gate.add(sign);
+        sign.position.set(0, 2.2, 0.16); gate.add(sign);
         
-        gate.position.set(x,y,z);
+        gate.position.set(x, y, z);
         scene.add(gate);
-        gates.push({mesh:gate, open:false, box:new THREE.Box3().setFromObject(gate)});
-        platforms.push(gate);
+
+        // Invisible solid blocker — a real Mesh so Box3 collision works reliably
+        // It's tall (12 units) and wide (width+1 so edges are covered)
+        // Height 30 so bottom sits 10 units below the gate's y (covers grass-floor gaps)
+        const BLOCKER_H = 30;
+        const blockerGeo = new THREE.BoxGeometry(width + 1, BLOCKER_H, 0.6);
+        const blockerMat = new THREE.MeshBasicMaterial({ visible: false });
+        const blocker = new THREE.Mesh(blockerGeo, blockerMat);
+        // Centre so bottom = y - 10 (safely below any approach level for all zones)
+        blocker.position.set(x, y + BLOCKER_H / 2 - 10, z);
+        scene.add(blocker);
+        platforms.push(blocker);
+
+        gates.push({ mesh: gate, blocker, open: false });
     }
     
+    // ── Zone-aware helpers ────────────────────────────────────────────────────
+    function createGateZone(x, y, z, width, zoneId) {
+        createGate(x, y, z, width);
+        gates[gates.length - 1].zoneId = zoneId;
+    }
+    function addJarInZone(x, y, z, zoneId) {
+        addJar(x, y, z);
+        jars[jars.length - 1].zoneId = zoneId;
+    }
+    function addFalafelInZone(x, y, z, zoneId) {
+        addFalafel(x, y, z, true);
+        falafels[falafels.length - 1].zoneId = zoneId;
+    }
+
     function updateGates() {
-        const allHappy = falafels.every(f => f.shared);
+        const zone = game.level;
+        const zf = falafels.filter(f => f.zoneId === zone);
+        const zj = jars.filter(j => j.zoneId === zone);
+        if (!zf.length) return;
+        const allDone = zf.every(f => f.shared) && zj.every(j => !j.active);
         gates.forEach(g => {
-            if(allHappy && !g.open) {
-                g.open = true;
-                // Lift gate animation
-                let liftY = 0;
-                const liftInt = setInterval(() => {
-                    liftY += 0.3;
-                    g.mesh.position.y = liftY;
-                    g.box.setFromObject(g.mesh);
-                    if(liftY > 8) clearInterval(liftInt);
-                }, 16);
-                showHint("Path Open! Keep going!");
+            if (g.zoneId === zone && allDone && !g.open) {
+                openGate(g);
             }
         });
+    }
+
+    function openGate(g) {
+        if (g.open) return;
+        g.open = true;
+        // Remove invisible blocker from collision list immediately
+        platforms = platforms.filter(p => p !== g.blocker);
+        scene.remove(g.blocker);
+        // Animate visual gate lifting
+        let count = 0;
+        const iv = setInterval(() => {
+            g.mesh.position.y += 0.35;
+            if (++count >= 28) clearInterval(iv);
+        }, 16);
+        showHint('Path open! Keep climbing ⬆');
     }
     
     function loadLevel(lvl) {
@@ -586,11 +758,13 @@
         platforms.forEach(o => scene.remove(o)); 
         jars.forEach(o => scene.remove(o.mesh)); 
         falafels.forEach(o => scene.remove(o.mesh)); 
-        bullies.forEach(o => scene.remove(o));
+        bullies.forEach(o => scene.remove(o.mesh));
         movingPlatforms.forEach(mp => scene.remove(mp.mesh));
         ladders.forEach(l => { if(l.rungs) l.rungs.forEach(r => scene.remove(r)); if(l.rails) l.rails.forEach(r => scene.remove(r)); });
-        gates.forEach(g => scene.remove(g.mesh));
-        platforms = []; jars = []; falafels = []; bullies = []; movingPlatforms = []; ladders = []; gates = [];
+        gates.forEach(g => { scene.remove(g.mesh); if(g.blocker) scene.remove(g.blocker); });
+        checkpoints.forEach(cp => scene.remove(cp.group));
+        platforms = []; jars = []; falafels = []; bullies = []; movingPlatforms = []; ladders = []; gates = []; checkpoints = [];
+        if (window._colFloor) platforms.push(window._colFloor); // always keep floor in collision
         game.score = 0; game.hummusCount = 0;
         // Don't reset game.total here - it will be incremented as falafels are added
         updateHUD();
@@ -601,8 +775,17 @@
         // Reset camera to initial position
         camera.position.set(0, 10, 15);
 
-        // Island base - sandy beach colored platform at bottom
-        addPlatformIsland(0, -3, 0, 40, 2, 40);
+        // Island base is now the infinite grass floor created in init()
+        // Re-add the invisible collision floor — it gets cleared with platforms[] each load
+        const colFloor = new THREE.Mesh(
+            new THREE.BoxGeometry(500, 2, 500),
+            new THREE.MeshStandardMaterial({ visible: false })
+        );
+        colFloor.position.set(0, -3, 0);
+        scene.add(colFloor);
+        platforms.push(colFloor);
+        window._colFloor = colFloor; // persist across loadLevel clears
+        // Scenery trees around the base
         
         // Add random scenery
         for(let i=0; i<8; i++) {
@@ -615,281 +798,118 @@
         }
 
         if(lvl === 1) {
-            // Level 1: Beach Base - Introduction with simple jumps
-            addPlatform(0, 0, -6, 8, 1, 6, 0xF5DEB3);
-            addFalafel(-2, 1, -6, true);
-            addFalafel(2, 1, -6, true);
-            addJar(0, 1, -4);
-            
-            createGate(0, 0, -10, 5);
-            
-            addPlatform(0, 0, -14, 7, 1, 7, 0xDEB887);
-            addFalafel(0, 1, -14, true);
-            addJar(2, 1, -12);
-        } else if(lvl === 2) {
-            // Level 2: Sandy Slopes - Introduce ladder climbing
-            addPlatform(0, 0, -8, 7, 1, 6, 0xDEB887);
-            addJar(0, 1, -8);
-            
-            addLadder(4, 0.5, -8, 4);
-            addPlatform(4, 2, -8, 6, 1, 6, 0xF5DEB3);
-            addFalafel(4, 3, -8, true);
-            
-            createGate(4, 2, -12, 5);
-            
-            addPlatform(4, 2, -16, 7, 1, 7, 0xDEB887);
-            addFalafel(2, 3, -16, true);
-            addFalafel(6, 3, -16, true);
-            addJar(4, 3, -14);
-            
-            addLadder(-2, 2.5, -16, 4);
-            addPlatform(-2, 5, -16, 6, 1, 6, 0xF5DEB3);
-            addJar(-2, 6, -16);
-            
-            addPlatform(-8, 6, -22, 8, 1, 8, 0xDEB887);
-            addFalafel(-8, 7, -22, true);
-            addFalafel(-5, 7, -22, true);
-            addFalafel(-11, 7, -22, true);
-        } else if(lvl === 3) {
-            // Level 3: Coral Cliffs - Moving platforms introduction
-            addPlatform(0, 0, -6, 7, 1, 6, 0xFFDAB9);
-            addJar(0, 1, -6);
-            addFalafel(-2, 1, -6, true);
-            
-            createGate(0, 0, -10, 5);
-            
-            addMovingPlatform(6, 1, -14, 5, 1, 5, 0xFFB6C1, -4, 4, 'x');
-            addPlatform(6, 1, -20, 6, 1, 6, 0xFFDAB9);
-            addFalafel(6, 2, -20, true);
-            addJar(6, 2, -18);
-            
-            addMovingPlatform(0, 2, -26, 5, 1, 5, 0xFFB6C1, -3, 3, 'z');
-            addPlatform(0, 2, -32, 7, 1, 7, 0xFFDAB9);
-            addJar(0, 3, -30);
-            
-            addLadder(-5, 2.5, -32, 5);
-            addPlatform(-5, 5, -32, 6, 1, 6, 0xFFB6C1);
-            addFalafel(-5, 6, -32, true);
-            addFalafel(-8, 6, -32, true);
-            
-            addPlatform(-12, 6, -38, 8, 1, 8, 0xFFDAB9);
-            addJar(-12, 7, -36);
-            addFalafel(-12, 7, -38, true);
-        } else if(lvl === 4) {
-            // Level 4: Seashell Summit - More complex ladder sections
-            addPlatform(0, 0, -8, 6, 1, 6, 0xE6E6FA);
-            addJar(0, 1, -8);
-            
-            addLadder(5, 0.5, -8, 5);
-            addPlatform(5, 3, -8, 6, 1, 6, 0xDDA0DD);
-            addFalafel(5, 4, -8, true);
-            
-            createGate(5, 3, -12, 5);
-            
-            addPlatform(5, 3, -16, 5, 1, 5, 0xE6E6FA);
-            addJar(5, 4, -14);
-            
-            addLadder(11, 3.5, -16, 5);
-            addPlatform(11, 6, -16, 6, 1, 6, 0xDDA0DD);
-            addFalafel(9, 7, -16, true);
-            addFalafel(13, 7, -16, true);
-            
-            addMovingPlatform(5, 7, -22, 5, 1, 5, 0xFFB6C1, -5, 5, 'x');
-            addPlatform(5, 7, -28, 7, 1, 7, 0xE6E6FA);
-            addJar(5, 8, -26);
-            
-            addPlatform(-2, 8, -34, 8, 1, 8, 0xDDA0DD);
-            addFalafel(-2, 9, -34, true);
-            addFalafel(-5, 9, -34, true);
-            addFalafel(1, 9, -34, true);
-        } else if(lvl === 5) {
-            // Level 5: Pearl Plateau - Combination challenge
-            addPlatform(0, 0, -6, 7, 1, 6, 0xF0E68C);
-            addJar(0, 1, -6);
-            addFalafel(0, 1, -6, true);
-            
-            createGate(0, 0, -10, 5);
-            
-            addMovingPlatform(7, 1, -16, 5, 1, 5, 0xFFD700, -4, 4, 'x');
-            addPlatform(7, 1, -22, 6, 1, 6, 0xF0E68C);
-            addFalafel(7, 2, -22, true);
-            addJar(7, 2, -20);
-            
-            addLadder(1, 1.5, -22, 4);
-            addPlatform(1, 4, -22, 6, 1, 6, 0xFFFACD);
-            addJar(1, 5, -22);
-            
-            addMovingPlatform(-5, 4, -28, 5, 1, 5, 0xFFD700, -3, 3, 'z');
-            addPlatform(-5, 4, -34, 7, 1, 7, 0xF0E68C);
-            addFalafel(-7, 5, -34, true);
-            addFalafel(-3, 5, -34, true);
-            
-            addLadder(-12, 4.5, -34, 5);
-            addPlatform(-12, 7, -34, 6, 1, 6, 0xFFFACD);
-            addJar(-12, 8, -34);
-            
-            addPlatform(-18, 8, -40, 9, 1, 9, 0xF0E68C);
-            addFalafel(-18, 9, -40, true);
-            addFalafel(-21, 9, -40, true);
-            addFalafel(-15, 9, -40, true);
-        } else if(lvl === 6) {
-            // Level 6: Starfish Station - Bullies return
-            addPlatform(0, 0, -8, 7, 1, 6, 0xADD8E6);
-            addJar(0, 1, -8);
-            addBully(3, 0.5, -8);
-            
-            createGate(0, 0, -12, 5);
-            
-            addPlatform(8, 0, -18, 6, 1, 6, 0xB0E0E6);
-            addFalafel(8, 1, -18, true);
-            
-            addLadder(8, 0.5, -24, 5);
-            addPlatform(8, 4, -24, 6, 1, 6, 0xADD8E6);
-            addJar(8, 5, -24);
-            addBully(8, 4.5, -22);
-            
-            addMovingPlatform(2, 5, -30, 5, 1, 5, 0xFFB6C1, -5, 5, 'x');
-            addPlatform(2, 5, -36, 7, 1, 7, 0xB0E0E6);
-            addFalafel(0, 6, -36, true);
-            addFalafel(4, 6, -36, true);
-            
-            addPlatform(-4, 6, -42, 6, 1, 6, 0xADD8E6);
-            addJar(-4, 7, -42);
-            
-            addLadder(-10, 6.5, -42, 5);
-            addPlatform(-10, 9, -42, 8, 1, 8, 0xB0E0E6);
-            addFalafel(-10, 10, -42, true);
-            addFalafel(-13, 10, -42, true);
-            addFalafel(-7, 10, -42, true);
-        } else if(lvl === 7) {
-            // Level 7: Dolphin Dance - Multiple moving platforms
-            addPlatform(0, 0, -6, 6, 1, 6, 0xFFC0CB);
-            addJar(0, 1, -6);
-            addFalafel(0, 1, -6, true);
-            
-            createGate(0, 0, -10, 5);
-            
-            addMovingPlatform(6, 1, -16, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
-            addMovingPlatform(6, 1, -24, 5, 1, 5, 0xFFB6C1, -3, 3, 'z');
-            addPlatform(6, 1, -30, 6, 1, 6, 0xFFC0CB);
-            addFalafel(6, 2, -30, true);
-            addJar(6, 2, -28);
-            
-            addLadder(0, 1.5, -30, 5);
-            addPlatform(0, 5, -30, 7, 1, 7, 0xFFB6C1);
-            addJar(0, 6, -30);
-            
-            addMovingPlatform(-6, 5, -36, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
-            addPlatform(-6, 5, -42, 6, 1, 6, 0xFFC0CB);
-            addFalafel(-8, 6, -42, true);
-            addFalafel(-4, 6, -42, true);
-            
-            addMovingPlatform(-12, 6, -48, 5, 1, 5, 0xFFB6C1, -3, 3, 'z');
-            addPlatform(-12, 6, -54, 8, 1, 8, 0xFFC0CB);
-            addJar(-12, 7, -52);
-            addFalafel(-12, 7, -54, true);
-            addFalafel(-15, 7, -54, true);
-            addFalafel(-9, 7, -54, true);
-        } else if(lvl === 8) {
-            // Level 8: Turtle Tower - Vertical climb with ladders
-            addPlatform(0, 0, -8, 6, 1, 6, 0x98FB98);
-            addJar(0, 1, -8);
-            
-            addLadder(5, 0.5, -8, 4);
-            addPlatform(5, 3, -8, 5, 1, 5, 0x90EE90);
-            addFalafel(5, 4, -8, true);
-            
-            createGate(5, 3, -12, 5);
-            
-            addMovingPlatform(10, 4, -18, 5, 1, 5, 0xFFB6C1, -4, 4, 'x');
-            addPlatform(10, 4, -24, 5, 1, 5, 0x98FB98);
-            addJar(10, 5, -24);
-            
-            addLadder(4, 4.5, -24, 5);
-            addPlatform(4, 8, -24, 6, 1, 6, 0x90EE90);
-            addFalafel(2, 9, -24, true);
-            addFalafel(6, 9, -24, true);
-            
-            addMovingPlatform(-2, 9, -30, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
-            addPlatform(-2, 9, -36, 6, 1, 6, 0x98FB98);
-            addJar(-2, 10, -36);
-            
-            addLadder(-8, 9.5, -36, 5);
-            addPlatform(-8, 13, -36, 8, 1, 8, 0x90EE90);
-            addFalafel(-8, 14, -36, true);
-            addFalafel(-11, 14, -36, true);
-            addFalafel(-5, 14, -36, true);
-        } else if(lvl === 9) {
-            // Level 9: Whale Watch - Long moving platform sections
-            addPlatform(0, 0, -6, 7, 1, 6, 0xB19CD9);
-            addJar(0, 1, -6);
-            addFalafel(0, 1, -6, true);
-            
-            createGate(0, 0, -10, 5);
-            
-            addMovingPlatform(7, 1, -16, 6, 1, 6, 0xFFB6C1, -5, 5, 'x');
-            addMovingPlatform(7, 1, -26, 6, 1, 6, 0xDDA0DD, -4, 4, 'z');
-            addPlatform(7, 1, -32, 6, 1, 6, 0xB19CD9);
-            addFalafel(7, 2, -32, true);
-            addJar(7, 2, -30);
-            
-            addLadder(1, 1.5, -32, 5);
-            addPlatform(1, 5, -32, 7, 1, 7, 0xDDA0DD);
-            addJar(1, 6, -32);
-            
-            addMovingPlatform(-5, 5, -38, 6, 1, 6, 0xFFB6C1, -5, 5, 'x');
-            addMovingPlatform(-5, 5, -48, 6, 1, 6, 0xFF69B4, -4, 4, 'z');
-            addPlatform(-5, 5, -54, 7, 1, 7, 0xB19CD9);
-            addFalafel(-7, 6, -54, true);
-            addFalafel(-3, 6, -54, true);
-            
-            addLadder(-12, 5.5, -54, 6);
-            addPlatform(-12, 9, -54, 8, 1, 8, 0xDDA0DD);
-            addJar(-12, 10, -54);
-            addFalafel(-12, 10, -54, true);
-            addFalafel(-15, 10, -54, true);
-            addFalafel(-9, 10, -54, true);
-        } else if(lvl === 10) {
-            // Level 10: Mountain Peak - Final challenge combining all mechanics
-            addPlatform(0, 0, -8, 7, 1, 6, 0xFFD700);
-            addJar(0, 1, -8);
-            addBully(4, 0.5, -8);
-            addFalafel(-2, 1, -8, true);
-            
-            createGate(0, 0, -12, 5);
-            
-            addMovingPlatform(10, 1, -18, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
-            addPlatform(10, 1, -24, 6, 1, 6, 0xFFE4B5);
-            addFalafel(10, 2, -24, true);
-            addJar(10, 2, -22);
-            
-            addLadder(4, 1.5, -24, 5);
-            addPlatform(4, 5, -24, 6, 1, 6, 0xFFD700);
-            addJar(4, 6, -24);
-            
-            addMovingPlatform(-2, 6, -30, 5, 1, 5, 0xFFB6C1, -5, 5, 'x');
-            addMovingPlatform(-2, 6, -40, 5, 1, 5, 0xDDA0DD, -4, 4, 'z');
-            addPlatform(-2, 6, -46, 6, 1, 6, 0xFFE4B5);
-            addFalafel(-4, 7, -46, true);
-            addFalafel(0, 7, -46, true);
-            
-            addLadder(-8, 6.5, -46, 6);
-            addPlatform(-8, 10, -46, 7, 1, 7, 0xFFD700);
-            addJar(-8, 11, -46);
-            
-            addMovingPlatform(-14, 11, -52, 5, 1, 5, 0xFF69B4, -4, 4, 'x');
-            addPlatform(-14, 11, -58, 10, 1, 10, 0xFFE4B5); 
-            addFalafel(-14, 12, -58, true);
-            addFalafel(-17, 12, -58, true);
-            addFalafel(-11, 12, -58, true);
-            addFalafel(-14, 12, -55, true);
-            addFalafel(-14, 12, -61, true);
-        } else {
-            showScreen('cert-menu');
-            sound('win');
+            // ════════════════════════════════════════════════════════════
+            // THE ENTIRE MOUNTAIN — all 5 zones built at once.
+            // The world is one continuous vertical climb.
+            // Each zone is ~8 units higher than the last.
+            // From zone 1 you can literally look up and see the platforms above.
+            //
+            // Physics notes used to verify coordinates:
+            //   - Platform top = platform_y + 0.5  (height=1)
+            //   - Player stands at platform_y + 1   (sphere radius 0.5)
+            //   - Ladder: base_y + height = player max y on ladder
+            //   - Upper platform must INCLUDE the ladder's (x,z) in its footprint
+            //   - Height gap between zones = 8 units (unjumpable, must use ladder)
+            //   - Moving platform args: (x,y,z, w,h,d, color, axis, min, max)
+            // ════════════════════════════════════════════════════════════
+
+            // ── ZONE 1 — "Sandy Steps"  y=0  ─────────────────────────
+            // Tutorial — slightly tighter. Jars and falafels swapped corners.
+            addPlatform(0, 0, -10, 14, 1, 10, 0xF5DEB3);
+            addJarInZone(-5, 1, -7,  1);           // left-front corner
+            addJarInZone( 5, 1, -14, 1);           // right-back corner
+            addFalafelInZone( 5, 1,  -7, 1);       // opposite their jar
+            addFalafelInZone(-5, 1, -14, 1);
+
+            addPlatform(-4, 0, -23, 9, 1, 6, 0xDEB887);
+            createGateZone(-1, 0, -17, 13, 1);
+            addLadder(-4, 0.5, -23, 8);
+
+
+            // ── ZONE 2 — "Rocky Rise"  y=8  ──────────────────────────
+            // One bully added. Jars pushed to far corners of the platform.
+            addPlatform(-4, 8, -28, 14, 1, 12, 0xCD853F);
+            // ✦ CHECKPOINT 1 — entry to zone 2, lit like a little falafel torch
+            addCheckpoint(-4, 9, -26, 2);
+            addBully(-2, 9, -28);                  // bully patrols the middle
+            addJarInZone(-10, 9, -23, 2);          // far-left near edge
+            addJarInZone(  2, 9, -33, 2);          // far-right back edge
+            addJarInZone( -4, 9, -33, 2);          // back-centre
+            addFalafelInZone(  2, 9, -23, 2);      // opposite corners from jars
+            addFalafelInZone(-10, 9, -33, 2);
+            addFalafelInZone( -4, 9, -24, 2);
+
+            addPlatform(-4, 8, -40, 9, 1, 6, 0xA0522D);
+            createGateZone(-4, 8, -35, 12, 2);
+            addLadder(-4, 8.5, -40, 8);
+
+
+            // ── ZONE 3 — "Coral Heights"  y=16  ──────────────────────
+            // Moving platform is faster (+/-4.5). One jar placed at platform edge.
+            addPlatform(-4, 16, -46, 14, 1, 14, 0xFFDAB9);
+            // ✦ CHECKPOINT 2 — entry to zone 3
+            addCheckpoint(-4, 17, -44, 3);
+            addJarInZone(-10, 17, -41, 3);         // left near edge
+            addJarInZone(  2, 17, -52, 3);         // right back edge
+            addJarInZone( -4, 17, -48, 3);         // centre
+            addFalafelInZone(  2, 17, -41, 3);
+            addFalafelInZone(-10, 17, -52, 3);
+            addFalafelInZone( -4, 17, -43, 3);
+
+            createGateZone(-4, 16, -54, 12, 3);
+            addMovingPlatform(-4, 16, -60, 5, 1, 5, 0xFF9896, 'x', -4.5, 4.5); // wider, faster
+            addPlatform(-4, 16, -67, 9, 1, 6, 0xFFDAB9);
+            addLadder(-4, 16.5, -67, 8);
+
+
+            // ── ZONE 4 — "Amber Cliffs"  y=24  ───────────────────────
+            // Two bullies. Jars pushed to the very edges near bullies.
+            addPlatform(-4, 24, -73, 14, 1, 14, 0xF0E68C);
+            // ✦ CHECKPOINT 3 — entry to zone 4
+            addCheckpoint(-4, 25, -71, 4);
+            addBully(-4, 25, -68);                 // guards the ladder exit
+            addBully( 1, 25, -78);                 // guards the back-right area
+            addJarInZone(-10, 25, -69, 4);         // left near — bully nearby
+            addJarInZone(  2, 25, -79, 4);         // right back — bully nearby
+            addJarInZone( -4, 25, -74, 4);         // centre
+            addJarInZone( -8, 25, -79, 4);         // left back
+            addFalafelInZone(  2, 25, -69, 4);
+            addFalafelInZone(-10, 25, -79, 4);
+            addFalafelInZone( -4, 25, -69, 4);
+            addFalafelInZone( -8, 25, -74, 4);
+
+            addPlatform(-4, 24, -85, 9, 1, 6, 0xD4C060);
+            createGateZone(-4, 24, -81, 12, 4);
+            addLadder(-4, 24.5, -85, 8);
+
+
+            // ── ZONE 5 — "The Summit"  y=32  ─────────────────────────
+            // Three bullies. Jars sat near bullies — must dodge to collect.
+            addPlatform(-4, 32, -91, 14, 1, 16, 0xFFD700);
+            // ✦ CHECKPOINT 4 — the summit entry, most sacred of all
+            addCheckpoint(-4, 33, -89, 5);
+            addBully(-7, 33, -86);                 // left, near entry
+            addBully( 1, 33, -91);                 // right middle
+            addBully(-4, 33, -98);                 // back centre
+            addJarInZone( -7, 33, -91, 5);         // near left bully
+            addJarInZone(  1, 33, -86, 5);         // near right bully
+            addJarInZone( -4, 33, -95, 5);         // near back bully
+            addFalafelInZone(  1, 33, -97, 5);     // opposite ends
+            addFalafelInZone( -7, 33, -97, 5);
+            addFalafelInZone( -4, 33, -87, 5);
+
+        } else if(lvl > 1) {
+            // Hot-reloading any level above 1 rebuilds the whole mountain.
+            // This handles retryLevel() properly.
+            loadLevel(1);
+            game.level = lvl;
             return;
+        } else {
+            showScreen('cert-menu'); sound('win'); return;
         }
-        game.total = falafels.length;
+
+        // Set game.total to current zone's falafel count only
+        game.total = falafels.filter(f => f.zoneId === game.level).length;
         updateHUD();
         showLevelIndicator(lvl);
     }
@@ -903,7 +923,14 @@
 
     function addPlatform(x,y,z,w,h,d,color) {
         const c = color || 0xDEB887;
-        const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), new THREE.MeshStandardMaterial({color: c, roughness: 0.8}));
+        // Pick texture based on colour family
+        let map = null;
+        if      (c === 0xF5DEB3 || c === 0xDEB887 || c === 0xA0522D || c === 0xCD853F) map = window._texEarth;
+        else if (c === 0xFFD700 || c === 0xD4C060 || c === 0xF0E68C)                   map = window._texGold;
+        else if (c === 0xFFDAB9 || c === 0xFF9896)                                      map = window._texPeach;
+        else                                                                             map = window._texStone;
+        const mat = new THREE.MeshStandardMaterial({color: c, roughness: 0.78, map: map || undefined});
+        const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
         m.position.set(x,y,z); m.receiveShadow = true; m.castShadow = true; scene.add(m); platforms.push(m);
     }
     
@@ -913,35 +940,38 @@
         m.position.set(x,y,z); m.receiveShadow = true; m.castShadow = true; scene.add(m); platforms.push(m);
     }
     
-    function addLadder(x,y,z,height) {
-        const railMat = new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.5 });
-        const rungMat = new THREE.MeshStandardMaterial({ color: 0xA0522D, roughness: 0.5 });
-        const rails = [];
-        const rungs = [];
-        
-        // Two side rails
-        const railGeo = new THREE.CylinderGeometry(0.05, 0.05, height, 8);
+    function addLadder(x, y, z, height) {
+        const railMat = new THREE.MeshStandardMaterial({ color: 0x6B3A10, roughness: 0.6 });
+        const rungMat = new THREE.MeshStandardMaterial({ color: 0x8B5E20, roughness: 0.5 });
+        const rails = [], rungs = [];
+        const RAIL_GAP = 0.7;
+
+        // Two vertical rails as flat boxes — cleaner than thin cylinders
+        const railGeo = new THREE.BoxGeometry(0.10, height, 0.10);
         const leftRail = new THREE.Mesh(railGeo, railMat);
-        leftRail.position.set(x - 0.4, y + height/2, z);
+        leftRail.position.set(x - RAIL_GAP / 2, y + height / 2, z);
+        leftRail.castShadow = true;
         scene.add(leftRail);
         rails.push(leftRail);
-        
+
         const rightRail = new THREE.Mesh(railGeo, railMat);
-        rightRail.position.set(x + 0.4, y + height/2, z);
+        rightRail.position.set(x + RAIL_GAP / 2, y + height / 2, z);
+        rightRail.castShadow = true;
         scene.add(rightRail);
         rails.push(rightRail);
-        
-        // Rungs
-        const rungGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.8, 8);
-        for(let i = 0; i < height; i += 0.5) {
+
+        // Rungs span left-to-right: rotation.z = PI/2 lays the cylinder on its side along X
+        const rungGeo = new THREE.CylinderGeometry(0.055, 0.055, RAIL_GAP, 8);
+        for (let i = 0.4; i < height - 0.1; i += 0.7) {
             const rung = new THREE.Mesh(rungGeo, rungMat);
             rung.position.set(x, y + i, z);
-            rung.rotation.x = Math.PI / 2;
+            rung.rotation.z = Math.PI / 2;
+            rung.castShadow = true;
             scene.add(rung);
             rungs.push(rung);
         }
-        
-        ladders.push({ x: x, y: y, z: z, height: height, rails: rails, rungs: rungs });
+
+        ladders.push({ x, y, z, height, rails, rungs });
     }
     
     function addMovingPlatform(x,y,z,w,h,d,color,axis,min,max) {
@@ -1063,45 +1093,190 @@ function addFalafel(x,y,z,sad) {
         });
         game.total++;
     }
-    function addBully(x,y,z) {
-        // Mean-looking burnt falafel with angry expression
-        const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 1), new THREE.MeshStandardMaterial({color: 0x3D2817, roughness: 0.9}));
-        m.position.set(x,y,z); m.castShadow = true; scene.add(m);
-        
-        // Angry slanted eyebrows
+    function addBully(x, y, z, range) {
+        range = range || 3.5;
+        const m = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(0.55, 1),
+            new THREE.MeshStandardMaterial({color: 0x3D2817, roughness: 0.9})
+        );
+        m.position.set(x, y, z);
+        m.castShadow = true;
+        scene.add(m);
+
         const browGeo = new THREE.BoxGeometry(0.15, 0.04, 0.05);
         const browMat = new THREE.MeshBasicMaterial({color: 0x1a1a1a});
-        const lb = new THREE.Mesh(browGeo, browMat); lb.position.set(-0.15, 0.2, 0.45); lb.rotation.z = 0.4;
-        const rb = new THREE.Mesh(browGeo, browMat); rb.position.set(0.15, 0.2, 0.45); rb.rotation.z = -0.4;
-        m.add(lb); m.add(rb);
-        
-        // Narrow angry eyes
+        const lb = new THREE.Mesh(browGeo, browMat); lb.position.set(-0.15, 0.2, 0.45); lb.rotation.z =  0.4; m.add(lb);
+        const rb = new THREE.Mesh(browGeo, browMat); rb.position.set( 0.15, 0.2, 0.45); rb.rotation.z = -0.4; m.add(rb);
+
         const eGeo = new THREE.BoxGeometry(0.12, 0.04, 0.08);
         const eMat = new THREE.MeshBasicMaterial({color: 0xff4444});
-        const le = new THREE.Mesh(eGeo, eMat); le.position.set(-0.15, 0.08, 0.48);
-        const re = new THREE.Mesh(eGeo, eMat); re.position.set(0.15, 0.08, 0.48);
-        m.add(le); m.add(re);
-        
-        // Frowning mouth
-        const mouthGeo = new THREE.TorusGeometry(0.1, 0.025, 8, 16, Math.PI);
-        const mouthMat = new THREE.MeshBasicMaterial({color: 0x1a1a1a});
-        const mouth = new THREE.Mesh(mouthGeo, mouthMat);
-        mouth.position.set(0, -0.12, 0.45);
-        mouth.rotation.z = 0; // Frown
-        m.add(mouth);
-        
-        // Spiky bits to look meaner
-        const spikeGeo = new THREE.ConeGeometry(0.05, 0.15, 4);
-        const spikeMat = new THREE.MeshBasicMaterial({color: 0x2D1F10});
-        for(let i = 0; i < 5; i++) {
-            const spike = new THREE.Mesh(spikeGeo, spikeMat);
-            const angle = (i / 5) * Math.PI * 2;
-            spike.position.set(Math.cos(angle) * 0.4, 0, Math.sin(angle) * 0.4);
+        const le = new THREE.Mesh(eGeo, eMat); le.position.set(-0.15, 0.08, 0.48); m.add(le);
+        const re = new THREE.Mesh(eGeo, eMat); re.position.set( 0.15, 0.08, 0.48); m.add(re);
+
+        const mGeo = new THREE.TorusGeometry(0.1, 0.025, 8, 16, Math.PI);
+        const mMat = new THREE.MeshBasicMaterial({color: 0x1a1a1a});
+        const mouth = new THREE.Mesh(mGeo, mMat);
+        mouth.position.set(0, -0.12, 0.45); mouth.rotation.z = 0; m.add(mouth);
+
+        const sGeo = new THREE.ConeGeometry(0.05, 0.15, 4);
+        const sMat = new THREE.MeshBasicMaterial({color: 0x2D1F10});
+        for (let i = 0; i < 5; i++) {
+            const spike = new THREE.Mesh(sGeo, sMat);
+            const a = (i / 5) * Math.PI * 2;
+            spike.position.set(Math.cos(a)*0.4, 0, Math.sin(a)*0.4);
             spike.rotation.x = Math.PI / 2;
             m.add(spike);
         }
-        
-        bullies.push(m);
+
+        // Patrol data — two independent sine waves give organic figure-8 wander
+        bullies.push({
+            mesh: m,
+            originX: x, originZ: z, y,
+            range,
+            phaseX: Math.random() * Math.PI * 2,
+            phaseZ: Math.random() * Math.PI * 2,
+            speedX: 0.55 + Math.random() * 0.35,
+            speedZ: 0.38 + Math.random() * 0.28,
+        });
+    }
+
+    // ── CHECKPOINT SYSTEM ─────────────────────────────────────────────────────
+    // Design: a carved stone pedestal with a wooden pole, a little hummus bowl
+    // on top, and a warm point-light flame glow. Unactivated = grey/cold.
+    // Activated = glows warm gold, pulse animation, "✓ Checkpoint!" hint.
+    function addCheckpoint(x, y, z, zone) {
+        const group = new THREE.Group();
+
+        // Stone pedestal base
+        const pedMat = new THREE.MeshStandardMaterial({
+            color: 0x9A8060, roughness: 0.85, map: window._texStone || undefined
+        });
+        const ped = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.62, 0.7, 8), pedMat);
+        ped.position.y = 0.35;
+        ped.castShadow = true;
+        group.add(ped);
+
+        // Carved ring detail
+        const ring = new THREE.Mesh(
+            new THREE.TorusGeometry(0.54, 0.055, 6, 14),
+            new THREE.MeshStandardMaterial({color: 0x6A5030, roughness: 0.7})
+        );
+        ring.position.y = 0.55; ring.rotation.x = Math.PI/2;
+        group.add(ring);
+
+        // Wooden pole
+        const poleMat = new THREE.MeshStandardMaterial({color: 0x8B5A2B, roughness: 0.75});
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 1.6, 7), poleMat);
+        pole.position.y = 1.5;
+        pole.castShadow = true;
+        group.add(pole);
+
+        // Hummus bowl at top
+        const bowlMat = new THREE.MeshStandardMaterial({color: 0x9A7030, roughness: 0.55, metalness: 0.12});
+        const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.25, 0.30, 12), bowlMat);
+        bowl.position.y = 2.45;
+        bowl.castShadow = true;
+        group.add(bowl);
+
+        const hummus = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.36, 0.36, 0.10, 12),
+            new THREE.MeshStandardMaterial({color: 0xEDD8A5, roughness: 0.88, emissive: 0xEDD8A5, emissiveIntensity: 0.0})
+        );
+        hummus.position.y = 2.62;
+        group.add(hummus);
+        group.userData.hummusMat = hummus.material;
+
+        // Paprika dot
+        const pap = new THREE.Mesh(new THREE.SphereGeometry(0.08,5,4),
+            new THREE.MeshStandardMaterial({color:0xC83018, roughness:0.7}));
+        pap.position.set(0.13, 2.69, 0);
+        group.add(pap);
+
+        // Parsley dot
+        const par = new THREE.Mesh(new THREE.SphereGeometry(0.07,5,4),
+            new THREE.MeshStandardMaterial({color:0x2A6018, roughness:0.7}));
+        par.position.set(-0.15, 2.69, 0.08);
+        group.add(par);
+
+        // Little flame wisps (3 small spheres, offset, will animate)
+        const flameMat = new THREE.MeshStandardMaterial({
+            color: 0xFF8820, emissive: 0xFF4400, emissiveIntensity: 0,
+            transparent: true, opacity: 0.0
+        });
+        const flames = [];
+        for (let i = 0; i < 3; i++) {
+            const f = new THREE.Mesh(new THREE.SphereGeometry(0.10-i*0.02, 5, 4), flameMat.clone());
+            f.position.set(Math.sin(i*2.1)*0.10, 2.82 + i*0.13, Math.cos(i*2.1)*0.10);
+            group.add(f);
+            flames.push(f);
+        }
+        group.userData.flames = flames;
+
+        // Point light (off until activated)
+        const light = new THREE.PointLight(0xFF9940, 0, 5);
+        light.position.y = 2.9;
+        group.add(light);
+        group.userData.light = light;
+
+        group.position.set(x, y, z);
+        scene.add(group);
+
+        checkpoints.push({
+            group, zone,
+            x, y, z,
+            activated: false,
+            phase: Math.random() * Math.PI * 2
+        });
+    }
+
+    function updateCheckpoints() {
+        if (!player) return;
+        const t = Date.now() * 0.001;
+        checkpoints.forEach(cp => {
+            const dx = player.position.x - cp.x;
+            const dz = player.position.z - cp.z;
+            const dy = player.position.y - cp.y;
+            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+            // Activate when player walks within 3 units
+            if (!cp.activated && dist < 3.0) {
+                cp.activated = true;
+                game.checkpoint = { x: cp.x, y: cp.y + 2, z: cp.z, zone: cp.zone };
+                sound('collect');
+                showHint('🧆 Checkpoint! You\'ll respawn here.');
+                // Burst: light up immediately
+                cp.group.userData.light.intensity = 2.2;
+                cp.group.userData.flames.forEach(f => {
+                    f.material.opacity = 0.9;
+                    f.material.emissiveIntensity = 1.0;
+                });
+                cp.group.userData.hummusMat.emissiveIntensity = 0.35;
+                // Swap pedestal to golden
+                cp.group.children[0].material.color.setHex(0xC8A030);
+            }
+
+            // Animate activated checkpoints
+            if (cp.activated) {
+                cp.phase += 0.04;
+                const pulse = 1.2 + Math.sin(cp.phase) * 0.6;
+                cp.group.userData.light.intensity = pulse;
+                cp.group.userData.flames.forEach((f, i) => {
+                    f.position.y = 2.82 + i*0.13 + Math.sin(cp.phase*1.4 + i) * 0.06;
+                    f.material.opacity = 0.7 + Math.sin(cp.phase + i*1.1) * 0.25;
+                });
+                // Gentle bob of the whole group
+                cp.group.position.y = cp.y + Math.sin(cp.phase * 0.7) * 0.04;
+            }
+        });
+    }
+
+    function updateBullies() {
+        const t = Date.now() * 0.001;
+        bullies.forEach(b => {
+            b.mesh.position.x = b.originX + Math.sin(t * b.speedX + b.phaseX) * b.range;
+            b.mesh.position.z = b.originZ + Math.sin(t * b.speedZ + b.phaseZ) * b.range * 0.6;
+            b.mesh.rotation.y += 0.04; // spin so they look alive
+        });
     }
 
     function handleSpace() {
@@ -1172,32 +1347,68 @@ function addFalafel(x,y,z,sad) {
             }
         });
         
-        // Only process input when not on ladder
+        // ── Ladder detection ──────────────────────────────────────────────────
         let onLadder = false;
+        let activeLadder = null;
         ladders.forEach(lad => {
-            const distToLadder = Math.sqrt(Math.pow(player.position.x - lad.x, 2) + Math.pow(player.position.z - lad.z, 2));
-            if(distToLadder < 0.8 && player.position.y >= lad.y && player.position.y <= lad.y + lad.height) {
+            const dx = player.position.x - lad.x;
+            const dz = player.position.z - lad.z;
+            if (Math.sqrt(dx*dx + dz*dz) < 1.1 &&
+                player.position.y >= lad.y - 0.2 &&
+                player.position.y <= lad.y + lad.height + 0.3) {
                 onLadder = true;
-                if(keys.w && player.position.y < lad.y + lad.height) {
-                    player.position.y += 0.08;
-                    velocity.y = 0;
-                    canJump = false;
-                } else if(keys.s && player.position.y > lad.y + 0.5) {
-                    player.position.y -= 0.08;
-                    velocity.y = 0;
-                }
+                activeLadder = lad;
             }
         });
-        
-        // Movement - only when not on ladder
+
+        if (onLadder && activeLadder) {
+            // Snap x/z to ladder centre so player can't drift sideways off it
+            player.position.x += (activeLadder.x - player.position.x) * 0.25;
+            player.position.z += (activeLadder.z - player.position.z) * 0.25;
+            // Kill all velocity including gravity
+            velocity.x = 0;
+            velocity.y = 0;
+            velocity.z = 0;
+            canJump = false;
+
+            const atTop    = player.position.y >= activeLadder.y + activeLadder.height - 0.2;
+            const atBottom = player.position.y <= activeLadder.y + 0.3;
+
+            if (keys.w) {
+                if (atTop) {
+                    // Dismount top — small boost so platform collision catches the player
+                    onLadder = false;
+                    velocity.y = 0.28;
+                } else {
+                    player.position.y = Math.min(
+                        player.position.y + 0.12,
+                        activeLadder.y + activeLadder.height
+                    );
+                }
+            } else if (keys.s) {
+                if (atBottom) {
+                    // Dismount bottom — release, gravity takes over
+                    onLadder = false;
+                } else {
+                    player.position.y = Math.max(
+                        player.position.y - 0.12,
+                        activeLadder.y
+                    );
+                }
+            }
+        }
+
+        // ── Normal movement (runs when not on ladder, or after dismount) ──────
         let dir = new THREE.Vector3(0,0,0);
-        if(!onLadder) {
-            if(keys.w) dir.z -= 1; 
+        if (!onLadder) {
+            if(keys.w) dir.z -= 1;
             if(keys.s) dir.z += 1;
-            if(keys.a) dir.x -= 1; 
+            if(keys.a) dir.x -= 1;
             if(keys.d) dir.x += 1;
         }
         if(dir.length()>0) dir.normalize();
+
+        if (!onLadder) {
 
         velocity.x += dir.x * 0.05;
         velocity.z += dir.z * 0.05;
@@ -1210,46 +1421,50 @@ function addFalafel(x,y,z,sad) {
         velocity.x *= 0.85; velocity.z *= 0.85;
 
         canJump = false;
-        
-        // Check collision with static platforms
+
+        // Track elevation — only after player has touched a platform (not just spawn-fall)
+        if (player.position.y > 4 && game.hasLanded) game.wasElevated = true;
+
+        const playerBox_outer = new THREE.Box3().setFromObject(player);
+
+        // ── Static platform collision ─────────────────────────────────────────
         platforms.forEach(p => {
             const pBox = new THREE.Box3().setFromObject(p);
-            const playerBox = new THREE.Box3().setFromObject(player);
-            
-            // Only check if player is falling down and above the platform
-            if(velocity.y <= 0) {
-                // Check horizontal overlap
-                if(playerBox.min.x < pBox.max.x && playerBox.max.x > pBox.min.x &&
-                   playerBox.min.z < pBox.max.z && playerBox.max.z > pBox.min.z) {
-                    // Check vertical position - player feet near platform top
+            if (velocity.y <= 0) {
+                if (playerBox_outer.min.x < pBox.max.x && playerBox_outer.max.x > pBox.min.x &&
+                    playerBox_outer.min.z < pBox.max.z && playerBox_outer.max.z > pBox.min.z) {
                     const playerBottom = player.position.y - 0.5;
-                    const platformTop = pBox.max.y;
-                    
-                    if(playerBottom >= platformTop - 0.3 && playerBottom <= platformTop + 0.5) {
+                    const platformTop  = pBox.max.y;
+                    if (playerBottom >= platformTop - 0.3 && playerBottom <= platformTop + 0.5) {
+                        // Fell from a platform onto the grass floor → restart
+                        if (p === window._colFloor && game.wasElevated) {
+                            game.wasElevated = false;
+                            gameOver();
+                            return;
+                        }
                         player.position.y = platformTop + 0.5;
                         velocity.y = 0;
                         canJump = true;
+                        game.hasLanded = true;
+                        if (p === window._colFloor) game.wasElevated = false;
                     }
                 }
             }
         });
-        
-        // Also check moving platforms for collision
+
+        // ── Moving platform collision ─────────────────────────────────────────
         movingPlatforms.forEach(mp => {
             const pBox = new THREE.Box3().setFromObject(mp.mesh);
             const playerBox = new THREE.Box3().setFromObject(player);
-            
             if(velocity.y <= 0) {
                 if(playerBox.min.x < pBox.max.x && playerBox.max.x > pBox.min.x &&
                    playerBox.min.z < pBox.max.z && playerBox.max.z > pBox.min.z) {
                     const playerBottom = player.position.y - 0.5;
                     const platformTop = pBox.max.y;
-                    
                     if(playerBottom >= platformTop - 0.3 && playerBottom <= platformTop + 0.5) {
                         player.position.y = platformTop + 0.5;
                         velocity.y = 0;
                         canJump = true;
-                        // Move player with platform
                         if(mp.axis === 'x') {
                             player.position.x += Math.cos(time * mp.speed * 50 + mp.offset) * mp.speed * (mp.max - mp.min) / 2;
                         } else if(mp.axis === 'z') {
@@ -1260,7 +1475,43 @@ function addFalafel(x,y,z,sad) {
             }
         });
 
-        bullies.forEach(b => { if(player.position.distanceTo(b.position) < 1.0) gameOver(); });
+        } // end non-ladder branch
+
+        // ── Gate side collision (push player back, all axes) ─────────────────
+        // Standard platform collision only handles landing on top.
+        // Gates need full AABB push-out so the player can't walk or jump through.
+        gates.forEach(g => {
+            if (g.open || !g.blocker) return;
+            const b = g.blocker;
+            const hw = b.geometry.parameters.width  / 2;   // half-width  (X)
+            const hh = b.geometry.parameters.height / 2;   // half-height (Y)
+            const hd = b.geometry.parameters.depth  / 2;   // half-depth  (Z)
+            const bx = b.position.x, by = b.position.y, bz = b.position.z;
+            const pr = 0.5; // player sphere radius
+
+            const overlapX = (hw + pr) - Math.abs(player.position.x - bx);
+            const overlapY = (hh + pr) - Math.abs(player.position.y - by);
+            const overlapZ = (hd + pr) - Math.abs(player.position.z - bz);
+
+            if (overlapX > 0 && overlapY > 0 && overlapZ > 0) {
+                // Push out along the smallest overlap axis
+                if (overlapZ <= overlapX && overlapZ <= overlapY) {
+                    // Push in Z
+                    player.position.z += overlapZ * (player.position.z < bz ? -1 : 1);
+                    velocity.z = 0;
+                } else if (overlapX <= overlapZ && overlapX <= overlapY) {
+                    // Push in X
+                    player.position.x += overlapX * (player.position.x < bx ? -1 : 1);
+                    velocity.x = 0;
+                } else {
+                    // Push in Y (land on top or bump head)
+                    player.position.y += overlapY * (player.position.y < by ? -1 : 1);
+                    velocity.y = 0;
+                }
+            }
+        });
+
+        bullies.forEach(b => { if(player.position.distanceTo(b.mesh.position) < 1.0) gameOver(); });
         
         jars.forEach(j => {
             if(j.active && player.position.distanceTo(j.mesh.position) < 1.5) {
@@ -1271,6 +1522,13 @@ function addFalafel(x,y,z,sad) {
 
         if(player.position.y < -10) gameOver();
 
+        // Soft boundary — mountain spans x≈-11 to +3, z≈0 to -99
+        // Allow generous wiggle room beyond that, just stop the player walking into empty void
+        if (player.position.x >  25)  { player.position.x =  25;  velocity.x = Math.min(0, velocity.x); }
+        if (player.position.x < -22)  { player.position.x = -22;  velocity.x = Math.max(0, velocity.x); }
+        if (player.position.z >  18)  { player.position.z =  18;  velocity.z = Math.min(0, velocity.z); }
+        if (player.position.z < -115) { player.position.z = -115; velocity.z = Math.max(0, velocity.z); }
+
         camera.position.x += (player.position.x - camera.position.x) * 0.1;
         camera.position.y += (player.position.y + 5 - camera.position.y) * 0.1;
         camera.position.z += (player.position.z + 8 - camera.position.z) * 0.1;
@@ -1278,9 +1536,13 @@ function addFalafel(x,y,z,sad) {
     }
 
     function checkWin() {
-        updateGates(); // Check if gates should open
-        const left = jars.filter(j=>j.active).length + falafels.filter(f=>!f.shared).length;
-        if(left === 0) levelComplete();
+        updateGates();
+        const zone = game.level;
+        const zf = falafels.filter(f => f.zoneId === zone);
+        const zj = jars.filter(j => j.zoneId === zone);
+        if (!zf.length) return;
+        const left = zj.filter(j => j.active).length + zf.filter(f => !f.shared).length;
+        if (left === 0) levelComplete();
     }
 
     function updateHUD() {
@@ -1338,7 +1600,7 @@ function addFalafel(x,y,z,sad) {
         game.mega = false;
         game.active = true;
         game.paused = false;
-        completedLevels = [];
+        // completedLevels intentionally NOT reset — persists from localStorage
         loadLevel(1);
         showScreen(null);
         if(audioCtx.state === 'suspended') audioCtx.resume();
@@ -1350,48 +1612,141 @@ function addFalafel(x,y,z,sad) {
         showScreen(game.paused ? 'pause-menu' : null);
     }
 
-    function retryLevel() { 
+    function retryLevel() {
+        game.level = 1;
         game.score = 0;
         game.total = 0;
         game.hummusCount = 0;
-        loadLevel(game.level); 
-        game.paused = false; 
-        game.active = true; 
-        showScreen(null); 
+        game.wasElevated = false;
+        game.hasLanded = false;
+        game.checkpoint = null;
+        loadLevel(1);
+        game.paused = false;
+        game.active = true;
+        showScreen(null);
     }
     
-    function nextLevel() { 
-        game.level++; 
+    function nextLevel() {
+        // World stays intact — just open the next zone
+        game.level++;
         game.score = 0;
-        game.total = 0;
         game.hummusCount = 0;
-        game.active = true; 
-        loadLevel(game.level); 
-        showScreen(null); 
+        game.total = falafels.filter(f => f.zoneId === game.level).length;
+        game.active = true;
+        showScreen(null);
+        showLevelIndicator(game.level);
+        updateHUD();
     }
 
-    function gameOver() { sound('fail'); game.active = false; showScreen('retry-menu'); }
+    function gameOver() {
+        sound('fail');
+        if (game.checkpoint) {
+            // Respawn at last checkpoint — no menu, just a brief flash
+            game.active = false;
+            showHint('💨 Respawning at checkpoint...');
+            setTimeout(() => {
+                if (!gameInitialized) return;
+                // Restore player at checkpoint position
+                player.position.set(game.checkpoint.x, game.checkpoint.y, game.checkpoint.z);
+                velocity.x = 0; velocity.y = 0; velocity.z = 0;
+                game.wasElevated = false;
+                game.hasLanded = false;
+                game.active = true;
+                // Restore the zone if player fell from a higher zone
+                if (game.checkpoint.zone && game.level !== game.checkpoint.zone) {
+                    game.level = game.checkpoint.zone;
+                    game.total = falafels.filter(f => f.zoneId === game.level).length;
+                    // Re-open all gates below checkpoint zone
+                    gates.forEach(g => {
+                        if (g.zoneId < game.checkpoint.zone) {
+                            openGate(g);
+                        }
+                    });
+                    updateHUD();
+                }
+            }, 1000);
+        } else {
+            // No checkpoint — restart from the very bottom
+            game.active = false;
+            document.querySelector('#retry-menu h2').innerText = 'You start from the bottom...';
+            showScreen('retry-menu');
+        }
+    }
     
     function levelComplete() {
         sound('win');
-        game.active = false;
-        // Mark level as completed
-        if(!completedLevels.includes(game.level)) {
+        if (!completedLevels.includes(game.level)) {
             completedLevels.push(game.level);
+            saveProgress();
         }
-        if(game.level >= 10) {
+        if (game.level >= 5) {
+            game.active = false;
             showScreen('cert-menu');
             sound('unlock');
             return;
         }
-        const msgs = ["Wonderful!", "Amazing!", "So Cute!", "Fantastic!", "Perfect!", "Adorable!", "Brilliant!", "Incredible!", "Spectacular!", "You Did It!"];
-        document.getElementById('lvl-msg').innerText = msgs[game.level - 1] || "Great Job!";
+        // Keep game.active true — world stays alive, player stays put
+        const msgs = ["Wonderful!", "Amazing!", "So Cute!", "Fantastic!", "Perfect!"];
+        document.getElementById('lvl-msg').innerText = msgs[game.level - 1] || 'Great Job!';
         showScreen('level-menu');
+    }
+
+    // ── Clouds ────────────────────────────────────────────────────────────────
+    const cloudMeshes = [];
+    function createClouds() {
+        const mat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0, transparent: true, opacity: 0.88 });
+        const cloudDefs = [
+            // [x, y, z, scale, speed]
+            [ 12,  18,  -15, 1.8,  0.012 ],
+            [ -18, 22,  -30, 2.2, -0.009 ],
+            [  6,  30,  -50, 1.5,  0.015 ],
+            [ -8,  12,   -8, 1.2, -0.013 ],
+            [ 20,  26,  -70, 2.0,  0.010 ],
+            [ -15, 35,  -90, 1.6, -0.011 ],
+            [  0,  42, -105, 1.9,  0.014 ],
+            [ 14,  8,   -20, 1.3, -0.016 ],
+        ];
+        cloudDefs.forEach(([x, y, z, sc, spd]) => {
+            const group = new THREE.Group();
+            // Each cloud = 4-6 overlapping spheres of varying sizes
+            const blobs = [
+                [0,    0,   0,   1.0],
+                [1.4,  0.3, 0,   0.8],
+                [-1.3, 0.2, 0,   0.75],
+                [0.5,  0.7, 0,   0.65],
+                [-0.5, 0.5, 0.4, 0.6],
+                [0.2, -0.2, 0.3, 0.55],
+            ];
+            blobs.forEach(([bx, by, bz, br]) => {
+                const blob = new THREE.Mesh(new THREE.SphereGeometry(br, 7, 6), mat);
+                blob.position.set(bx * 2.2, by * 1.4, bz * 1.5);
+                group.add(blob);
+            });
+            group.scale.setScalar(sc);
+            group.position.set(x, y, z);
+            group.userData.speed = spd;
+            group.userData.originX = x;
+            scene.add(group);
+            cloudMeshes.push(group);
+        });
+    }
+
+    function updateClouds() {
+        cloudMeshes.forEach(c => {
+            c.position.x += c.userData.speed;
+            // Wrap when drifted 35 units from origin
+            if (Math.abs(c.position.x - c.userData.originX) > 35) {
+                c.userData.speed *= -1;
+            }
+        });
     }
 
     function animate() {
         requestAnimationFrame(animate);
         updatePhysics();
+        updateBullies();
+        updateCheckpoints();
+        updateClouds();
         renderer.render(scene, camera);
     }
 
@@ -1442,13 +1797,14 @@ function addFalafel(x,y,z,sad) {
     function renderLevelGrid() {
         const grid = document.getElementById('level-grid');
         grid.innerHTML = '';
-        for(let i = 1; i <= 10; i++) {
+        for (let i = 1; i <= 5; i++) {
             const btn = document.createElement('button');
             btn.className = 'level-btn';
-            if(completedLevels.includes(i)) {
+            const unlocked = (i === 1 || completedLevels.includes(i - 1));
+            if (completedLevels.includes(i)) {
                 btn.className += ' completed';
                 btn.innerHTML = i + '<span class="star">★</span>';
-            } else if(i === 1 || completedLevels.includes(i - 1)) {
+            } else if (unlocked) {
                 btn.className += ' current';
                 btn.innerHTML = i;
             } else {
@@ -1460,19 +1816,48 @@ function addFalafel(x,y,z,sad) {
         }
     }
     
+    // Zone entry positions for teleportation (x, y, z)
+    const ZONE_SPAWN = [
+        null,                   // index 0 unused
+        [  0, 2,   0  ],        // Zone 1 — spawn island
+        [ -4, 10, -25 ],        // Zone 2 — just past ladder top
+        [ -4, 18, -43 ],        // Zone 3 — past ladder top
+        [ -4, 26, -70 ],        // Zone 4 — past ladder top
+        [ -4, 34, -88 ],        // Zone 5 — past ladder top
+    ];
+
     function selectLevel(lvl) {
-        if(lvl === 1 || completedLevels.includes(lvl - 1)) {
+        const unlocked = (lvl === 1 || completedLevels.includes(lvl - 1));
+        if (!unlocked) return;
+        if (!gameInitialized) init();
+
+        // Always rebuild the full mountain from scratch
+        game.level = 1;
+        game.score = 0;
+        game.total = 0;
+        game.hummusCount = 0;
+        game.mega = false;
+        game.paused = false;
+        loadLevel(1);
+
+        // If jumping into a higher zone, open all gates below it and teleport
+        if (lvl > 1) {
+            gates.forEach(g => {
+                if (g.zoneId < lvl) {
+                    openGate(g);
+                }
+            });
             game.level = lvl;
-            game.score = 0;
-            game.total = 0;
-            game.hummusCount = 0;
-            game.mega = false;
-            game.active = true;
-            game.paused = false;
-            loadLevel(lvl);
-            showScreen(null);
-            if(audioCtx.state === 'suspended') audioCtx.resume();
+            game.total = falafels.filter(f => f.zoneId === lvl).length;
+            const sp = ZONE_SPAWN[lvl];
+            if (sp && player) player.position.set(sp[0], sp[1], sp[2]);
         }
+
+        game.active = true;
+        showScreen(null);
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        updateHUD();
+        showLevelIndicator(lvl);
     }
 
     // Start initialization when THREE loads (via onload attribute)
