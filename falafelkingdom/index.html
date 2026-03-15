@@ -859,7 +859,7 @@ function loadIsland(idx) {
     // Create Cannon.js physics body (static box) for collision
     addPlatformPhysBody(pObj);
     // Progressively swap procedural mesh for Quaternius GLB if available
-    const modelKey = pd.modelType || 'platforms/cube.glb';
+    const modelKey = pd.modelType || 'Modular Platforms/Single Cube/glTF/Cube_Grass_Single.gltf';
     swapMeshWhenLoaded(mesh, modelKey, pd.w, pd.h, pd.d);
   });
 
@@ -959,8 +959,6 @@ function makeJar(x,y,z,locked=false) {
   }
   grp.position.set(x,y,z);
   scene.add(grp);
-  // Progressive: swap with Quaternius jar model when available
-  if (!locked) swapMeshWhenLoaded(bowl, 'props/jar.glb', 0.65, 0.65, 0.65);
   return grp;
 }
 
@@ -1016,7 +1014,7 @@ function makeBully(x,y,z,boss=false) {
   grp.position.set(x,y,z);
   scene.add(grp);
   // Progressive: swap with Quaternius enemy model when available
-  const enemyModel = boss ? 'enemies/bully_king.glb' : 'enemies/bully.glb';
+  const enemyModel = boss ? 'enemies/glTF/Skull.gltf' : 'enemies/glTF/Enemy.gltf';
   swapMeshWhenLoaded(body, enemyModel, boss?1.4:1.1, boss?1.4:1.1, boss?1.4:1.1);
   return grp;
 }
@@ -1173,7 +1171,9 @@ function buildDecorations(iso) {
   cloudDefs.forEach(([x,y,z,sc,sp]) => {
     const g = new THREE.Group();
     [[0,0,0,1],[1.4,0.3,0,0.8],[-1.3,0.2,0,0.75],[0.5,0.7,0,0.65],[-0.5,0.5,0.4,0.6]].forEach(([bx,by,bz,br]) => {
-      g.add(Object.assign(new THREE.Mesh(new THREE.SphereGeometry(br,7,6),cloudMat.clone()),{position:{x:bx*2.2,y:by*1.4,z:bz*1.5}}));
+      const blob = new THREE.Mesh(new THREE.SphereGeometry(br,7,6),cloudMat.clone());
+      blob.position.set(bx*2.2, by*1.4, bz*1.5);
+      g.add(blob);
     });
     g.scale.setScalar(sc); g.position.set(x,y,z);
     g.userData.deco=true; g.userData.spd=sp; g.userData.ox=x;
