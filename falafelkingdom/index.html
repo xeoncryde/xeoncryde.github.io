@@ -13,171 +13,520 @@
         .controls { text-align: center; color: #5D6D7E; text-shadow: 1px 1px 0 #fff; padding-bottom: 20px; font-size: 16px; }
         .key { background: rgba(255,255,255,0.95); color: #5D6D7E; padding: 3px 8px; border-radius: 6px; font-weight: bold; margin: 0 3px; border: 2px solid #AED6F1; }
         
-        /* Menus - Polished Design */
-        .menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at center, rgba(26,26,46,0.97) 0%, rgba(15,52,96,0.97) 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; z-index: 20; color: #fff; }
+        /* Menus - AAA Polished Design */
+        .menu { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: linear-gradient(180deg, #0a0a12 0%, #12162a 50%, #1a1f35 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            pointer-events: auto; z-index: 20; color: #fff;
+        }
         .hidden { display: none !important; }
         
-        h1 { font-size: 64px; color: #FFD700; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 4px; text-shadow: 0 0 20px rgba(255,200,0,0.5); font-weight: 900; }
-        h2 { font-size: 24px; color: #AAD4E8; margin: 0 0 30px 0; font-weight: normal; }
-        h3 { font-size: 32px; color: #FFD700; margin: 0 0 20px 0; font-weight: bold; }
+        h1 { font-size: 56px; color: #fff; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 6px; font-weight: 300; }
+        h2 { font-size: 22px; color: rgba(255,255,255,0.6); margin: 0 0 30px 0; font-weight: 300; letter-spacing: 2px; }
+        h3 { font-size: 28px; color: #fff; margin: 0 0 25px 0; font-weight: 300; letter-spacing: 3px; }
         
+        /* Premium Button Styling */
         button { 
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            border: 2px solid rgba(255,255,255,0.3); 
-            color: #1a1a2e; 
-            padding: 16px 45px; 
-            font-size: 18px; 
-            border-radius: 8px; 
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.25); 
+            color: #fff; 
+            padding: 18px 50px; 
+            font-size: 14px; 
+            border-radius: 2px; 
             cursor: pointer; 
-            margin: 8px; 
-            font-weight: bold; 
+            margin: 6px; 
+            font-weight: 500; 
             text-transform: uppercase; 
-            letter-spacing: 1px;
-            box-shadow: 0 6px 20px rgba(255, 165, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.3); 
-            transition: all 0.2s ease; 
-            min-width: 240px;
+            letter-spacing: 3px;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+            min-width: 260px;
             position: relative;
             overflow: hidden;
-            text-shadow: none;
+            font-family: inherit;
         }
-        button::after {
+        button::before {
             content: '';
             position: absolute;
-            top: 0; left: -100%;
+            top: 0; left: 0;
             width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.4s;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
         }
-        button:hover::after { left: 100%; }
-        button:active { transform: translateY(3px) scale(0.98); box-shadow: 0 2px 8px rgba(255, 165, 0, 0.4); }
-        button:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(255, 165, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.3); }
-        button:disabled { background: linear-gradient(135deg, #555, #333); color: #888; box-shadow: none; cursor: not-allowed; transform: none; }
-        button.small { padding: 12px 30px; font-size: 16px; min-width: 160px; }
+        button:hover::before { transform: translateX(100%); }
+        button:hover { 
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.5);
+            box-shadow: 0 0 30px rgba(255,255,255,0.1);
+        }
+        button:active { transform: scale(0.98); }
+        button:disabled { opacity: 0.3; cursor: not-allowed; }
+        button.small { padding: 14px 35px; font-size: 13px; min-width: 180px; }
+        button.primary {
+            background: linear-gradient(135deg, #c9a227 0%, #f4d03f 50%, #c9a227 100%);
+            border: none;
+            color: #1a1a2e;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(201, 162, 39, 0.3);
+        }
+        button.primary:hover { 
+            box-shadow: 0 6px 30px rgba(201, 162, 39, 0.5);
+            transform: translateY(-2px);
+        }
         button.secondary { 
-            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
-            color: #fff;
-            border: 2px solid rgba(255,255,255,0.3);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            background: transparent;
+            color: rgba(255,255,255,0.8);
+            border: 1px solid rgba(255,255,255,0.2);
         }
-        button.secondary:hover { background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1)); box-shadow: 0 8px 25px rgba(255,255,255,0.2); }
-        button.danger { background: linear-gradient(135deg, #E74C3C, #C0392B); color: #fff; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4); text-shadow: none; }
-        button.success { background: linear-gradient(135deg, #2ECC71, #27AE60); color: #fff; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4); text-shadow: none; }
+        button.secondary:hover { 
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.4);
+        }
+        button.danger { 
+            background: transparent;
+            border-color: rgba(180, 60, 60, 0.5);
+            color: #e07070;
+        }
+        button.danger:hover { background: rgba(180, 60, 60, 0.2); }
         
         .info-box { 
-            background: rgba(255,255,255,0.05); 
-            padding: 20px 30px; 
-            border-radius: 12px; 
-            margin-top: 20px; 
+            background: rgba(255,255,255,0.03); 
+            padding: 25px 35px; 
+            border-radius: 4px; 
+            margin-top: 30px; 
             text-align: center; 
-            line-height: 2.0; 
-            border: 1px solid rgba(255,255,255,0.15); 
-            color: #ccc;
-            max-width: 480px;
+            line-height: 2.2; 
+            border: 1px solid rgba(255,255,255,0.08); 
+            color: rgba(255,255,255,0.6);
+            max-width: 500px;
+            backdrop-filter: blur(10px);
         }
-        .info-box b { color: #FFD700; }
-        .key { background: rgba(255,255,255,0.15); color: #FFD700; padding: 3px 10px; border-radius: 5px; font-weight: bold; margin: 0 3px; border: 1px solid rgba(255,255,255,0.3); }
+        .info-box b { color: #f4d03f; }
+        .key { 
+            background: rgba(255,255,255,0.1); 
+            color: #fff; 
+            padding: 4px 12px; 
+            border-radius: 3px; 
+            font-weight: 600; 
+            margin: 0 4px; 
+            font-size: 12px;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
         
         /* Certificate */
-        .cert { background: linear-gradient(135deg, #FEF9E7 0%, #FCF3CF 100%); color: #5D6D7E; padding: 45px; border: 8px double #F5CBA7; border-radius: 15px; text-align: center; max-width: 520px; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
-        .cert h2 { color: #D4AC6E; font-size: 34px; margin-bottom: 15px; text-shadow: none; font-weight: bold; }
-        .cert-name { font-size: 42px; color: #E59866; border-bottom: 3px dashed #F5CBA7; display: inline-block; padding: 0 25px; margin: 25px 0; font-weight: bold; }
-        .stamp { position: absolute; bottom: 25px; right: 25px; border: 4px solid #E74C3C; color: #E74C3C; border-radius: 50%; width: 85px; height: 85px; display: flex; align-items: center; justify-content: center; transform: rotate(-15deg); font-weight: bold; font-size: 15px; background: #fff; }
+        .cert { 
+            background: linear-gradient(135deg, #fefefe 0%, #f5f0e6 100%); 
+            color: #2c2c2c; 
+            padding: 50px 60px; 
+            border: none;
+            border-radius: 4px; 
+            text-align: center; 
+            max-width: 550px; 
+            position: relative; 
+            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+        }
+        .cert::before {
+            content: '';
+            position: absolute;
+            top: 15px; left: 15px; right: 15px; bottom: 15px;
+            border: 2px solid #d4af37;
+            pointer-events: none;
+        }
+        .cert h2 { color: #8b7355; font-size: 32px; margin-bottom: 20px; font-weight: 300; letter-spacing: 4px; }
+        .cert-name { font-size: 48px; color: #c9a227; display: inline-block; padding: 0 20px; margin: 25px 0; font-weight: 300; letter-spacing: 2px; border-bottom: 2px solid #d4af37; }
+        .stamp { 
+            position: absolute; bottom: 30px; right: 30px; 
+            border: 3px solid #c9a227; color: #c9a227; 
+            border-radius: 50%; width: 80px; height: 80px; 
+            display: flex; align-items: center; justify-content: center; 
+            transform: rotate(-12deg); font-weight: 600; font-size: 12px; 
+            letter-spacing: 1px;
+        }
         
-        #msg { position: absolute; top: 20%; width: 100%; text-align: center; font-size: 36px; color: #F5CBA7; text-shadow: 2px 2px 0 #fff, 3px 3px 0 rgba(0,0,0,0.1); display: none; font-weight: bold; pointer-events: none; letter-spacing: 2px; }
-        .footer { position: absolute; bottom: 8px; width: 100%; text-align: center; color: #85C1E9; font-size: 13px; pointer-events: none; font-weight: 500; }
+        #msg { 
+            position: absolute; top: 20%; width: 100%; text-align: center; 
+            font-size: 28px; color: #f4d03f; 
+            text-shadow: 0 0 40px rgba(244, 208, 63, 0.5);
+            display: none; font-weight: 300; pointer-events: none; letter-spacing: 4px;
+        }
+        .footer { 
+            position: absolute; bottom: 20px; width: 100%; text-align: center; 
+            color: rgba(255,255,255,0.3); font-size: 12px; pointer-events: none; 
+            font-weight: 300; letter-spacing: 2px;
+        }
         
-        #load-status { color: #E74C3C; font-weight: bold; margin-top: 12px; display: none; background: rgba(255,255,255,0.8); padding: 10px 20px; border-radius: 8px; }
+        #load-status { color: #e07070; font-weight: 400; margin-top: 15px; display: none; letter-spacing: 1px; }
         
         /* Level indicator */
-        .level-indicator { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 72px; color: #D4AC6E; text-shadow: 3px 3px 0 #fff, 5px 5px 0 rgba(0,0,0,0.15); font-weight: 900; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+        .level-indicator { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            font-size: 64px; color: #f4d03f; 
+            text-shadow: 0 0 60px rgba(244, 208, 63, 0.6);
+            font-weight: 200; opacity: 0; pointer-events: none; 
+            transition: opacity 0.5s; letter-spacing: 8px;
+        }
         .level-indicator.show { opacity: 1; }
         
         /* Enhanced main menu */
         #main-menu {
-            background: radial-gradient(ellipse at top, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+            background: linear-gradient(180deg, #08080f 0%, #0d1020 40%, #141828 100%);
             position: relative;
             overflow: hidden;
         }
+        #main-menu::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse at 50% 0%, rgba(201, 162, 39, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
         .menu-stars { position: absolute; width: 100%; height: 100%; pointer-events: none; }
-        .menu-star { position: absolute; background: #fff; border-radius: 50%; animation: twinkle 2s infinite; }
+        .menu-star { position: absolute; background: #fff; border-radius: 50%; animation: twinkle 3s infinite; }
         @keyframes twinkle {
-            0%, 100% { opacity: 0.2; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.3); }
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.6; }
         }
+        
+        /* Logo styling */
+        .menu-logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .menu-logo canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
         .menu-title { 
-            font-size: 82px; 
-            background: linear-gradient(135deg, #FFD700, #FFA500, #FF6B35, #FFD700);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: shimmer 3s linear infinite, float 4s ease-in-out infinite; 
-            text-shadow: none;
-            filter: drop-shadow(0 0 20px rgba(255, 200, 50, 0.5));
-            margin: 0 0 5px 0;
+            font-size: 72px; 
+            color: #fff;
+            font-weight: 200;
+            letter-spacing: 12px;
+            margin: 0 0 8px 0;
             text-transform: uppercase;
-            letter-spacing: 5px;
-            font-weight: 900;
+            text-shadow: 0 0 60px rgba(201, 162, 39, 0.4);
         }
-        @keyframes shimmer {
-            0% { background-position: 0% center; }
-            100% { background-position: 200% center; }
+        .menu-subtitle { 
+            color: rgba(255,255,255,0.4); 
+            font-size: 14px; 
+            margin: 0 0 40px 0; 
+            letter-spacing: 6px; 
+            text-transform: uppercase;
+            font-weight: 300;
         }
-        .menu-emoji { font-size: 64px; margin: 0 0 10px 0; display: block; animation: bounce 1s ease-in-out infinite alternate; }
-        @keyframes bounce {
-            from { transform: translateY(0); }
-            to { transform: translateY(-12px); }
+        .menu-divider { 
+            width: 60px; height: 1px; 
+            background: linear-gradient(90deg, transparent, rgba(201, 162, 39, 0.6), transparent); 
+            margin: 20px auto; 
         }
-        .menu-subtitle { color: #AAD4E8; font-size: 20px; margin: 0 0 35px 0; letter-spacing: 3px; text-transform: uppercase; }
-        .menu-divider { width: 200px; height: 3px; background: linear-gradient(90deg, transparent, #FFD700, transparent); margin: 15px auto; border-radius: 2px; }
-        .menu-badge { display: inline-block; background: rgba(255,200,50,0.2); border: 2px solid rgba(255,200,50,0.5); color: #FFD700; padding: 6px 16px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; letter-spacing: 2px; }
+        .menu-badge { display: none; }
 
-        /* Cutscene styles */
-        .cutscene-panel { animation: fadeInUp 0.6s ease; }
-        .cutscene-emoji { font-size: 70px; margin: 0 0 15px 0; display: block; animation: float 2s ease-in-out infinite; }
-        .cutscene-title { font-size: 36px; color: #FFD700; margin: 0 0 20px 0; text-shadow: 0 0 20px rgba(255,200,0,0.5); }
-        .cutscene-text { font-size: 20px; color: #ccc; line-height: 1.8; max-width: 600px; margin: 0 auto; }
-        .cutscene-text b { color: #FFD700; }
-        .cutscene-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.3); margin: 0 4px; transition: background 0.3s; }
-        .cutscene-dot.active { background: #FFD700; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        /* Animated Cutscene styles */
+        #cutscene {
+            background: #000;
+        }
+        .cutscene-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .cutscene-scene {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            overflow: hidden;
+            border-radius: 4px;
+            background: linear-gradient(180deg, #1a2040 0%, #2d1f4a 50%, #1a1530 100%);
+        }
+        .cutscene-text-display {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.85);
+            padding: 30px 50px;
+            min-height: 120px;
+        }
+        .cutscene-speaker {
+            color: #f4d03f;
+            font-size: 14px;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .cutscene-dialogue {
+            color: rgba(255,255,255,0.9);
+            font-size: 18px;
+            line-height: 1.7;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        .cutscene-dialogue .highlight { color: #f4d03f; }
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: #f4d03f;
+            margin-left: 2px;
+            animation: blink 0.8s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        /* Cutscene characters */
+        .scene-element {
+            position: absolute;
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .scene-mountain {
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            border-bottom: 200px solid #3d4a6a;
+        }
+        .scene-mountain::after {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: -40px;
+            width: 0;
+            height: 0;
+            border-left: 40px solid transparent;
+            border-right: 40px solid transparent;
+            border-bottom: 50px solid #eee;
+        }
+        .scene-sun {
+            top: 40px;
+            right: 100px;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #f4d03f 0%, #ff9500 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 60px rgba(244, 208, 63, 0.6);
+        }
+        .scene-falafel {
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle at 30% 30%, #d4a574 0%, #a67c52 100%);
+            border-radius: 50%;
+            position: relative;
+        }
+        .scene-falafel::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 12px;
+            width: 8px;
+            height: 8px;
+            background: #2c2c2c;
+            border-radius: 50%;
+            box-shadow: 18px 0 0 #2c2c2c;
+        }
+        .scene-falafel.sad::after {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: 18px;
+            width: 14px;
+            height: 7px;
+            border: 2px solid #5c4030;
+            border-top: none;
+            border-radius: 0 0 14px 14px;
+            transform: rotate(180deg);
+        }
+        .scene-falafel.happy::after {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: 18px;
+            width: 14px;
+            height: 7px;
+            border: 2px solid #5c4030;
+            border-top: none;
+            border-radius: 0 0 14px 14px;
+        }
+        .scene-bully {
+            width: 45px;
+            height: 45px;
+            background: radial-gradient(circle at 30% 30%, #4a3020 0%, #2d1f15 100%);
+            border-radius: 50%;
+            position: relative;
+        }
+        .scene-bully::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 10px;
+            width: 6px;
+            height: 4px;
+            background: #ff3030;
+            box-shadow: 18px 0 0 #ff3030;
+        }
+        .scene-jar {
+            width: 30px;
+            height: 35px;
+            background: linear-gradient(180deg, #f5e6c8 0%, #e8d4a8 100%);
+            border-radius: 5px 5px 10px 10px;
+            position: relative;
+        }
+        .scene-jar::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            height: 15px;
+            background: #fff8e8;
+            border-radius: 3px;
+        }
+        .scene-jar::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background: #c83018;
+            border-radius: 50%;
+        }
+        
+        .cutscene-progress {
+            display: flex;
+            gap: 8px;
+            margin-top: 25px;
+        }
+        .cutscene-dot { 
+            width: 8px; height: 8px; 
+            border-radius: 50%; 
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s;
+        }
+        .cutscene-dot.active { 
+            background: #f4d03f;
+            box-shadow: 0 0 10px rgba(244, 208, 63, 0.5);
+        }
+        .cutscene-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
         
         @keyframes float {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-8px); }
+        }
+        @keyframes fadeInUp { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
         }
         
-        .menu-buttons { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .menu-buttons { display: flex; flex-direction: column; align-items: center; gap: 4px; }
         
         /* Level Selector Grid */
-        .level-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin: 20px 0; }
-        .level-btn { width: 70px; height: 70px; border-radius: 15px; font-size: 24px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-        .level-btn.completed { background: linear-gradient(180deg, #58D68D 0%, #2ECC71 100%); box-shadow: 0 5px 0 #27AE60; }
-        .level-btn.completed:hover { background: linear-gradient(180deg, #82E0AA 0%, #58D68D 100%); }
-        .level-btn.current { background: linear-gradient(180deg, #F5CBA7 0%, #E59866 100%); box-shadow: 0 5px 0 #B9770E; animation: pulse 1.5s infinite; }
-        .level-btn.locked { background: linear-gradient(180deg, #BDC3C7 0%, #95A5A6 100%); box-shadow: 0 5px 0 #7F8C8D; cursor: not-allowed; }
-        .level-btn .star { position: absolute; top: 5px; right: 5px; font-size: 14px; color: #F7DC6F; }
+        .level-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 25px 0; }
+        .level-btn { 
+            width: 65px; height: 65px; 
+            border-radius: 4px; 
+            font-size: 20px; 
+            display: flex; align-items: center; justify-content: center; 
+            position: relative; overflow: hidden;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        .level-btn.completed { 
+            background: rgba(88, 214, 141, 0.2);
+            border-color: rgba(88, 214, 141, 0.5);
+            color: #58D68D;
+        }
+        .level-btn.completed:hover { background: rgba(88, 214, 141, 0.3); }
+        .level-btn.current { 
+            background: rgba(244, 208, 63, 0.2);
+            border-color: rgba(244, 208, 63, 0.5);
+            color: #f4d03f;
+            animation: pulse 2s infinite;
+        }
+        .level-btn.locked { 
+            background: rgba(255,255,255,0.03);
+            border-color: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.3);
+            cursor: not-allowed;
+        }
+        .level-btn .star { 
+            position: absolute; top: 4px; right: 6px; 
+            font-size: 10px; color: #58D68D;
+        }
         
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 208, 63, 0.3); }
+            50% { box-shadow: 0 0 20px 5px rgba(244, 208, 63, 0.2); }
         }
         
         /* Settings Panel */
-        .settings-panel { background: rgba(255,255,255,0.9); padding: 30px; border-radius: 20px; border: 4px solid #AED6F1; box-shadow: 0 10px 30px rgba(0,0,0,0.15); text-align: center; }
-        .setting-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px 0; border-bottom: 2px solid #EAF2F8; }
-        .setting-label { font-size: 18px; font-weight: bold; color: #5D6D7E; }
-        .toggle-switch { position: relative; width: 60px; height: 30px; background: #BDC3C7; border-radius: 15px; cursor: pointer; transition: background 0.3s; }
-        .toggle-switch.on { background: #58D68D; }
-        .toggle-knob { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; background: #fff; border-radius: 50%; transition: left 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .toggle-switch.on .toggle-knob { left: 33px; }
+        .settings-panel { 
+            background: rgba(255,255,255,0.05); 
+            padding: 35px 45px; 
+            border-radius: 4px; 
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+        .setting-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin: 0; padding: 18px 0; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label { font-size: 14px; font-weight: 400; color: rgba(255,255,255,0.7); letter-spacing: 1px; }
+        .toggle-switch { 
+            position: relative; width: 50px; height: 26px; 
+            background: rgba(255,255,255,0.15); 
+            border-radius: 13px; cursor: pointer; 
+            transition: background 0.3s; 
+        }
+        .toggle-switch.on { background: rgba(88, 214, 141, 0.5); }
+        .toggle-knob { 
+            position: absolute; top: 3px; left: 3px; 
+            width: 20px; height: 20px; 
+            background: #fff; border-radius: 50%; 
+            transition: left 0.3s; 
+        }
+        .toggle-switch.on .toggle-knob { left: 27px; }
         
         /* Controls Display */
-        .controls-display { background: rgba(255,255,255,0.9); padding: 30px; border-radius: 20px; border: 4px solid #AED6F1; box-shadow: 0 10px 30px rgba(0,0,0,0.15); text-align: center; }
-        .control-item { display: flex; align-items: center; justify-content: center; margin: 12px 0; gap: 15px; }
-        .control-keys { display: flex; gap: 5px; }
-        .control-key { background: linear-gradient(180deg, #fff 0%, #f0f0f0 100%); color: #5D6D7E; padding: 8px 14px; border-radius: 8px; font-weight: bold; border: 2px solid #AED6F1; box-shadow: 0 3px 0 #AED6F1; }
-        .control-desc { font-size: 18px; color: #5D6D7E; font-weight: 500; }
+        .controls-display { 
+            background: rgba(255,255,255,0.05); 
+            padding: 35px 45px; 
+            border-radius: 4px; 
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+        .control-item { display: flex; align-items: center; justify-content: space-between; margin: 15px 0; gap: 30px; }
+        .control-keys { display: flex; gap: 6px; }
+        .control-key { 
+            background: rgba(255,255,255,0.1); 
+            color: #fff; 
+            padding: 10px 16px; 
+            border-radius: 4px; 
+            font-weight: 500; 
+            font-size: 12px;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .control-desc { font-size: 14px; color: rgba(255,255,255,0.6); font-weight: 300; letter-spacing: 1px; }
         
         /* Back button container */
         .back-container { position: absolute; top: 20px; left: 20px; z-index: 30; }
@@ -207,47 +556,19 @@
 </div>
 
 <!-- Cutscene -->
-<div id="cutscene" class="menu hidden" style="background: #0a0a1a; z-index: 50;">
-    <div id="cutscene-content" style="text-align: center; max-width: 700px; padding: 20px;">
-        <div id="cutscene-panel-0" class="cutscene-panel">
-            <div class="cutscene-emoji">🏔️</div>
-            <h2 class="cutscene-title">Falafel Kingdom</h2>
-            <p class="cutscene-text">In a magical land high in the mountains, there lived a peaceful community of <b>falafels</b>...</p>
+<div id="cutscene" class="menu hidden" style="background: #000; z-index: 50;">
+    <div class="cutscene-container">
+        <div class="cutscene-scene" id="cutscene-scene">
+            <!-- Scene elements will be added dynamically -->
         </div>
-        <div id="cutscene-panel-1" class="cutscene-panel hidden">
-            <div class="cutscene-emoji">🧆 🧆 🧆</div>
-            <h2 class="cutscene-title">Life Was Good</h2>
-            <p class="cutscene-text">Every day, the falafels would share <b>hummus</b> with each other and dance with joy! They were the happiest creatures in the world.</p>
+        <div class="cutscene-text-display">
+            <div class="cutscene-speaker" id="cutscene-speaker">NARRATOR</div>
+            <div class="cutscene-dialogue" id="cutscene-dialogue"></div>
         </div>
-        <div id="cutscene-panel-2" class="cutscene-panel hidden">
-            <div class="cutscene-emoji">😈🔥😈</div>
-            <h2 class="cutscene-title">The Burnt Bullies Strike!</h2>
-            <p class="cutscene-text">One terrible day, the evil <b>Burnt Bullies</b> descended from the scorched peaks and <b>stole ALL the hummus</b>!</p>
-        </div>
-        <div id="cutscene-panel-3" class="cutscene-panel hidden">
-            <div class="cutscene-emoji">😭😭😭</div>
-            <h2 class="cutscene-title">Everyone is Sad</h2>
-            <p class="cutscene-text">Without their beloved hummus, the falafels became terribly sad. Their tears fell like rain across the mountain...</p>
-        </div>
-        <div id="cutscene-panel-4" class="cutscene-panel hidden">
-            <div class="cutscene-emoji">🫙✨🫙</div>
-            <h2 class="cutscene-title">Hope Remains!</h2>
-            <p class="cutscene-text">But wait — the Burnt Bullies dropped some <b>hummus jars</b> as they fled! They're scattered across the mountain...</p>
-        </div>
-        <div id="cutscene-panel-5" class="cutscene-panel hidden">
-            <div class="cutscene-emoji">🧆💪</div>
-            <h2 class="cutscene-title">Your Mission</h2>
-            <p class="cutscene-text">YOU must climb the <b>Falafel Mountain</b>, collect the hummus jars, and share them with the sad falafels!<br><br><b>Avoid the Burnt Bullies</b> — they'll knock you off the mountain!</p>
-        </div>
-        <div id="cutscene-panel-6" class="cutscene-panel hidden">
-            <div class="cutscene-emoji">🌟</div>
-            <h2 class="cutscene-title">Are You Ready?</h2>
-            <p class="cutscene-text">The falafels are counting on you, Farida!<br>Climb the mountain. Spread joy. <b>Save the Kingdom!</b></p>
-        </div>
-        <div style="margin-top: 30px;">
-            <div id="cutscene-dots" style="margin-bottom: 20px;"></div>
-            <button onclick="advanceCutscene()" id="cutscene-next-btn" style="min-width: 180px;">Next ▶</button>
-            <button class="secondary" onclick="skipCutscene()" style="min-width: 140px;">Skip ▶▶</button>
+        <div class="cutscene-progress" id="cutscene-dots"></div>
+        <div class="cutscene-buttons">
+            <button onclick="advanceCutscene()" id="cutscene-next-btn" class="primary">CONTINUE</button>
+            <button class="secondary" onclick="skipCutscene()">SKIP</button>
         </div>
     </div>
 </div>
@@ -255,23 +576,22 @@
 <!-- Main Menu -->
 <div id="main-menu" class="menu">
     <div class="menu-stars" id="menu-stars"></div>
-    <span class="menu-emoji">🧆</span>
+    <div class="menu-logo" id="menu-logo"></div>
     <h1 class="menu-title">FALAFEL KINGDOM</h1>
     <div class="menu-divider"></div>
-    <p class="menu-subtitle">A tale of hummus &amp; happiness</p>
-    <div class="menu-badge">✦ ADVENTURE AWAITS ✦</div>
+    <p class="menu-subtitle">A tale of hummus and happiness</p>
     <div class="menu-buttons">
-        <button id="play-btn" onclick="startGame()">▶ &nbsp;NEW ADVENTURE</button>
-        <button id="continue-btn" class="secondary hidden" onclick="continueGame()">⚡ &nbsp;CONTINUE</button>
-        <button class="secondary" onclick="showLevelSelect()">📍 &nbsp;SELECT LEVEL</button>
-        <button class="secondary" onclick="showControls()">🎮 &nbsp;CONTROLS</button>
-        <button class="secondary" onclick="showSettings()">⚙️ &nbsp;SETTINGS</button>
+        <button id="play-btn" class="primary" onclick="startGame()">NEW ADVENTURE</button>
+        <button id="continue-btn" class="secondary hidden" onclick="continueGame()">CONTINUE</button>
+        <button class="secondary" onclick="showLevelSelect()">SELECT LEVEL</button>
+        <button class="secondary" onclick="showControls()">CONTROLS</button>
+        <button class="secondary" onclick="showSettings()">SETTINGS</button>
     </div>
     <div id="load-status">Error: Game engine failed to load. Check internet.</div>
     <div class="info-box">
         <p><span class="key">WASD</span> Move &nbsp;|&nbsp; <span class="key">SPACE</span> Jump / Share</p>
-        <p>Collect <b>Hummus Jars</b> 🫙 then share with <b>Sad Falafels</b> 🧆</p>
-        <p>Avoid the <b>Burnt Bullies</b> 😈 - they're dangerous!</p>
+        <p>Collect <b>Hummus Jars</b> then share with <b>Sad Falafels</b></p>
+        <p>Avoid the <b>Burnt Bullies</b> - they're dangerous!</p>
     </div>
 </div>
 
@@ -284,7 +604,7 @@
 
 <!-- Controls Menu -->
 <div id="controls-menu" class="menu hidden">
-    <h3>How to Play</h3>
+    <h3>CONTROLS</h3>
     <div class="controls-display">
         <div class="control-item">
             <div class="control-keys">
@@ -312,78 +632,76 @@
                 <span class="control-key">W</span>
                 <span class="control-key">S</span>
             </div>
-            <span class="control-desc">Climb ladders (up/down)</span>
+            <span class="control-desc">Climb ladders</span>
         </div>
-        <hr style="border: none; border-top: 2px solid #EAF2F8; margin: 20px 0;">
-        <p style="color: #5D6D7E; font-size: 16px; line-height: 1.6;">
-            <b>Goal:</b> Make all falafels happy by sharing hummus!<br>
-            Approach a sad falafel and press SPACE to share.<br>
-            Avoid burnt bullies and don't fall off the mountain!
-        </p>
     </div>
-    <button class="secondary small" onclick="showMainMenu()" style="margin-top: 20px;">← Back to Menu</button>
+    <div style="margin-top: 30px; color: rgba(255,255,255,0.5); font-size: 13px; line-height: 1.8; letter-spacing: 1px; max-width: 400px; text-align: center;">
+        Make all falafels happy by sharing hummus.<br>
+        Avoid burnt bullies and don't fall off the mountain.
+    </div>
+    <button class="secondary small" onclick="showMainMenu()" style="margin-top: 25px;">BACK</button>
 </div>
 
 <!-- Settings Menu -->
 <div id="settings-menu" class="menu hidden">
-    <h3>Settings</h3>
+    <h3>SETTINGS</h3>
     <div class="settings-panel">
         <div class="setting-row">
-            <span class="setting-label">Sound Effects</span>
+            <span class="setting-label">SOUND EFFECTS</span>
             <div class="toggle-switch on" id="sound-toggle" onclick="toggleSound()">
                 <div class="toggle-knob"></div>
             </div>
         </div>
         <div class="setting-row">
-            <span class="setting-label">Music</span>
+            <span class="setting-label">MUSIC</span>
             <div class="toggle-switch on" id="music-toggle" onclick="toggleMusic()">
                 <div class="toggle-knob"></div>
             </div>
         </div>
         <div class="setting-row">
-            <span class="setting-label">Show Hints</span>
+            <span class="setting-label">SHOW HINTS</span>
             <div class="toggle-switch on" id="hints-toggle" onclick="toggleHints()">
                 <div class="toggle-knob"></div>
             </div>
         </div>
     </div>
-    <button class="secondary small" onclick="showMainMenu()" style="margin-top: 20px;">← Back to Menu</button>
+    <button class="secondary small" onclick="showMainMenu()" style="margin-top: 25px;">BACK</button>
 </div>
 
 <!-- Pause -->
 <div id="pause-menu" class="menu hidden">
-    <h1>Paused</h1>
-    <button onclick="togglePause()">Resume</button>
-    <button onclick="location.reload()" style="background: linear-gradient(180deg, #E74C3C 0%, #C0392B 100%); box-shadow: 0 5px 0 #922B21;">Quit</button>
+    <h1>PAUSED</h1>
+    <div class="menu-divider" style="margin-bottom: 30px;"></div>
+    <button class="primary" onclick="togglePause()">RESUME</button>
+    <button class="danger" onclick="location.reload()">QUIT TO MENU</button>
 </div>
 
 <!-- Level Clear -->
 <div id="level-menu" class="menu hidden">
-    <h1>Level Complete!</h1>
+    <h1>LEVEL COMPLETE</h1>
     <h2 id="lvl-msg">Wonderful!</h2>
-    <button onclick="nextLevel()">Next Level →</button>
+    <button class="primary" onclick="nextLevel()">NEXT LEVEL</button>
 </div>
 
 <!-- Retry -->
 <div id="retry-menu" class="menu hidden">
-    <h1>Oh No!</h1>
-    <h2>The hummus spilled...</h2>
-    <button onclick="retryLevel()">Try Again</button>
-    <button onclick="location.reload()" style="background: linear-gradient(180deg, #E74C3C 0%, #C0392B 100%); box-shadow: 0 5px 0 #922B21;">Menu</button>
+    <h1>GAME OVER</h1>
+    <h2>You fell off the mountain...</h2>
+    <button class="primary" onclick="retryLevel()">TRY AGAIN</button>
+    <button class="secondary" onclick="location.reload()">MAIN MENU</button>
 </div>
 
 <!-- Certificate -->
-<div id="cert-menu" class="menu hidden" style="background: linear-gradient(135deg, rgba(135, 206, 235, 0.9) 0%, rgba(176, 224, 230, 0.95) 100%);">
+<div id="cert-menu" class="menu hidden">
     <div class="cert">
-        <h2>Certificate of Mastery</h2>
-        <p>This certifies that</p>
+        <h2>CERTIFICATE OF MASTERY</h2>
+        <p style="color: #666; letter-spacing: 2px; font-size: 14px;">This certifies that</p>
         <div class="cert-name">Farida</div>
-        <p>Has conquered the Falafel Mountain,<br>made everyone happy, and spread joy everywhere!</p>
-        <div style="font-size: 45px; margin: 25px; color: #F5CBA7;">✦ ✦ ✦</div>
-        <div class="stamp">OFFICIAL</div>
+        <p style="color: #555; line-height: 1.8;">Has conquered the Falafel Mountain,<br>made everyone happy, and spread joy everywhere!</p>
+        <div class="stamp">CERTIFIED</div>
     </div>
-    <button onclick="window.print()" style="margin-top: 25px; background: linear-gradient(180deg, #58D68D 0%, #2ECC71 100%); box-shadow: 0 5px 0 #27AE60;">Print Certificate</button>
-    <button onclick="location.reload()" style="background: linear-gradient(180deg, #AEB6BF 0%, #95A5A6 100%); box-shadow: 0 5px 0 #7F8C8D;">Back to Menu</button>
+    <button class="primary" onclick="window.print()" style="margin-top: 30px;">PRINT CERTIFICATE</button>
+    <button class="secondary" onclick="location.reload()">MAIN MENU</button>
 </div>
 
 <script>
@@ -411,9 +729,7 @@
         
         document.getElementById('load-status').style.display = 'none';
         document.getElementById('play-btn').disabled = false;
-        document.getElementById('play-btn').innerText = "▶ NEW ADVENTURE";
-        document.getElementById('play-btn').style.background = "";
-        document.getElementById('play-btn').style.boxShadow = "";
+        document.getElementById('play-btn').innerText = "NEW ADVENTURE";
         
         // Show continue button if there's progress
         if (completedLevels.length > 0) {
@@ -421,7 +737,76 @@
         }
         
         initMenuStars();
+        initMenuLogo();
         setupGame();
+    }
+    
+    // Create animated logo in menu
+    function initMenuLogo() {
+        const container = document.getElementById('menu-logo');
+        if (!container) return;
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = 120;
+        canvas.height = 120;
+        const ctx = canvas.getContext('2d');
+        
+        function drawFalafel(time) {
+            ctx.clearRect(0, 0, 120, 120);
+            
+            // Floating animation
+            const floatY = Math.sin(time * 0.003) * 5;
+            
+            // Glow
+            const gradient = ctx.createRadialGradient(60, 60 + floatY, 30, 60, 60 + floatY, 60);
+            gradient.addColorStop(0, 'rgba(201, 162, 39, 0.3)');
+            gradient.addColorStop(1, 'rgba(201, 162, 39, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 120, 120);
+            
+            // Main falafel body
+            ctx.beginPath();
+            ctx.arc(60, 60 + floatY, 40, 0, Math.PI * 2);
+            const bodyGrad = ctx.createRadialGradient(45, 45 + floatY, 5, 60, 60 + floatY, 45);
+            bodyGrad.addColorStop(0, '#e8c080');
+            bodyGrad.addColorStop(1, '#a67c52');
+            ctx.fillStyle = bodyGrad;
+            ctx.fill();
+            
+            // Eyes
+            ctx.fillStyle = '#2c2c2c';
+            ctx.beginPath();
+            ctx.arc(48, 55 + floatY, 6, 0, Math.PI * 2);
+            ctx.arc(72, 55 + floatY, 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Eye shine
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(50, 53 + floatY, 2, 0, Math.PI * 2);
+            ctx.arc(74, 53 + floatY, 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Smile
+            ctx.strokeStyle = '#5c4030';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.arc(60, 62 + floatY, 12, 0.2, Math.PI - 0.2);
+            ctx.stroke();
+            
+            // Blush
+            ctx.fillStyle = 'rgba(255, 150, 150, 0.4)';
+            ctx.beginPath();
+            ctx.arc(38, 68 + floatY, 8, 0, Math.PI * 2);
+            ctx.arc(82, 68 + floatY, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            requestAnimationFrame(drawFalafel);
+        }
+        
+        container.appendChild(canvas);
+        requestAnimationFrame(drawFalafel);
     }
 
     let scene = null, camera = null, renderer = null, player = null;
@@ -944,7 +1329,7 @@
 
         if(lvl === 1) {
             // ════════════════════════════════════════════════════════════
-            // THE ENTIRE MOUNTAIN — all 5 zones built at once.
+            // THE ENTIRE MOUNTAIN — all 10 zones built at once.
             // The world is one continuous vertical climb.
             // Each zone is ~8 units higher than the last.
             // From zone 1 you can literally look up and see the platforms above.
@@ -958,247 +1343,343 @@
             //   - Moving platform args: (x,y,z, w,h,d, color, axis, min, max)
             // ════════════════════════════════════════════════════════════
 
-            // ── ZONE 1 — "Sandy Steps"  y=0  ─────────────────────────
-            // Tutorial — slightly tighter. Jars and falafels swapped corners.
-            addPlatform(0, 0, -10, 14, 1, 10, 0xF5DEB3);
-            addJarInZone(-5, 1, -7,  1);           // left-front corner
-            addJarInZone( 5, 1, -14, 1);           // right-back corner
-            addJarInZone( 0, 1, -10, 1);           // centre
-            addJarInZone( 5, 1,  -7, 1);           // right-front
-            addFalafelInZone( 5, 1,  -7, 1);       // opposite their jar
-            addFalafelInZone(-5, 1, -14, 1);
-            addFalafelInZone( 0, 1, -14, 1);       // back-centre
-            addFalafelInZone(-5, 1,  -7, 1);       // left-front
-
-            // Step-up platform between main and ladder platform
-            addPlatform(-4, 0, -19, 6, 1, 4, 0xF5DEB3);
-            // A simple moving platform near the start
-            addMovingPlatform(4, 0, -19, 4, 1, 4, 0xF5CBA7, 'x', -3, 3);
-
-            addPlatform(-4, 0, -23, 9, 1, 6, 0xDEB887);
-            createGateZone(-1, 0, -17, 13, 1);
-            addLadder(-4, 0.5, -23, 8);
+            // ── ZONE 1 — "Sandy Steps" (Tutorial)  y=0  ─────────────────────────
+            // Gentle introduction - learn movement, collect hummus, share with falafels
+            // Main starting platform
+            addPlatform(0, 0, -6, 10, 1, 8, 0xF5DEB3);
+            
+            // Stepping stones to teach jumping
+            addPlatform(6, 0, -12, 4, 1, 4, 0xDEB887);
+            addPlatform(3, 0, -17, 4, 1, 4, 0xDEB887);
+            addPlatform(-2, 0, -17, 5, 1, 5, 0xF5DEB3);
+            
+            // Jars on the stepping stones to encourage exploration
+            addJarInZone(6, 1, -12, 1);
+            addJarInZone(3, 1, -17, 1);
+            addJarInZone(-2, 1, -17, 1);
+            
+            // Falafels waiting on main platform
+            addFalafelInZone(-3, 1, -5, 1);
+            addFalafelInZone(3, 1, -5, 1);
+            addFalafelInZone(0, 1, -8, 1);
+            
+            // Path to ladder with moving platform introduction
+            addPlatform(-6, 0, -22, 6, 1, 4, 0xF5DEB3);
+            addMovingPlatform(-1, 0, -22, 4, 1, 4, 0xF5CBA7, 'x', -2, 5);
+            
+            // Ladder platform
+            addPlatform(-6, 0, -28, 8, 1, 6, 0xDEB887);
+            createGateZone(-3, 0, -20, 10, 1);
+            addLadder(-6, 0.5, -28, 8);
 
 
             // ── ZONE 2 — "Rocky Rise"  y=8  ──────────────────────────
-            // Two bullies. Jars pushed to far corners of the platform.
-            addPlatform(-4, 8, -28, 14, 1, 12, 0xCD853F);
-            // ✦ CHECKPOINT 1 — entry to zone 2, lit like a little falafel torch
-            addCheckpoint(-4, 9, -26, 2);
-            addBully(-2, 9, -28);                  // bully patrols the middle
-            addBully( 3, 9, -33);                  // second bully at back
-            addJarInZone(-10, 9, -23, 2);          // far-left near edge
-            addJarInZone(  2, 9, -33, 2);          // far-right back edge
-            addJarInZone( -4, 9, -33, 2);          // back-centre
-            addJarInZone(  2, 9, -23, 2);          // right-front
-            addFalafelInZone(  2, 9, -23, 2);      // opposite corners from jars
-            addFalafelInZone(-10, 9, -33, 2);
-            addFalafelInZone( -4, 9, -24, 2);
-            addFalafelInZone(-10, 9, -28, 2);      // extra falafel
-
-            addPlatform(-4, 8, -40, 9, 1, 6, 0xA0522D);
-            createGateZone(-4, 8, -35, 12, 2);
-            addMovingPlatform( 4, 8, -38, 4, 1, 4, 0xA0522D, 'x', -3, 3);
-            addMovingPlatform(-4, 8, -43, 4, 1, 4, 0xA0522D, 'z', -2, 2);
-            addLadder(-4, 8.5, -40, 8);
+            // Introduce bullies - two of them patrolling. More challenging platforming.
+            addPlatform(-6, 8, -32, 12, 1, 10, 0xCD853F);
+            addCheckpoint(-6, 9, -30, 2);
+            
+            // Side platforms for jar collection
+            addPlatform(-14, 8, -34, 5, 1, 5, 0xA0522D);
+            addPlatform(2, 8, -38, 5, 1, 5, 0xA0522D);
+            
+            // Bullies patrol the main platform
+            addBully(-4, 9, -35);
+            addBully(-8, 9, -37);
+            
+            // Jars on side platforms (safer to collect)
+            addJarInZone(-14, 9, -34, 2);
+            addJarInZone(2, 9, -38, 2);
+            addJarInZone(-6, 9, -36, 2);
+            addJarInZone(-3, 9, -32, 2);
+            
+            // Falafels scattered
+            addFalafelInZone(-10, 9, -32, 2);
+            addFalafelInZone(-2, 9, -38, 2);
+            addFalafelInZone(-6, 9, -38, 2);
+            addFalafelInZone(0, 9, -34, 2);
+            
+            // Moving platforms to reach ladder
+            addMovingPlatform(-6, 8, -44, 4, 1, 4, 0xA0522D, 'z', -2, 2);
+            addPlatform(-6, 8, -50, 8, 1, 5, 0xA0522D);
+            createGateZone(-6, 8, -42, 10, 2);
+            addLadder(-6, 8.5, -50, 8);
 
 
             // ── ZONE 3 — "Coral Heights"  y=16  ──────────────────────
-            // More content! Side platforms with falafels.
-            addPlatform(-4, 16, -46, 14, 1, 14, 0xFFDAB9);
-            // ✦ CHECKPOINT 2 — entry to zone 3
-            addCheckpoint(-4, 17, -44, 3);
-            addJarInZone(-10, 17, -41, 3);         // left near edge
-            addJarInZone(  2, 17, -52, 3);         // right back edge
-            addJarInZone( -4, 17, -48, 3);         // centre
-            addJarInZone(  2, 17, -41, 3);         // right front
-            addJarInZone( -8, 17, -52, 3);         // left back
-            addFalafelInZone(  2, 17, -41, 3);
-            addFalafelInZone(-10, 17, -52, 3);
-            addFalafelInZone( -4, 17, -43, 3);
-            addFalafelInZone(  2, 17, -52, 3);     // right back
-            addFalafelInZone(-10, 17, -41, 3);     // left front
-
-            createGateZone(-4, 16, -54, 12, 3);
-            addMovingPlatform(-4, 16, -60, 5, 1, 5, 0xFF9896, 'x', -4.5, 4.5); // wider, faster
-            addPlatform(-4, 16, -67, 9, 1, 6, 0xFFDAB9);
-            addLadder(-4, 16.5, -67, 8);
+            // Multi-level platforming with floating islands
+            addPlatform(-6, 16, -54, 10, 1, 8, 0xFFDAB9);
+            addCheckpoint(-6, 17, -52, 3);
+            
+            // Floating island chain
+            addPlatform(-14, 17, -58, 4, 1, 4, 0xFF9896);
+            addPlatform(-10, 18, -64, 4, 1, 4, 0xFF9896);
+            addPlatform(-4, 17, -68, 5, 1, 5, 0xFFDAB9);
+            
+            // Main path platforms
+            addPlatform(2, 16, -60, 5, 1, 5, 0xFFDAB9);
+            addMovingPlatform(-2, 16, -64, 4, 1, 4, 0xFF9896, 'x', -6, 2);
+            
+            // Jars on floating islands
+            addJarInZone(-14, 18, -58, 3);
+            addJarInZone(-10, 19, -64, 3);
+            addJarInZone(2, 17, -60, 3);
+            addJarInZone(-4, 18, -68, 3);
+            addJarInZone(-6, 17, -56, 3);
+            
+            // Falafels
+            addFalafelInZone(-8, 17, -54, 3);
+            addFalafelInZone(-2, 17, -56, 3);
+            addFalafelInZone(-4, 18, -66, 3);
+            addFalafelInZone(0, 17, -58, 3);
+            addFalafelInZone(-12, 18, -58, 3);
+            
+            createGateZone(-6, 16, -72, 10, 3);
+            addPlatform(-6, 16, -78, 8, 1, 5, 0xFFDAB9);
+            addLadder(-6, 16.5, -78, 8);
 
 
             // ── ZONE 4 — "Amber Cliffs"  y=24  ───────────────────────
-            // Three bullies. More jars and falafels.
-            addPlatform(-4, 24, -73, 14, 1, 14, 0xF0E68C);
-            // ✦ CHECKPOINT 3 — entry to zone 4
-            addCheckpoint(-4, 25, -71, 4);
-            addBully(-4, 25, -68);                 // guards the ladder exit
-            addBully( 1, 25, -78);                 // guards the back-right area
-            addBully(-9, 25, -75, 4.5);            // third bully, wider range
-            addJarInZone(-10, 25, -69, 4);         // left near — bully nearby
-            addJarInZone(  2, 25, -79, 4);         // right back — bully nearby
-            addJarInZone( -4, 25, -74, 4);         // centre
-            addJarInZone( -8, 25, -79, 4);         // left back
-            addJarInZone(  2, 25, -69, 4);         // right front
-            addJarInZone( -4, 25, -79, 4);         // back centre
-            addFalafelInZone(  2, 25, -69, 4);
-            addFalafelInZone(-10, 25, -79, 4);
-            addFalafelInZone( -4, 25, -69, 4);
-            addFalafelInZone( -8, 25, -74, 4);
-            addFalafelInZone(  2, 25, -74, 4);     // right middle
-            addFalafelInZone(-10, 25, -69, 4);     // left front
-
-            addPlatform(-4, 24, -85, 9, 1, 6, 0xD4C060);
-            createGateZone(-4, 24, -81, 12, 4);
-            addLadder(-4, 24.5, -85, 8);
+            // More bullies, tighter platforming
+            addPlatform(-6, 24, -82, 12, 1, 12, 0xF0E68C);
+            addCheckpoint(-6, 25, -80, 4);
+            
+            // Three bullies with varying patrol patterns
+            addBully(-6, 25, -85);
+            addBully(-2, 25, -90);
+            addBully(-10, 25, -88, 4);
+            
+            // Elevated platforms for safety
+            addPlatform(-14, 25, -85, 4, 1, 4, 0xD4C060);
+            addPlatform(2, 25, -88, 4, 1, 4, 0xD4C060);
+            addPlatform(-6, 26, -92, 5, 1, 4, 0xD4C060);
+            
+            // Jars spread across danger zones
+            addJarInZone(-14, 26, -85, 4);
+            addJarInZone(2, 26, -88, 4);
+            addJarInZone(-6, 27, -92, 4);
+            addJarInZone(-8, 25, -82, 4);
+            addJarInZone(-2, 25, -82, 4);
+            addJarInZone(-6, 25, -88, 4);
+            
+            // Falafels in safer spots
+            addFalafelInZone(-12, 25, -82, 4);
+            addFalafelInZone(0, 25, -82, 4);
+            addFalafelInZone(-6, 25, -82, 4);
+            addFalafelInZone(-10, 25, -90, 4);
+            addFalafelInZone(0, 25, -90, 4);
+            addFalafelInZone(-6, 27, -90, 4);
+            
+            addMovingPlatform(-6, 24, -98, 4, 1, 4, 0xD4C060, 'x', -4, 4);
+            addPlatform(-6, 24, -104, 8, 1, 5, 0xD4C060);
+            createGateZone(-6, 24, -96, 10, 4);
+            addLadder(-6, 24.5, -104, 8);
 
 
             // ── ZONE 5 — "The Summit"  y=32  ─────────────────────────
-            // Four bullies. More jars and falafels for a grander finale.
-            addPlatform(-4, 32, -91, 14, 1, 16, 0xFFD700);
-            // ✦ CHECKPOINT 4 — the summit entry, most sacred of all
-            addCheckpoint(-4, 33, -89, 5);
-            addBully(-7, 33, -86);                 // left, near entry
-            addBully( 1, 33, -91);                 // right middle
-            addBully(-4, 33, -98);                 // back centre
-            addBully( 1, 33, -98);                 // fourth bully, back right
-            addJarInZone( -7, 33, -91, 5);         // near left bully
-            addJarInZone(  1, 33, -86, 5);         // near right bully
-            addJarInZone( -4, 33, -95, 5);         // near back bully
-            addJarInZone(  1, 33, -95, 5);         // right back
-            addJarInZone( -7, 33, -86, 5);         // left front
-            addFalafelInZone(  1, 33, -97, 5);     // opposite ends
-            addFalafelInZone( -7, 33, -97, 5);
-            addFalafelInZone( -4, 33, -87, 5);
-            addFalafelInZone(  1, 33, -87, 5);     // right front
-            addFalafelInZone( -7, 33, -92, 5);     // left middle
+            // Climax of first half - intense with four bullies
+            addPlatform(-6, 32, -108, 14, 1, 14, 0xFFD700);
+            addCheckpoint(-6, 33, -106, 5);
+            
+            // Four bullies in formation
+            addBully(-10, 33, -110);
+            addBully(-2, 33, -112);
+            addBully(-6, 33, -116);
+            addBully(-10, 33, -118);
+            
+            // Platform maze
+            addPlatform(-14, 33, -112, 4, 1, 4, 0xE8C000);
+            addPlatform(2, 33, -110, 4, 1, 4, 0xE8C000);
+            addPlatform(2, 33, -118, 4, 1, 4, 0xE8C000);
+            addPlatform(-14, 33, -118, 4, 1, 4, 0xE8C000);
+            
+            addJarInZone(-14, 34, -112, 5);
+            addJarInZone(2, 34, -110, 5);
+            addJarInZone(2, 34, -118, 5);
+            addJarInZone(-14, 34, -118, 5);
+            addJarInZone(-6, 33, -110, 5);
+            
+            addFalafelInZone(-8, 33, -108, 5);
+            addFalafelInZone(-4, 33, -108, 5);
+            addFalafelInZone(-6, 33, -114, 5);
+            addFalafelInZone(-10, 33, -114, 5);
+            addFalafelInZone(-2, 33, -118, 5);
 
-            // Gate for zone 5 (now leads to zones 6-10)
-            createGateZone(-4, 32, -105, 12, 5);
-            addPlatform(-4, 32, -110, 9, 1, 6, 0xFFD700);
-            addLadder(-4, 32.5, -110, 8);
+            // Gate and ladder for zone 5
+            createGateZone(-6, 32, -122, 10, 5);
+            addMovingPlatform(-6, 32, -128, 4, 1, 4, 0xE8C000, 'z', -2, 2);
+            addPlatform(-6, 32, -134, 8, 1, 5, 0xFFD700);
+            addLadder(-6, 32.5, -134, 8);
+
 
             // ── ZONE 6 — "Cloud Kingdom"  y=40  ──────────────────────
-            addPlatform(-4, 40, -107, 16, 1, 16, 0xE8F4FD);
-            addCheckpoint(-4, 41, -105, 6);
-            addBully(-8, 41, -107);
-            addBully(2, 41, -115);
-            addBully(-4, 41, -115);
-            addJarInZone(-9, 41, -103, 6);
-            addJarInZone(3, 41, -118, 6);
-            addJarInZone(-4, 41, -120, 6);
-            addJarInZone(-9, 41, -118, 6);
-            addFalafelInZone(3, 41, -103, 6);
-            addFalafelInZone(-4, 41, -104, 6);
-            addFalafelInZone(-9, 41, -120, 6);
-            addFalafelInZone(3, 41, -115, 6);
-            createGateZone(-4, 40, -123, 12, 6);
-            addMovingPlatform(-4, 40, -130, 5, 1, 5, 0xB8D4F0, 'x', -5, 5);
-            addMovingPlatform(2, 40, -135, 4, 1, 4, 0xB8D4F0, 'z', -2, 2);
-            addPlatform(-4, 40, -140, 9, 1, 6, 0xC8E4FF);
-            addLadder(-4, 40.5, -140, 8);
+            // Ethereal floating platforms in the clouds
+            addPlatform(-6, 40, -138, 12, 1, 10, 0xE8F4FD);
+            addCheckpoint(-6, 41, -136, 6);
+            
+            // Cloud platforms scattered around
+            addPlatform(-14, 41, -142, 4, 1, 4, 0xC8E4FF);
+            addPlatform(2, 41, -145, 4, 1, 4, 0xC8E4FF);
+            addPlatform(-6, 42, -150, 5, 1, 5, 0xE8F4FD);
+            
+            addBully(-6, 41, -142);
+            addBully(-2, 41, -146);
+            addBully(-10, 41, -144);
+            
+            addJarInZone(-14, 42, -142, 6);
+            addJarInZone(2, 42, -145, 6);
+            addJarInZone(-6, 43, -150, 6);
+            addJarInZone(-8, 41, -140, 6);
+            
+            addFalafelInZone(-4, 41, -138, 6);
+            addFalafelInZone(-10, 41, -138, 6);
+            addFalafelInZone(-6, 41, -146, 6);
+            addFalafelInZone(0, 41, -142, 6);
+            
+            createGateZone(-6, 40, -154, 10, 6);
+            addMovingPlatform(-6, 40, -160, 4, 1, 4, 0xB8D4F0, 'x', -4, 4);
+            addPlatform(-6, 40, -166, 8, 1, 5, 0xC8E4FF);
+            addLadder(-6, 40.5, -166, 8);
+
 
             // ── ZONE 7 — "Crystal Caves"  y=48  ──────────────────────
-            addPlatform(-4, 48, -146, 14, 1, 14, 0xDDA0DD);
-            addCheckpoint(-4, 49, -144, 7);
-            addBully(-7, 49, -148);
-            addBully(2, 49, -152);
-            addBully(-4, 49, -156);
-            addBully(-8, 49, -153);
-            addJarInZone(-9, 49, -147, 7);
-            addJarInZone(3, 49, -155, 7);
-            addJarInZone(-4, 49, -158, 7);
-            addJarInZone(-9, 49, -158, 7);
-            addJarInZone(0, 49, -150, 7);
-            addFalafelInZone(3, 49, -147, 7);
-            addFalafelInZone(-4, 49, -148, 7);
-            addFalafelInZone(-9, 49, -155, 7);
-            addFalafelInZone(3, 49, -158, 7);
-            addFalafelInZone(-2, 49, -155, 7);
-            createGateZone(-4, 48, -160, 12, 7);
-            addMovingPlatform(-4, 48, -167, 4, 1, 4, 0xCC88CC, 'x', -4, 4);
-            addPlatform(-4, 48, -174, 9, 1, 6, 0xDDA0DD);
-            addLadder(-4, 48.5, -174, 8);
+            addPlatform(-6, 48, -170, 14, 1, 14, 0xDDA0DD);
+            addCheckpoint(-6, 49, -168, 7);
+            
+            // Crystal platforms
+            addPlatform(-14, 49, -174, 4, 1, 4, 0xCC88CC);
+            addPlatform(2, 49, -178, 4, 1, 4, 0xCC88CC);
+            
+            addBully(-8, 49, -172);
+            addBully(-2, 49, -176);
+            addBully(-6, 49, -180);
+            addBully(-10, 49, -178);
+            
+            addJarInZone(-14, 50, -174, 7);
+            addJarInZone(2, 50, -178, 7);
+            addJarInZone(-6, 49, -174, 7);
+            addJarInZone(-8, 49, -180, 7);
+            addJarInZone(-2, 49, -170, 7);
+            
+            addFalafelInZone(-4, 49, -170, 7);
+            addFalafelInZone(-10, 49, -170, 7);
+            addFalafelInZone(-6, 49, -176, 7);
+            addFalafelInZone(0, 49, -176, 7);
+            addFalafelInZone(-6, 49, -182, 7);
+            
+            createGateZone(-6, 48, -186, 10, 7);
+            addMovingPlatform(-6, 48, -192, 4, 1, 4, 0xCC88CC, 'x', -4, 4);
+            addPlatform(-6, 48, -198, 8, 1, 5, 0xDDA0DD);
+            addLadder(-6, 48.5, -198, 8);
+
 
             // ── ZONE 8 — "Volcano Pass"  y=56  ───────────────────────
-            addPlatform(-4, 56, -180, 16, 1, 16, 0xFF6B35);
-            addCheckpoint(-4, 57, -178, 8);
-            addBully(-8, 57, -180);
-            addBully(3, 57, -185);
-            addBully(-4, 57, -190);
-            addBully(0, 57, -180);
-            addBully(-8, 57, -190);
-            addJarInZone(-9, 57, -177, 8);
-            addJarInZone(4, 57, -188, 8);
-            addJarInZone(-4, 57, -193, 8);
-            addJarInZone(-9, 57, -193, 8);
-            addJarInZone(0, 57, -185, 8);
-            addJarInZone(3, 57, -177, 8);
-            addFalafelInZone(4, 57, -177, 8);
-            addFalafelInZone(-4, 57, -178, 8);
-            addFalafelInZone(-9, 57, -188, 8);
-            addFalafelInZone(3, 57, -193, 8);
-            addFalafelInZone(-2, 57, -188, 8);
-            addFalafelInZone(0, 57, -193, 8);
-            createGateZone(-4, 56, -196, 12, 8);
-            addMovingPlatform(-4, 56, -203, 5, 1, 5, 0xFF8855, 'x', -5, 5);
-            addMovingPlatform(3, 56, -210, 4, 1, 4, 0xFF8855, 'z', -3, 3);
-            addPlatform(-4, 56, -215, 9, 1, 6, 0xFF6B35);
-            addLadder(-4, 56.5, -215, 8);
+            addPlatform(-6, 56, -202, 16, 1, 16, 0xFF6B35);
+            addCheckpoint(-6, 57, -200, 8);
+            
+            // Dangerous lava-themed zone with many bullies
+            addBully(-10, 57, -204);
+            addBully(-2, 57, -208);
+            addBully(-6, 57, -212);
+            addBully(-10, 57, -212);
+            addBully(2, 57, -206);
+            
+            // Safe platforms
+            addPlatform(-14, 57, -208, 4, 1, 4, 0xFF8855);
+            addPlatform(4, 57, -210, 4, 1, 4, 0xFF8855);
+            
+            addJarInZone(-14, 58, -208, 8);
+            addJarInZone(4, 58, -210, 8);
+            addJarInZone(-6, 57, -204, 8);
+            addJarInZone(-8, 57, -214, 8);
+            addJarInZone(-2, 57, -202, 8);
+            addJarInZone(0, 57, -210, 8);
+            
+            addFalafelInZone(-4, 57, -202, 8);
+            addFalafelInZone(-10, 57, -202, 8);
+            addFalafelInZone(-6, 57, -208, 8);
+            addFalafelInZone(0, 57, -204, 8);
+            addFalafelInZone(-8, 57, -210, 8);
+            addFalafelInZone(-2, 57, -214, 8);
+            
+            createGateZone(-6, 56, -218, 10, 8);
+            addMovingPlatform(-6, 56, -224, 5, 1, 5, 0xFF8855, 'x', -4, 4);
+            addPlatform(-6, 56, -230, 8, 1, 5, 0xFF6B35);
+            addLadder(-6, 56.5, -230, 8);
+
 
             // ── ZONE 9 — "Sky Garden"  y=64  ─────────────────────────
-            addPlatform(-4, 64, -221, 16, 1, 18, 0x90EE90);
-            addCheckpoint(-4, 65, -219, 9);
-            addBully(-8, 65, -222);
-            addBully(3, 65, -228);
-            addBully(-4, 65, -234);
-            addBully(0, 65, -224);
-            addBully(-8, 65, -232);
-            addBully(3, 65, -237);
-            addJarInZone(-9, 65, -222, 9);
-            addJarInZone(4, 65, -230, 9);
-            addJarInZone(-4, 65, -236, 9);
-            addJarInZone(-9, 65, -236, 9);
-            addJarInZone(0, 65, -228, 9);
-            addJarInZone(4, 65, -222, 9);
-            addJarInZone(-2, 65, -232, 9);
-            addFalafelInZone(4, 65, -222, 9);
-            addFalafelInZone(-4, 65, -223, 9);
-            addFalafelInZone(-9, 65, -230, 9);
-            addFalafelInZone(3, 65, -236, 9);
-            addFalafelInZone(-2, 65, -230, 9);
-            addFalafelInZone(0, 65, -237, 9);
-            addFalafelInZone(-9, 65, -223, 9);
-            createGateZone(-4, 64, -239, 12, 9);
-            addMovingPlatform(-4, 64, -246, 5, 1, 5, 0x5ACA5A, 'x', -5, 5);
-            addMovingPlatform(-4, 64, -253, 5, 1, 5, 0x5ACA5A, 'z', -3, 3);
-            addMovingPlatform(3, 64, -258, 4, 1, 4, 0x5ACA5A, 'x', -3, 3);
-            addPlatform(-4, 64, -264, 9, 1, 6, 0x90EE90);
-            addLadder(-4, 64.5, -264, 8);
+            addPlatform(-6, 64, -234, 16, 1, 18, 0x90EE90);
+            addCheckpoint(-6, 65, -232, 9);
+            
+            // Garden platforms
+            addPlatform(-14, 65, -240, 4, 1, 4, 0x5ACA5A);
+            addPlatform(2, 65, -244, 4, 1, 4, 0x5ACA5A);
+            addPlatform(-6, 66, -248, 5, 1, 5, 0x90EE90);
+            
+            addBully(-10, 65, -236);
+            addBully(-2, 65, -240);
+            addBully(-6, 65, -246);
+            addBully(-10, 65, -244);
+            addBully(2, 65, -238);
+            addBully(-6, 65, -250);
+            
+            addJarInZone(-14, 66, -240, 9);
+            addJarInZone(2, 66, -244, 9);
+            addJarInZone(-6, 67, -248, 9);
+            addJarInZone(-8, 65, -236, 9);
+            addJarInZone(-2, 65, -234, 9);
+            addJarInZone(0, 65, -242, 9);
+            addJarInZone(-10, 65, -248, 9);
+            
+            addFalafelInZone(-4, 65, -234, 9);
+            addFalafelInZone(-10, 65, -234, 9);
+            addFalafelInZone(-6, 65, -240, 9);
+            addFalafelInZone(0, 65, -238, 9);
+            addFalafelInZone(-8, 65, -246, 9);
+            addFalafelInZone(-2, 65, -248, 9);
+            addFalafelInZone(-6, 66, -246, 9);
+            
+            createGateZone(-6, 64, -254, 10, 9);
+            addMovingPlatform(-6, 64, -260, 5, 1, 5, 0x5ACA5A, 'x', -5, 5);
+            addMovingPlatform(-6, 64, -266, 5, 1, 5, 0x5ACA5A, 'z', -2, 2);
+            addPlatform(-6, 64, -272, 8, 1, 5, 0x90EE90);
+            addLadder(-6, 64.5, -272, 8);
+
 
             // ── ZONE 10 — "Falafel Palace - The Final Zone"  y=72  ───
-            addPlatform(-4, 72, -270, 20, 1, 22, 0xFFD700);
-            addCheckpoint(-4, 73, -268, 10);
-            addBully(-9, 73, -272);
-            addBully(5, 73, -280);
-            addBully(-4, 73, -285);
-            addBully(5, 73, -272);
-            addBully(-9, 73, -285);
-            addBully(0, 73, -278);
-            addJarInZone(-9, 73, -271, 10);
-            addJarInZone(5, 73, -278, 10);
-            addJarInZone(-4, 73, -289, 10);
-            addJarInZone(-9, 73, -289, 10);
-            addJarInZone(5, 73, -285, 10);
-            addJarInZone(0, 73, -276, 10);
-            addJarInZone(-7, 73, -280, 10);
-            addJarInZone(3, 73, -272, 10);
-            addFalafelInZone(5, 73, -271, 10);
-            addFalafelInZone(-4, 73, -272, 10);
-            addFalafelInZone(-9, 73, -278, 10);
-            addFalafelInZone(5, 73, -289, 10);
-            addFalafelInZone(-2, 73, -285, 10);
-            addFalafelInZone(3, 73, -280, 10);
-            addFalafelInZone(-9, 73, -272, 10);
-            addFalafelInZone(2, 73, -287, 10);
+            addPlatform(-6, 72, -276, 20, 1, 22, 0xFFD700);
+            addCheckpoint(-6, 73, -274, 10);
+            
+            // Epic finale with many bullies
+            addBully(-12, 73, -280);
+            addBully(4, 73, -284);
+            addBully(-6, 73, -290);
+            addBully(-12, 73, -290);
+            addBully(4, 73, -278);
+            addBully(-6, 73, -282);
+            
+            // Elevated platforms for the grand finale
+            addPlatform(-14, 74, -284, 4, 1, 4, 0xE8C000);
+            addPlatform(4, 74, -288, 4, 1, 4, 0xE8C000);
+            addPlatform(-6, 75, -294, 5, 1, 5, 0xFFD700);
+            
+            addJarInZone(-14, 75, -284, 10);
+            addJarInZone(4, 75, -288, 10);
+            addJarInZone(-6, 76, -294, 10);
+            addJarInZone(-10, 73, -278, 10);
+            addJarInZone(0, 73, -278, 10);
+            addJarInZone(-8, 73, -286, 10);
+            addJarInZone(-2, 73, -290, 10);
+            addJarInZone(-6, 73, -278, 10);
+            
+            addFalafelInZone(-4, 73, -276, 10);
+            addFalafelInZone(-10, 73, -276, 10);
+            addFalafelInZone(-6, 73, -284, 10);
+            addFalafelInZone(2, 73, -282, 10);
+            addFalafelInZone(-10, 73, -288, 10);
+            addFalafelInZone(0, 73, -292, 10);
+            addFalafelInZone(-6, 75, -292, 10);
+            addFalafelInZone(-8, 73, -280, 10);
             // No gate — this is the final zone!
 
         } else if(lvl > 1) {
@@ -1599,16 +2080,18 @@ function addFalafel(x,y,z,sad) {
             }
         });
         
+        // If near a falafel, space means share - don't jump
         if(near && nearestFalafel) {
             if(game.hummusCount > 0) {
                 share(nearestFalafel);
-                showHint("Shared! 🧆💛");
+                showHint("Shared!");
             } else {
                 showHint("You need hummus! Find a jar first.");
             }
+            return; // Don't jump when near a falafel
         }
         
-        // Jump always allowed when on ground
+        // Jump only when NOT near a falafel and on ground
         if(canJump) {
             velocity.y = 0.35; canJump = false; sound('jump');
         }
@@ -1877,15 +2360,56 @@ function addFalafel(x,y,z,sad) {
         msg.innerText = text;
         msg.style.display = 'block';
         msg.style.fontSize = '24px';
-        msg.style.color = '#D4AC6E';
+        msg.style.color = '#f4d03f';
         clearTimeout(hintTimeout);
         hintTimeout = setTimeout(() => {
             msg.style.display = 'none';
         }, 2500);
     }
 
+    // ANIMATED CUTSCENE SYSTEM
     let cutscenePanel = 0;
-    const CUTSCENE_TOTAL = 7; // must match number of cutscene-panel divs
+    let typingInterval = null;
+    let cutsceneAnimationFrame = null;
+    
+    const CUTSCENE_DATA = [
+        {
+            speaker: "NARRATOR",
+            text: "In a magical land high in the mountains, there lived a peaceful community of <span class='highlight'>falafels</span>...",
+            scene: "intro"
+        },
+        {
+            speaker: "NARRATOR", 
+            text: "Every day, the falafels would share <span class='highlight'>hummus</span> with each other and dance with joy! They were the happiest creatures in the world.",
+            scene: "happy"
+        },
+        {
+            speaker: "NARRATOR",
+            text: "One terrible day, the evil <span class='highlight'>Burnt Bullies</span> descended from the scorched peaks and <span class='highlight'>stole ALL the hummus</span>!",
+            scene: "attack"
+        },
+        {
+            speaker: "NARRATOR",
+            text: "Without their beloved hummus, the falafels became terribly sad. Their tears fell like rain across the mountain...",
+            scene: "sad"
+        },
+        {
+            speaker: "NARRATOR",
+            text: "But wait — the Burnt Bullies dropped some <span class='highlight'>hummus jars</span> as they fled! They're scattered across the mountain...",
+            scene: "hope"
+        },
+        {
+            speaker: "NARRATOR",
+            text: "YOU must climb the <span class='highlight'>Falafel Mountain</span>, collect the hummus jars, and share them with the sad falafels! Avoid the Burnt Bullies — they're dangerous!",
+            scene: "mission"
+        },
+        {
+            speaker: "NARRATOR",
+            text: "The falafels are counting on you, <span class='highlight'>Farida</span>! Climb the mountain. Spread joy. <span class='highlight'>Save the Kingdom!</span>",
+            scene: "ready"
+        }
+    ];
+    const CUTSCENE_TOTAL = CUTSCENE_DATA.length;
 
     function initCutsceneDots() {
         const dots = document.getElementById('cutscene-dots');
@@ -1896,24 +2420,224 @@ function addFalafel(x,y,z,sad) {
             dots.appendChild(d);
         }
     }
+    
+    function renderCutsceneScene(sceneName) {
+        const scene = document.getElementById('cutscene-scene');
+        scene.innerHTML = '';
+        
+        // Background elements
+        const bg = document.createElement('div');
+        bg.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, #1a2040 0%, #2d3060 50%, #1a2030 100%);';
+        scene.appendChild(bg);
+        
+        // Mountain
+        const mountain = document.createElement('div');
+        mountain.className = 'scene-element scene-mountain';
+        scene.appendChild(mountain);
+        
+        // Sun/Moon
+        const sun = document.createElement('div');
+        sun.className = 'scene-element scene-sun';
+        scene.appendChild(sun);
+        
+        // Scene-specific elements
+        if (sceneName === 'intro' || sceneName === 'happy') {
+            // Happy falafels
+            for (let i = 0; i < 3; i++) {
+                const falafel = document.createElement('div');
+                falafel.className = 'scene-element scene-falafel happy';
+                falafel.style.bottom = '80px';
+                falafel.style.left = (250 + i * 150) + 'px';
+                falafel.style.animation = 'float 2s ease-in-out infinite';
+                falafel.style.animationDelay = (i * 0.3) + 's';
+                scene.appendChild(falafel);
+            }
+            // Hummus jars
+            for (let i = 0; i < 2; i++) {
+                const jar = document.createElement('div');
+                jar.className = 'scene-element scene-jar';
+                jar.style.bottom = '60px';
+                jar.style.left = (320 + i * 180) + 'px';
+                scene.appendChild(jar);
+            }
+        } else if (sceneName === 'attack') {
+            // Bullies attacking
+            for (let i = 0; i < 3; i++) {
+                const bully = document.createElement('div');
+                bully.className = 'scene-element scene-bully';
+                bully.style.top = (80 + i * 40) + 'px';
+                bully.style.left = (200 + i * 200) + 'px';
+                bully.style.animation = 'float 1s ease-in-out infinite';
+                bully.style.animationDelay = (i * 0.2) + 's';
+                scene.appendChild(bully);
+            }
+            // Scared falafels
+            for (let i = 0; i < 2; i++) {
+                const falafel = document.createElement('div');
+                falafel.className = 'scene-element scene-falafel sad';
+                falafel.style.bottom = '80px';
+                falafel.style.left = (300 + i * 200) + 'px';
+                scene.appendChild(falafel);
+            }
+        } else if (sceneName === 'sad') {
+            // Sad falafels with tears (represented by color)
+            for (let i = 0; i < 4; i++) {
+                const falafel = document.createElement('div');
+                falafel.className = 'scene-element scene-falafel sad';
+                falafel.style.bottom = '80px';
+                falafel.style.left = (180 + i * 120) + 'px';
+                scene.appendChild(falafel);
+                
+                // Tear drops
+                const tear = document.createElement('div');
+                tear.style.cssText = `position: absolute; bottom: 130px; left: ${195 + i * 120}px; width: 8px; height: 8px; background: #5DADE2; border-radius: 50%; animation: float 1s ease-in-out infinite reverse; animation-delay: ${i * 0.2}s;`;
+                scene.appendChild(tear);
+            }
+            // Dark overlay
+            sun.style.opacity = '0.3';
+        } else if (sceneName === 'hope') {
+            // Scattered jars
+            for (let i = 0; i < 5; i++) {
+                const jar = document.createElement('div');
+                jar.className = 'scene-element scene-jar';
+                jar.style.bottom = (60 + Math.random() * 100) + 'px';
+                jar.style.left = (100 + i * 140) + 'px';
+                jar.style.animation = 'float 2s ease-in-out infinite';
+                jar.style.animationDelay = (i * 0.3) + 's';
+                scene.appendChild(jar);
+            }
+            // Sparkle effect
+            for (let i = 0; i < 8; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.style.cssText = `position: absolute; width: 4px; height: 4px; background: #f4d03f; border-radius: 50%; top: ${100 + Math.random() * 200}px; left: ${100 + Math.random() * 600}px; animation: twinkle 1.5s infinite; animation-delay: ${Math.random() * 2}s;`;
+                scene.appendChild(sparkle);
+            }
+        } else if (sceneName === 'mission') {
+            // Player falafel (hero)
+            const hero = document.createElement('div');
+            hero.className = 'scene-element scene-falafel happy';
+            hero.style.bottom = '80px';
+            hero.style.left = '380px';
+            hero.style.transform = 'scale(1.3)';
+            hero.style.boxShadow = '0 0 30px rgba(244, 208, 63, 0.5)';
+            scene.appendChild(hero);
+            
+            // Bullies to avoid
+            const bully = document.createElement('div');
+            bully.className = 'scene-element scene-bully';
+            bully.style.bottom = '180px';
+            bully.style.left = '550px';
+            bully.style.animation = 'float 1.5s ease-in-out infinite';
+            scene.appendChild(bully);
+            
+            // Jar to collect
+            const jar = document.createElement('div');
+            jar.className = 'scene-element scene-jar';
+            jar.style.bottom = '150px';
+            jar.style.left = '200px';
+            jar.style.animation = 'float 2s ease-in-out infinite';
+            scene.appendChild(jar);
+        } else if (sceneName === 'ready') {
+            // Triumphant scene
+            const hero = document.createElement('div');
+            hero.className = 'scene-element scene-falafel happy';
+            hero.style.bottom = '200px';
+            hero.style.left = '375px';
+            hero.style.transform = 'scale(1.5)';
+            hero.style.boxShadow = '0 0 50px rgba(244, 208, 63, 0.7)';
+            hero.style.animation = 'float 2s ease-in-out infinite';
+            scene.appendChild(hero);
+            
+            // Sparkles around hero
+            for (let i = 0; i < 12; i++) {
+                const sparkle = document.createElement('div');
+                const angle = (i / 12) * Math.PI * 2;
+                const radius = 80 + Math.random() * 40;
+                sparkle.style.cssText = `position: absolute; width: 6px; height: 6px; background: #f4d03f; border-radius: 50%; top: ${200 + Math.sin(angle) * radius}px; left: ${390 + Math.cos(angle) * radius}px; animation: twinkle 1s infinite; animation-delay: ${i * 0.1}s;`;
+                scene.appendChild(sparkle);
+            }
+        }
+    }
+    
+    function typeText(text, element, callback) {
+        if (typingInterval) clearInterval(typingInterval);
+        
+        element.innerHTML = '';
+        let i = 0;
+        let isTag = false;
+        let currentTag = '';
+        
+        typingInterval = setInterval(() => {
+            if (i < text.length) {
+                const char = text[i];
+                
+                // Handle HTML tags
+                if (char === '<') {
+                    isTag = true;
+                    currentTag = char;
+                } else if (char === '>') {
+                    isTag = false;
+                    currentTag += char;
+                    element.innerHTML += currentTag;
+                    currentTag = '';
+                } else if (isTag) {
+                    currentTag += char;
+                } else {
+                    element.innerHTML += char;
+                }
+                
+                i++;
+            } else {
+                clearInterval(typingInterval);
+                typingInterval = null;
+                if (callback) callback();
+            }
+        }, 30);
+    }
 
     function advanceCutscene() {
-        document.getElementById('cutscene-panel-' + cutscenePanel).classList.add('hidden');
+        if (typingInterval) {
+            // Skip to end of current text
+            clearInterval(typingInterval);
+            typingInterval = null;
+            const data = CUTSCENE_DATA[cutscenePanel];
+            document.getElementById('cutscene-dialogue').innerHTML = data.text;
+            return;
+        }
+        
         cutscenePanel++;
         if (cutscenePanel >= CUTSCENE_TOTAL) {
             skipCutscene();
             return;
         }
-        document.getElementById('cutscene-panel-' + cutscenePanel).classList.remove('hidden');
+        
+        showCutscenePanel(cutscenePanel);
+    }
+    
+    function showCutscenePanel(index) {
+        const data = CUTSCENE_DATA[index];
+        document.getElementById('cutscene-speaker').textContent = data.speaker;
+        renderCutsceneScene(data.scene);
+        typeText(data.text, document.getElementById('cutscene-dialogue'));
+        
+        // Update dots
         document.querySelectorAll('.cutscene-dot').forEach((d, i) => {
-            d.className = 'cutscene-dot' + (i === cutscenePanel ? ' active' : '');
+            d.className = 'cutscene-dot' + (i === index ? ' active' : '');
         });
-        if (cutscenePanel === CUTSCENE_TOTAL - 1) {
-            document.getElementById('cutscene-next-btn').innerText = 'Play! 🧆';
+        
+        // Update button text
+        if (index === CUTSCENE_TOTAL - 1) {
+            document.getElementById('cutscene-next-btn').innerText = 'BEGIN ADVENTURE';
+        } else {
+            document.getElementById('cutscene-next-btn').innerText = 'CONTINUE';
         }
     }
 
     function skipCutscene() {
+        if (typingInterval) {
+            clearInterval(typingInterval);
+            typingInterval = null;
+        }
         localStorage.setItem('fk_cutscene_seen', '1');
         if (game.pendingStart) {
             game.pendingStart = false;
@@ -1944,9 +2668,7 @@ function addFalafel(x,y,z,sad) {
         if (!localStorage.getItem('fk_cutscene_seen')) {
             cutscenePanel = 0;
             initCutsceneDots();
-            document.getElementById('cutscene-panel-0').classList.remove('hidden');
-            for(let i=1;i<CUTSCENE_TOTAL;i++) document.getElementById('cutscene-panel-'+i).classList.add('hidden');
-            document.getElementById('cutscene-next-btn').innerText = 'Next ▶';
+            showCutscenePanel(0);
             showScreen('cutscene');
             game.pendingStart = true;
             return;
@@ -2189,15 +2911,15 @@ function addFalafel(x,y,z,sad) {
     const ZONE_SPAWN = [
         null,                   // index 0 unused
         [  0,  2,   0  ],       // Zone 1 — spawn island
-        [ -4, 10, -25  ],       // Zone 2 — just past ladder top
-        [ -4, 18, -43  ],       // Zone 3 — past ladder top
-        [ -4, 26, -70  ],       // Zone 4 — past ladder top
-        [ -4, 34, -88  ],       // Zone 5 — past ladder top
-        [ -4, 42, -103 ],       // Zone 6 — Cloud Kingdom
-        [ -4, 50, -142 ],       // Zone 7 — Crystal Caves
-        [ -4, 58, -176 ],       // Zone 8 — Volcano Pass
-        [ -4, 66, -217 ],       // Zone 9 — Sky Garden
-        [ -4, 74, -266 ],       // Zone 10 — Falafel Palace
+        [ -6, 10, -30  ],       // Zone 2 — Rocky Rise
+        [ -6, 18, -52  ],       // Zone 3 — Coral Heights
+        [ -6, 26, -80  ],       // Zone 4 — Amber Cliffs
+        [ -6, 34, -106 ],       // Zone 5 — The Summit
+        [ -6, 42, -136 ],       // Zone 6 — Cloud Kingdom
+        [ -6, 50, -168 ],       // Zone 7 — Crystal Caves
+        [ -6, 58, -200 ],       // Zone 8 — Volcano Pass
+        [ -6, 66, -232 ],       // Zone 9 — Sky Garden
+        [ -6, 74, -274 ],       // Zone 10 — Falafel Palace
     ];
 
     function selectLevel(lvl) {
