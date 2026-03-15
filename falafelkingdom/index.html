@@ -87,7 +87,7 @@ body{overflow:hidden;background:#08060f;font-family:'Kenney Future','Comic Sans 
 
 /* Victory */
 #sv{background:radial-gradient(ellipse at 50% 50%,#1a1008 0%,#0a0603 100%)}
-@keyframes victoryGlow{0%,100%{text-shadow:0 0 20px #FFD700,0 0 40px #FFD700}50%{text-shadow:0 0 40px #FFD700,0 0 80px #FFD700,0 0 120px #FFAa00}}
+@keyframes victoryGlow{0%,100%{text-shadow:0 0 20px #FFD700,0 0 40px #FFD700}50%{text-shadow:0 0 40px #FFD700,0 0 80px #FFD700,0 0 120px #FFAA00}}
 .vtitle{font-size:52px;font-weight:900;color:#FFD700;animation:victoryGlow 2s ease-in-out infinite}
 
 /* Touch controls */
@@ -194,10 +194,10 @@ body{overflow:hidden;background:#08060f;font-family:'Kenney Future','Comic Sans 
 
 <!-- Touch controls -->
 <div id="tdp">
-  <div class="tdb" style="top:0px;left:65px;width:64px;height:64px;border-radius:8px 8px 0 0" ontouchstart="keys.w=true;e&&e.preventDefault&&e.preventDefault()" ontouchend="keys.w=false">▲</div>
-  <div class="tdb" style="top:64px;left:0px;width:64px;height:64px;border-radius:8px 0 0 8px" ontouchstart="keys.a=true;e&&e.preventDefault&&e.preventDefault()" ontouchend="keys.a=false">◀</div>
-  <div class="tdb" style="top:64px;left:65px;width:64px;height:64px" ontouchstart="keys.s=true;e&&e.preventDefault&&e.preventDefault()" ontouchend="keys.s=false">▼</div>
-  <div class="tdb" style="top:64px;left:130px;width:64px;height:64px;border-radius:0 8px 8px 0" ontouchstart="keys.d=true;e&&e.preventDefault&&e.preventDefault()" ontouchend="keys.d=false">▶</div>
+  <div class="tdb" style="top:0px;left:65px;width:64px;height:64px;border-radius:8px 8px 0 0" ontouchstart="keys.w=true" ontouchend="keys.w=false">▲</div>
+  <div class="tdb" style="top:64px;left:0px;width:64px;height:64px;border-radius:8px 0 0 8px" ontouchstart="keys.a=true" ontouchend="keys.a=false">◀</div>
+  <div class="tdb" style="top:64px;left:65px;width:64px;height:64px" ontouchstart="keys.s=true" ontouchend="keys.s=false">▼</div>
+  <div class="tdb" style="top:64px;left:130px;width:64px;height:64px;border-radius:0 8px 8px 0" ontouchstart="keys.d=true" ontouchend="keys.d=false">▶</div>
 </div>
 <div id="tjb" ontouchstart="handleJump()">⬆</div>
 
