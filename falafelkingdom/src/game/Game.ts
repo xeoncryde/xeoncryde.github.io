@@ -86,14 +86,13 @@ export class Game {
     eventBus.on('actorActivated', (data) => {
       const d = data as { id: string; unlocks: string[] };
       for (const unlockId of d.unlocks) {
-        const locked = this.level.lockedPlatforms.get(d.id);
+        const locked = this.level.lockedPlatforms.get(unlockId);
         if (locked) {
           locked.aabb.locked = false;
           locked.mesh.visibility = 1.0;
           this.level.platforms.push(locked.aabb);
           this.hud.showMessage('The bridge is open!', 3);
         }
-        void unlockId;
       }
       this.checkpoints.activatedActors.add(d.id);
     });

@@ -47,7 +47,7 @@ export class Level {
       const mesh = assets.fallbackMesh(scene, p.locked ? 'bridge' : p.type, pos, scale);
       const aabb: AABB = { x: p.x, y: p.y, z: p.z, w: p.w, h: p.h, d: p.d, locked: p.locked };
       if (p.locked && p.unlockedBy) {
-        lockedPlatforms.set(p.unlockedBy, { aabb, mesh, unlockedBy: p.unlockedBy });
+        lockedPlatforms.set(p.id, { aabb, mesh, unlockedBy: p.unlockedBy });
         mesh.visibility = 0.4;
       } else {
         platforms.push(aabb);
