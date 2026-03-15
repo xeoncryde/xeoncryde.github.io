@@ -726,7 +726,30 @@
             setTimeout(initGame, 100);
             return;
         }
-        
+
+        // Dynamically load post-processing addons if not yet available
+        if (typeof THREE.EffectComposer === 'undefined') {
+            const addons = [
+                'https://unpkg.com/three@0.128.0/examples/js/shaders/CopyShader.js',
+                'https://unpkg.com/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js',
+                'https://unpkg.com/three@0.128.0/examples/js/postprocessing/EffectComposer.js',
+                'https://unpkg.com/three@0.128.0/examples/js/postprocessing/RenderPass.js',
+                'https://unpkg.com/three@0.128.0/examples/js/postprocessing/ShaderPass.js',
+                'https://unpkg.com/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js',
+            ];
+            let idx = 0;
+            function loadNext() {
+                if (idx >= addons.length) { initGame(); return; }
+                const s = document.createElement('script');
+                s.src = addons[idx++];
+                s.onload = loadNext;
+                s.onerror = loadNext; // graceful: skip on CDN failure
+                document.head.appendChild(s);
+            }
+            loadNext();
+            return;
+        }
+
         document.getElementById('load-status').style.display = 'none';
         document.getElementById('play-btn').disabled = false;
         document.getElementById('play-btn').innerText = "NEW ADVENTURE";
@@ -946,11 +969,30 @@
 
         camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 800);
         camera.position.set(0, 10, 15);
-        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        // Physically-accurate tone mapping + sRGB output for richer, cinema-quality colours
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.05;
+        renderer.outputEncoding = THREE.sRGBEncoding;
         document.getElementById('game-container').appendChild(renderer.domElement);
+
+        // ── Post-processing: bloom + render pipeline ─────────────────────────
+        if (typeof THREE.EffectComposer !== 'undefined') {
+            const _composer = new THREE.EffectComposer(renderer);
+            _composer.addPass(new THREE.RenderPass(scene, camera));
+            const bloom = new THREE.UnrealBloomPass(
+                new THREE.Vector2(window.innerWidth, window.innerHeight),
+                0.30,   // strength — subtle glow, not blinding
+                0.55,   // radius
+                0.88    // threshold — only bright surfaces glow
+            );
+            _composer.addPass(bloom);
+            window._composer = _composer;
+        }
 
         // ── Shared platform textures (created once, reused) ─────────────────
         function mkTex(w, h, drawFn) {
@@ -960,80 +1002,123 @@
             t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2,2);
             return t;
         }
-        window._texStone = mkTex(128,128,(ctx)=>{
-            ctx.fillStyle='#C8B090'; ctx.fillRect(0,0,128,128);
-            // Grout lines
-            ctx.strokeStyle='rgba(80,60,30,0.35)'; ctx.lineWidth=2;
-            [0,32,64,96,128].forEach(y=>{ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(128,y);ctx.stroke(); });
-            [0,32,64,96,128].forEach(x=>{ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,128);ctx.stroke(); });
-            // Noise
-            for(let i=0;i<300;i++){
-                ctx.fillStyle=`rgba(${Math.random()>0.5?'50,30,10':'200,180,140'},${0.05+Math.random()*0.12})`;
-                ctx.fillRect(Math.random()*128,Math.random()*128,2+Math.random()*4,2+Math.random()*4);
+        window._texStone = mkTex(256,256,(ctx)=>{
+            // Sandy stone base with subtle colour variation
+            const bg = ctx.createLinearGradient(0,0,256,256);
+            bg.addColorStop(0,'#D4B896'); bg.addColorStop(1,'#C0A278');
+            ctx.fillStyle=bg; ctx.fillRect(0,0,256,256);
+            // Mortar grid lines
+            ctx.strokeStyle='rgba(70,45,20,0.30)'; ctx.lineWidth=2;
+            [0,42,84,126,168,210,256].forEach(y=>{ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(256,y);ctx.stroke(); });
+            for(let row=0;row<7;row++){
+                const off = (row%2===0)?0:21;
+                [off,off+42,off+84,off+126,off+168,off+210,off+252].forEach(x=>{ ctx.beginPath();ctx.moveTo(x,row*42);ctx.lineTo(x,(row+1)*42);ctx.stroke(); });
+            }
+            // Fine surface noise
+            for(let i=0;i<600;i++){
+                const bright = Math.random()>0.5;
+                ctx.fillStyle=`rgba(${bright?'220,190,155':'60,35,10'},${0.04+Math.random()*0.10})`;
+                ctx.fillRect(Math.random()*256,Math.random()*256,1+Math.random()*4,1+Math.random()*4);
             }
         });
-        window._texEarth = mkTex(128,128,(ctx)=>{
-            ctx.fillStyle='#8B6040'; ctx.fillRect(0,0,128,128);
+        window._texEarth = mkTex(256,256,(ctx)=>{
+            ctx.fillStyle='#9B6E42'; ctx.fillRect(0,0,256,256);
+            // Organic soil clumps
+            for(let i=0;i<800;i++){
+                const s=Math.random()>0.5;
+                ctx.fillStyle=`rgba(${s?'55,30,8':'170,120,70'},${0.05+Math.random()*0.18})`;
+                const r=1+Math.random()*5;
+                ctx.beginPath();ctx.arc(Math.random()*256,Math.random()*256,r,0,Math.PI*2);ctx.fill();
+            }
+            // Fine pebble dots
+            for(let i=0;i<80;i++){
+                ctx.fillStyle=`rgba(${Math.random()>0.5?'130,100,60':'80,55,25'},0.35)`;
+                ctx.beginPath();ctx.arc(Math.random()*256,Math.random()*256,1+Math.random()*2,0,Math.PI*2);ctx.fill();
+            }
+        });
+        window._texGold = mkTex(256,256,(ctx)=>{
+            // Rich warm gold base
+            const bg = ctx.createLinearGradient(0,0,256,256);
+            bg.addColorStop(0,'#E8C030'); bg.addColorStop(0.5,'#F5D050'); bg.addColorStop(1,'#C89010');
+            ctx.fillStyle=bg; ctx.fillRect(0,0,256,256);
+            // Brushed-metal streaks
+            ctx.globalAlpha=0.18;
+            for(let i=0;i<60;i++){
+                const y=Math.random()*256;
+                ctx.strokeStyle=Math.random()>0.5?'rgba(255,240,130,0.9)':'rgba(100,70,0,0.9)';
+                ctx.lineWidth=0.5+Math.random()*1.5;
+                ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(256,y+Math.random()*4-2);ctx.stroke();
+            }
+            ctx.globalAlpha=1;
+            // Embossed sesame seeds
+            ctx.fillStyle='rgba(90,55,0,0.22)';
+            for(let i=0;i<50;i++){
+                const ex=Math.random()*256, ey=Math.random()*256;
+                ctx.beginPath();ctx.ellipse(ex,ey,3,2,Math.random()*Math.PI,0,Math.PI*2);ctx.fill();
+            }
+        });
+        window._texPeach = mkTex(256,256,(ctx)=>{
+            ctx.fillStyle='#EDB888'; ctx.fillRect(0,0,256,256);
             for(let i=0;i<500;i++){
                 const s=Math.random()>0.5;
-                ctx.fillStyle=`rgba(${s?'60,35,10':'140,100,55'},${0.06+Math.random()*0.18})`;
-                ctx.fillRect(Math.random()*128,Math.random()*128,1+Math.random()*5,1+Math.random()*5);
-            }
-        });
-        window._texGold = mkTex(128,128,(ctx)=>{
-            ctx.fillStyle='#D4A820'; ctx.fillRect(0,0,128,128);
-            for(let i=0;i<200;i++){
-                ctx.fillStyle=`rgba(${Math.random()>0.5?'255,220,80':'150,100,10'},${0.06+Math.random()*0.15})`;
-                ctx.fillRect(Math.random()*128,Math.random()*128,2+Math.random()*5,2+Math.random()*5);
-            }
-            // Embossed sesame dots
-            ctx.fillStyle='rgba(100,60,0,0.18)';
-            for(let i=0;i<30;i++) ctx.fillRect(Math.random()*128,Math.random()*128,4,3);
-        });
-        window._texPeach = mkTex(128,128,(ctx)=>{
-            ctx.fillStyle='#E8A878'; ctx.fillRect(0,0,128,128);
-            for(let i=0;i<300;i++){
-                ctx.fillStyle=`rgba(${Math.random()>0.5?'180,90,50':'255,200,150'},${0.05+Math.random()*0.12})`;
-                ctx.fillRect(Math.random()*128,Math.random()*128,2+Math.random()*4,2+Math.random()*4);
+                ctx.fillStyle=`rgba(${s?'190,100,55':'255,210,160'},${0.04+Math.random()*0.12})`;
+                ctx.fillRect(Math.random()*256,Math.random()*256,2+Math.random()*5,2+Math.random()*5);
             }
         });
 
-        // Hemisphere light: sky blue above, warm green below
-        const hemi = new THREE.HemisphereLight(0xADD8F5, 0x55882A, 0.75);
+        // Hemisphere light: warm golden sky above, rich green below
+        const hemi = new THREE.HemisphereLight(0xFFF4E0, 0x4A7828, 0.85);
         scene.add(hemi);
-        const dir = new THREE.DirectionalLight(0xFFF5E0, 1.1);
-        dir.position.set(20, 40, 20);
+        const dir = new THREE.DirectionalLight(0xFFFAE0, 1.35);
+        dir.position.set(30, 50, 20);
         dir.castShadow = true;
         dir.shadow.mapSize.set(2048, 2048);
         dir.shadow.camera.top = 80; dir.shadow.camera.bottom = -80;
         dir.shadow.camera.left = -80; dir.shadow.camera.right = 80;
         dir.shadow.camera.far = 300;
+        dir.shadow.radius = 2;  // softer shadow edges
         scene.add(dir);
+        // Cool-toned fill light from opposite side for depth and contrast
+        const fillLight = new THREE.DirectionalLight(0xC8E8FF, 0.4);
+        fillLight.position.set(-20, 20, -40);
+        scene.add(fillLight);
+        // Soft ambient to lift shadows and brighten the scene overall
+        const ambientLight = new THREE.AmbientLight(0xFFF8F0, 0.25);
+        scene.add(ambientLight);
 
         // ── Invisible collision floor is added in loadLevel() ─────────────────
         // (so it survives the platforms[] cleanup on each level load)
         const grassCanvas = document.createElement('canvas');
-        grassCanvas.width = 256; grassCanvas.height = 256;
+        grassCanvas.width = 512; grassCanvas.height = 512;
         const gc = grassCanvas.getContext('2d');
-        // Base green
-        gc.fillStyle = '#4a7c2f'; gc.fillRect(0,0,256,256);
-        // Blade texture: random darker/lighter streaks
-        for (let i = 0; i < 2200; i++) {
-            const gx = Math.random()*256, gy = Math.random()*256;
+        // Rich base green
+        gc.fillStyle = '#3D7028'; gc.fillRect(0,0,512,512);
+        // Blade texture: varied length streaks for density
+        for (let i = 0; i < 5000; i++) {
+            const gx = Math.random()*512, gy = Math.random()*512;
             const shade = Math.random();
-            gc.fillStyle = shade > 0.5
-                ? `rgba(30,60,10,${0.15+Math.random()*0.25})`
-                : `rgba(100,160,40,${0.1+Math.random()*0.2})`;
-            gc.fillRect(gx, gy, 1+Math.random()*2, 3+Math.random()*8);
+            gc.fillStyle = shade > 0.6
+                ? `rgba(20,50,8,${0.12+Math.random()*0.22})`
+                : shade > 0.3
+                    ? `rgba(90,145,35,${0.08+Math.random()*0.18})`
+                    : `rgba(130,190,55,${0.05+Math.random()*0.12})`;
+            gc.fillRect(gx, gy, 1+Math.random()*2, 4+Math.random()*10);
+        }
+        // Scattered bright spots (sunlight on tips)
+        for (let i = 0; i < 200; i++) {
+            gc.fillStyle = `rgba(180,220,80,${0.06+Math.random()*0.10})`;
+            gc.fillRect(Math.random()*512, Math.random()*512, 1, 2);
         }
         const grassTex = new THREE.CanvasTexture(grassCanvas);
         grassTex.wrapS = grassTex.wrapT = THREE.RepeatWrapping;
         grassTex.repeat.set(120, 120);  // tile many times so no visible tiling at distance
 
-        const grassMat = new THREE.MeshStandardMaterial({
+        const grassMat = new THREE.MeshPhysicalMaterial({
             map: grassTex,
-            roughness: 0.95,
-            metalness: 0
+            roughness: 0.92,
+            metalness: 0,
+            clearcoat: 0.02,
+            clearcoatRoughness: 1.0
         });
         const grassPlane = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), grassMat);
         grassPlane.rotation.x = -Math.PI / 2;
@@ -1046,8 +1131,8 @@
         // Done in updatePhysics via a clamp
 
         // ── Distant mountain silhouettes ─────────────────────────────────────
-        const mtMat = new THREE.MeshStandardMaterial({
-            color: 0x3A6040, roughness: 1, fog: true, transparent: true, opacity: 0.7
+        const mtMat = new THREE.MeshPhysicalMaterial({
+            color: 0x3A6040, roughness: 1, fog: true, transparent: true, opacity: 0.75, clearcoat: 0.02, clearcoatRoughness: 1.0
         });
         const mtData = [
             // [x, z, scale, yOffset]
@@ -1070,8 +1155,8 @@
             scene.add(mt);
             // Snow cap
             const capGeo = new THREE.ConeGeometry(6 * sc, 8 * sc, 6);
-            const cap = new THREE.Mesh(capGeo, new THREE.MeshStandardMaterial({
-                color: 0xEEEEEE, roughness: 0.9, transparent: true, opacity: 0.75, fog: true
+            const cap = new THREE.Mesh(capGeo, new THREE.MeshPhysicalMaterial({
+                color: 0xF0F0F0, roughness: 0.88, transparent: true, opacity: 0.78, fog: true, clearcoat: 0.08, clearcoatRoughness: 0.95
             }));
             cap.position.set(mx, (14 * sc - 4) + 15 * sc, mz);
             scene.add(cap);
@@ -1091,6 +1176,7 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            if (window._composer) window._composer.setSize(window.innerWidth, window.innerHeight);
         });
 
         document.addEventListener('keydown', e => {
@@ -1116,8 +1202,14 @@
 
     function createPlayer() {
         if(player) scene.remove(player);
-        const geo = new THREE.SphereGeometry(0.5, 24, 24);
-        const mat = new THREE.MeshStandardMaterial({ color: game.mega ? 0xF5CBA7 : 0xE59866, roughness: 0.3, metalness: 0.1 });
+        const geo = new THREE.SphereGeometry(0.5, 28, 28);
+        const mat = new THREE.MeshPhysicalMaterial({
+            color: game.mega ? 0xF5CBA7 : 0xE59866,
+            roughness: 0.22,
+            metalness: 0.05,
+            clearcoat: 0.45,
+            clearcoatRoughness: 0.25
+        });
         player = new THREE.Mesh(geo, mat);
         player.castShadow = true;
         player.position.set(0, 5, 0);
@@ -1152,17 +1244,34 @@
     let ladders = [];
     let gates = [];
     
+    // PBR texture loader — tries to load a real texture from /textures/<set>/color.jpg
+    // Falls back gracefully to the provided canvas texture when the file isn't found.
+    const _txLoader = new THREE.TextureLoader();
+    function loadPBRColor(texSet, fallback) {
+        const tex = _txLoader.load(
+            `textures/${texSet}/color.jpg`,
+            undefined, undefined,
+            () => {
+                console.warn(`[FalafelKingdom] PBR texture not found for "${texSet}", using canvas fallback. See TEXTURE_SETUP.md to download real textures.`);
+                tex.image = fallback.image; tex.needsUpdate = true;
+            }
+        );
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(fallback.repeat.x, fallback.repeat.y);
+        return tex;
+    }
+
     // Texture generation for better visuals
     function createTexture(color1, color2, type) {
         const canvas = document.createElement('canvas');
-        canvas.width = 128; canvas.height = 128;
+        canvas.width = 256; canvas.height = 256;
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = color1; ctx.fillRect(0,0,128,128);
-        for(let i=0; i<500; i++) {
+        ctx.fillStyle = color1; ctx.fillRect(0,0,256,256);
+        for(let i=0; i<800; i++) {
             ctx.fillStyle = Math.random()>0.5 ? color2 : 'rgba(0,0,0,0.1)';
-            const s = Math.random()*3+1;
-            if(type==='grass') ctx.fillRect(Math.random()*128, Math.random()*128, s, s*2);
-            else ctx.fillRect(Math.random()*128, Math.random()*128, s, s);
+            const s = Math.random()*4+1;
+            if(type==='grass') ctx.fillRect(Math.random()*256, Math.random()*256, s, s*3);
+            else ctx.fillRect(Math.random()*256, Math.random()*256, s, s);
         }
         const tex = new THREE.CanvasTexture(canvas);
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
@@ -1178,28 +1287,28 @@
     
     // Scenery helpers
     function createTree(x, z) {
-        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.2,1.2,6), new THREE.MeshStandardMaterial({color:0x8B4513}));
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.2,1.2,6), new THREE.MeshPhysicalMaterial({color:0x8B5020, roughness:0.72, clearcoat:0.05, clearcoatRoughness:0.9}));
         trunk.position.set(x, 0.6, z);
-        const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8), new THREE.MeshStandardMaterial({color:0x228B22}));
+        const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8), new THREE.MeshPhysicalMaterial({color:0x228B22, roughness:0.85, clearcoat:0.04, clearcoatRoughness:1.0}));
         leaves.position.y = 0.9; trunk.add(leaves);
         scene.add(trunk); platforms.push(trunk);
     }
     
     function createBush(x, z) {
-        const bush = new THREE.Mesh(new THREE.DodecahedronGeometry(0.4), new THREE.MeshStandardMaterial({color:0x32CD32}));
+        const bush = new THREE.Mesh(new THREE.DodecahedronGeometry(0.4), new THREE.MeshPhysicalMaterial({color:0x2DB52D, roughness:0.88, clearcoat:0.04, clearcoatRoughness:1.0}));
         bush.position.set(x, 0.3, z); bush.scale.y = 0.6;
         scene.add(bush); platforms.push(bush);
     }
     
     function createRock(x, z) {
-        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.3), new THREE.MeshStandardMaterial({color:0x808080}));
+        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.3), new THREE.MeshPhysicalMaterial({color:0x888880, roughness:0.88, metalness:0.08, clearcoat:0.06, clearcoatRoughness:0.95}));
         rock.position.set(x, 0.2, z); rock.rotation.set(Math.random(),Math.random(),Math.random());
         scene.add(rock); platforms.push(rock);
     }
     
     // Gate to block progress
     function createGate(x, y, z, width) {
-        const mat = new THREE.MeshStandardMaterial({color:0x444444, transparent:true, opacity:0.7});
+        const mat = new THREE.MeshPhysicalMaterial({color:0x445566, metalness:0.55, roughness:0.35, transparent:true, opacity:0.72, clearcoat:0.4, clearcoatRoughness:0.3});
         const gate = new THREE.Group();
         
         // Main barrier — taller so it can't be jumped over (height 12 = well above max jump)
@@ -1713,20 +1822,24 @@
         else if (c === 0xFFD700 || c === 0xD4C060 || c === 0xF0E68C)                   map = window._texGold;
         else if (c === 0xFFDAB9 || c === 0xFF9896)                                      map = window._texPeach;
         else                                                                             map = window._texStone;
-        const mat = new THREE.MeshStandardMaterial({color: c, roughness: 0.78, map: map || undefined});
+        const mat = new THREE.MeshPhysicalMaterial({
+            color: c, roughness: 0.82, metalness: 0.0,
+            map: map || undefined,
+            clearcoat: 0.05, clearcoatRoughness: 0.9
+        });
         const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat);
         m.position.set(x,y,z); m.receiveShadow = true; m.castShadow = true; scene.add(m); platforms.push(m);
     }
     
     function addPlatformIsland(x,y,z,w,h,d) {
         const c = 0xF4D03F;
-        const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), new THREE.MeshStandardMaterial({color: c, roughness: 0.9}));
+        const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), new THREE.MeshPhysicalMaterial({color: c, roughness: 0.85, clearcoat: 0.06, clearcoatRoughness: 0.9}));
         m.position.set(x,y,z); m.receiveShadow = true; m.castShadow = true; scene.add(m); platforms.push(m);
     }
     
     function addLadder(x, y, z, height) {
-        const railMat = new THREE.MeshStandardMaterial({ color: 0x6B3A10, roughness: 0.6 });
-        const rungMat = new THREE.MeshStandardMaterial({ color: 0x8B5E20, roughness: 0.5 });
+        const railMat = new THREE.MeshPhysicalMaterial({ color: 0x7A4418, roughness: 0.55, metalness: 0.12, clearcoat: 0.1, clearcoatRoughness: 0.8 });
+        const rungMat = new THREE.MeshPhysicalMaterial({ color: 0x9B6A28, roughness: 0.48, metalness: 0.18, clearcoat: 0.12, clearcoatRoughness: 0.7 });
         const rails = [], rungs = [];
         const RAIL_GAP = 0.7;
 
@@ -1760,13 +1873,19 @@
     
     function addMovingPlatform(x,y,z,w,h,d,color,axis,min,max) {
         const c = color || 0xFFB6C1;
-        const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), new THREE.MeshStandardMaterial({color: c, roughness: 0.5, metalness: 0.3}));
+        const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), new THREE.MeshPhysicalMaterial({
+            color: c, roughness: 0.45, metalness: 0.35, clearcoat: 0.25, clearcoatRoughness: 0.55
+        }));
         m.position.set(x,y,z); m.castShadow = true; m.receiveShadow = true; scene.add(m);
         movingPlatforms.push({ mesh: m, axis: axis, min: min, max: max, speed: 0.02 + Math.random() * 0.02, offset: Math.random() * Math.PI * 2, initialX: x, initialZ: z });
     }
     function addJar(x,y,z) {
-        const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.25,0.2,16), new THREE.MeshStandardMaterial({color: 0xFFFACD, roughness: 0.4}));
-        const hum = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.15,16), new THREE.MeshStandardMaterial({color: 0xFDFEFE, roughness: 0.3}));
+        const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.25,0.2,20), new THREE.MeshPhysicalMaterial({
+            color: 0xFFF5D0, roughness: 0.15, metalness: 0.65, clearcoat: 0.9, clearcoatRoughness: 0.05, reflectivity: 1.0
+        }));
+        const hum = new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.15,20), new THREE.MeshPhysicalMaterial({
+            color: 0xFAF3E0, roughness: 0.55, metalness: 0.0, clearcoat: 0.08, clearcoatRoughness: 0.85
+        }));
         hum.position.y = 0.08; bowl.add(hum);
         
         // Cute sparkles on jar
@@ -1784,7 +1903,9 @@
     
 function addFalafel(x,y,z,sad) {
         const baseColor = sad ? 0xC4A574 : 0xD4B48C;
-        const m = new THREE.Mesh(new THREE.SphereGeometry(0.55, 20, 20), new THREE.MeshStandardMaterial({color: baseColor, roughness: 0.6}));
+        const m = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 24), new THREE.MeshPhysicalMaterial({
+            color: baseColor, roughness: 0.52, metalness: 0.0, clearcoat: 0.18, clearcoatRoughness: 0.45
+        }));
         m.position.set(x,y,z); m.castShadow = true; scene.add(m);
 
         // Eyes group for easy switching
@@ -1881,7 +2002,10 @@ function addFalafel(x,y,z,sad) {
         range = range || 3.5;
         const m = new THREE.Mesh(
             new THREE.IcosahedronGeometry(0.55, 1),
-            new THREE.MeshStandardMaterial({color: 0x3D2817, roughness: 0.9})
+            new THREE.MeshPhysicalMaterial({
+                color: 0x3D2817, roughness: 0.82, metalness: 0.28,
+                clearcoat: 0.2, clearcoatRoughness: 0.7
+            })
         );
         m.position.set(x, y, z);
         m.castShadow = true;
@@ -1932,8 +2056,10 @@ function addFalafel(x,y,z,sad) {
         const group = new THREE.Group();
 
         // Stone pedestal base
-        const pedMat = new THREE.MeshStandardMaterial({
-            color: 0x9A8060, roughness: 0.85, map: window._texStone || undefined
+        const pedMat = new THREE.MeshPhysicalMaterial({
+            color: 0x9A8060, roughness: 0.80, metalness: 0.05,
+            map: window._texStone || undefined,
+            clearcoat: 0.1, clearcoatRoughness: 0.9
         });
         const ped = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.62, 0.7, 8), pedMat);
         ped.position.y = 0.35;
@@ -1943,20 +2069,20 @@ function addFalafel(x,y,z,sad) {
         // Carved ring detail
         const ring = new THREE.Mesh(
             new THREE.TorusGeometry(0.54, 0.055, 6, 14),
-            new THREE.MeshStandardMaterial({color: 0x6A5030, roughness: 0.7})
+            new THREE.MeshPhysicalMaterial({color: 0x6A5030, roughness: 0.65, metalness: 0.1})
         );
         ring.position.y = 0.55; ring.rotation.x = Math.PI/2;
         group.add(ring);
 
         // Wooden pole
-        const poleMat = new THREE.MeshStandardMaterial({color: 0x8B5A2B, roughness: 0.75});
+        const poleMat = new THREE.MeshPhysicalMaterial({color: 0x8B5A2B, roughness: 0.68, metalness: 0.05, clearcoat: 0.08, clearcoatRoughness: 0.85});
         const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 1.6, 7), poleMat);
         pole.position.y = 1.5;
         pole.castShadow = true;
         group.add(pole);
 
         // Hummus bowl at top
-        const bowlMat = new THREE.MeshStandardMaterial({color: 0x9A7030, roughness: 0.55, metalness: 0.12});
+        const bowlMat = new THREE.MeshPhysicalMaterial({color: 0x9A7030, roughness: 0.45, metalness: 0.3, clearcoat: 0.5, clearcoatRoughness: 0.3});
         const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.25, 0.30, 12), bowlMat);
         bowl.position.y = 2.45;
         bowl.castShadow = true;
@@ -1964,7 +2090,7 @@ function addFalafel(x,y,z,sad) {
 
         const hummus = new THREE.Mesh(
             new THREE.CylinderGeometry(0.36, 0.36, 0.10, 12),
-            new THREE.MeshStandardMaterial({color: 0xEDD8A5, roughness: 0.88, emissive: 0xEDD8A5, emissiveIntensity: 0.0})
+            new THREE.MeshPhysicalMaterial({color: 0xEDD8A5, roughness: 0.82, metalness: 0.0, clearcoat: 0.06, clearcoatRoughness: 0.95, emissive: 0xEDD8A5, emissiveIntensity: 0.0})
         );
         hummus.position.y = 2.62;
         group.add(hummus);
@@ -1972,13 +2098,13 @@ function addFalafel(x,y,z,sad) {
 
         // Paprika dot
         const pap = new THREE.Mesh(new THREE.SphereGeometry(0.08,5,4),
-            new THREE.MeshStandardMaterial({color:0xC83018, roughness:0.7}));
+            new THREE.MeshPhysicalMaterial({color:0xC83018, roughness:0.6, clearcoat:0.3, clearcoatRoughness:0.5}));
         pap.position.set(0.13, 2.69, 0);
         group.add(pap);
 
         // Parsley dot
         const par = new THREE.Mesh(new THREE.SphereGeometry(0.07,5,4),
-            new THREE.MeshStandardMaterial({color:0x2A6018, roughness:0.7}));
+            new THREE.MeshPhysicalMaterial({color:0x2A6018, roughness:0.65, clearcoat:0.2, clearcoatRoughness:0.6}));
         par.position.set(-0.15, 2.69, 0.08);
         group.add(par);
 
@@ -2838,7 +2964,11 @@ function addFalafel(x,y,z,sad) {
         updateBullies();
         updateCheckpoints();
         updateClouds();
-        renderer.render(scene, camera);
+        if (window._composer) {
+            window._composer.render();
+        } else {
+            renderer.render(scene, camera);
+        }
     }
 
     // Menu navigation functions

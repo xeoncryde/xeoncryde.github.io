@@ -1,0 +1,10 @@
+# Ignore large texture files — download them locally using TEXTURE_SETUP.md
+*.jpg
+*.jpeg
+*.png
+*.hdr
+*.exr
+*.tga
+# Keep the folder structure and placeholder files
+!.gitkeep
+!.gitignore
