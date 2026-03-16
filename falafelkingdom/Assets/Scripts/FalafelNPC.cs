@@ -25,6 +25,7 @@ public class FalafelNPC : MonoBehaviour
 
     private Transform player;
     private bool interactPromptShown = false;
+    private GameObject falafelVisual;
 
     // Rescued bounce
     private Vector3 baseScale;
@@ -36,9 +37,27 @@ public class FalafelNPC : MonoBehaviour
         player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
         baseScale = transform.localScale;
+        HideExistingRenderers();
+        SetupFalafelVisual();
         SetupTearParticles();
         SetupSpeechBubble();
         EnterState(currentState);
+    }
+
+    void HideExistingRenderers()
+    {
+        foreach (Renderer r in GetComponentsInChildren<Renderer>())
+            r.enabled = false;
+    }
+
+    void SetupFalafelVisual()
+    {
+        if (falafelVisual != null) Object.Destroy(falafelVisual);
+
+        if (currentState == State.Crying)
+            falafelVisual = FalafelCharacterBuilder.BuildCryingFalafel(transform, 0.4f);
+        else
+            falafelVisual = FalafelCharacterBuilder.BuildRescuedFalafel(transform, 0.4f);
     }
 
     void SetupTearParticles()
@@ -111,16 +130,24 @@ public class FalafelNPC : MonoBehaviour
                 break;
             case State.Rescued:
                 tearParticles.Stop();
+                SetupFalafelVisual();
                 if (speechBubble != null) { speechBubble.SetActive(true); speechText.text = "Thank you!"; }
                 bounceTimer = 0f;
                 if (happySound != null) happySound.Play();
-                if (SauceManager.Instance != null) SauceManager.Instance.Collect(sauceReward);
                 break;
             case State.Done:
                 tearParticles.Stop();
                 if (speechBubble != null) speechBubble.SetActive(false);
                 break;
         }
+    }
+
+    public void TryRescue()
+    {
+        if (currentState != State.Crying) return;
+        if (SauceManager.Instance != null)
+            SauceManager.Instance.Collect(-sauceReward);
+        EnterState(State.Rescued);
     }
 
     void Update()
@@ -134,8 +161,6 @@ public class FalafelNPC : MonoBehaviour
             if (dist <= interactRange)
             {
                 if (!interactPromptShown) { interactPromptShown = true; }
-                if (Input.GetKeyDown(KeyCode.E))
-                    EnterState(State.Rescued);
             }
             else
             {

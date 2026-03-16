@@ -30,6 +30,9 @@ public class PlayerController : MonoBehaviour
         initialPosition.y += 50;
         pauseMenu = GetComponent<PauseMenu>();
         animator = transform.Find("ty").GetComponent<Animator>();
+
+        if (GetComponent<FalafelPlayerVisual>() == null)
+            gameObject.AddComponent<FalafelPlayerVisual>();
     }
     void Update() {
         if (pauseMenu.paused)
@@ -90,6 +93,19 @@ public class PlayerController : MonoBehaviour
             {
                 animator.SetBool("isRunning", false);
                 animator.SetBool("isIdling", false);
+            }
+        }
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            Collider[] nearby = Physics.OverlapSphere(transform.position, 3f);
+            foreach (var col in nearby)
+            {
+                FalafelNPC npc = col.GetComponent<FalafelNPC>();
+                if (npc != null)
+                {
+                    npc.TryRescue();
+                    break;
+                }
             }
         }
         if (transform.position.y < -30)

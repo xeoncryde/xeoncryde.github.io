@@ -29,7 +29,6 @@ public class BullyEnemy : MonoBehaviour
     private Vector3 patrolReturnTarget;
     private bool returningToPatrol = false;
 
-    private Renderer enemyRenderer;
     private bool canHitPlayer = true;
     private float hitCooldown = 1.5f;
 
@@ -43,18 +42,12 @@ public class BullyEnemy : MonoBehaviour
 
     void SetupVisual()
     {
-        enemyRenderer = GetComponent<Renderer>();
-        if (enemyRenderer == null)
-            enemyRenderer = GetComponentInChildren<Renderer>();
+        // Hide any existing renderers
+        foreach (Renderer r in GetComponentsInChildren<Renderer>())
+            r.enabled = false;
 
-        if (enemyRenderer != null)
-        {
-            Material mat = new Material(Shader.Find("Standard"));
-            mat.color = new Color(0.15f, 0.10f, 0.08f);
-            mat.SetFloat("_Glossiness", 0.0f);
-            mat.SetFloat("_Metallic", 0.0f);
-            enemyRenderer.material = mat;
-        }
+        // Build procedural enemy visual
+        FalafelCharacterBuilder.BuildEnemyVisual(transform, 0.45f);
     }
 
     void Update()
