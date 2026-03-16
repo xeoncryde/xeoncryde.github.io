@@ -98,16 +98,5 @@ public class PlayerController : MonoBehaviour
             transform.rotation = initialRotation;
             animator.SetBool("isFalling", true);
         }
-
-        // Falafel NPC Interaction
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            Collider[] nearby = Physics.OverlapSphere(transform.position, 3f);
-            foreach (var col in nearby)
-            {
-                FalafelNPC npc = col.GetComponent<FalafelNPC>();
-                if (npc != null) { npc.TryInteract(); break; }
-            }
-        }
     }
 }
