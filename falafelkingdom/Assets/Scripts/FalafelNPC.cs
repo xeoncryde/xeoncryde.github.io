@@ -34,7 +34,7 @@ public class FalafelNPC : MonoBehaviour
 
     void Start()
     {
-        player = GameObject.FindGameObjectWithTag("Player")?.transform;
+        player = FindObjectOfType<PlayerController>(true)?.transform;
 
         baseScale = transform.localScale;
         HideExistingRenderers();
@@ -146,7 +146,7 @@ public class FalafelNPC : MonoBehaviour
     {
         if (currentState != State.Crying) return;
         if (SauceManager.Instance != null)
-            SauceManager.Instance.Collect(-sauceReward);
+            SauceManager.Instance.Collect(sauceReward);
         EnterState(State.Rescued);
     }
 
