@@ -43,3 +43,4 @@ public class FalafelGameManager : MonoBehaviour
         if (triggered)
             Time.timeScale = 1;
     }
+}
