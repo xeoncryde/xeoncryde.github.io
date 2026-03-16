@@ -92,6 +92,19 @@ public class PlayerController : MonoBehaviour
                 animator.SetBool("isIdling", false);
             }
         }
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            Collider[] nearby = Physics.OverlapSphere(transform.position, 3f);
+            foreach (var col in nearby)
+            {
+                FalafelNPC npc = col.GetComponent<FalafelNPC>();
+                if (npc != null)
+                {
+                    npc.TryRescue();
+                    break;
+                }
+            }
+        }
         if (transform.position.y < -30)
         {
             transform.position = initialPosition;

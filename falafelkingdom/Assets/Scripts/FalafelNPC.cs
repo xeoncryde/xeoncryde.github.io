@@ -114,13 +114,20 @@ public class FalafelNPC : MonoBehaviour
                 if (speechBubble != null) { speechBubble.SetActive(true); speechText.text = "Thank you!"; }
                 bounceTimer = 0f;
                 if (happySound != null) happySound.Play();
-                if (SauceManager.Instance != null) SauceManager.Instance.Collect(sauceReward);
                 break;
             case State.Done:
                 tearParticles.Stop();
                 if (speechBubble != null) speechBubble.SetActive(false);
                 break;
         }
+    }
+
+    public void TryRescue()
+    {
+        if (currentState != State.Crying) return;
+        if (SauceManager.Instance != null)
+            SauceManager.Instance.Collect(-sauceReward);
+        EnterState(State.Rescued);
     }
 
     void Update()
@@ -134,8 +141,6 @@ public class FalafelNPC : MonoBehaviour
             if (dist <= interactRange)
             {
                 if (!interactPromptShown) { interactPromptShown = true; }
-                if (Input.GetKeyDown(KeyCode.E))
-                    EnterState(State.Rescued);
             }
             else
             {
