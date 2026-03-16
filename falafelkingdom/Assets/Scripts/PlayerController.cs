@@ -30,6 +30,9 @@ public class PlayerController : MonoBehaviour
         initialPosition.y += 50;
         pauseMenu = GetComponent<PauseMenu>();
         animator = transform.Find("ty").GetComponent<Animator>();
+
+        if (GetComponent<FalafelPlayerVisual>() == null)
+            gameObject.AddComponent<FalafelPlayerVisual>();
     }
     void Update() {
         if (pauseMenu.paused)
