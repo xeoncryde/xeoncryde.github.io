@@ -18,6 +18,9 @@ public class MainMenu : MonoBehaviour
         AddButtonsTriggers();
     }
 
+    // Falafel Kingdom level names: 1 = "The Market", 2 = "The Bazaar", 3 = "The Palace"
+    public string[] levelNames = new string[] { "Falafel Kingdom", "The Market", "The Bazaar", "The Palace" };
+
     // Start is called before the first frame update
     public void LevelSelect(int level)
     {
