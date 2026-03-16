@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 public class CutsceneController : MonoBehaviour
 {
     public GameObject player;
-    public GameObject timerCanvas;
+    public GameObject timerCanvas; // kept for scene backward-compatibility; no longer activated
 
     public GameObject mainCamera;
 
@@ -29,7 +29,6 @@ public class CutsceneController : MonoBehaviour
     public void OnIntroFisnished()
     {
         player.GetComponent<PlayerController>().enabled = true;
-        timerCanvas.SetActive(true);
         mainCamera.SetActive(true);
         gameObject.SetActive(false);
     }

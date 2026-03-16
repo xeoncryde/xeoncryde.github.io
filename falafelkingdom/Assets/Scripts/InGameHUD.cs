@@ -6,12 +6,9 @@ public class InGameHUD : MonoBehaviour
 {
     private Text sauceText;
     private Text livesText;
-    private Text timerText;
-    private float startTime;
 
     void Start()
     {
-        startTime = Time.time;
         BuildHUD();
 
         SauceManager.SauceChanged += OnSauceChanged;
@@ -58,15 +55,6 @@ public class InGameHUD : MonoBehaviour
         livesText.color = new Color(0.8f, 0.1f, 0.1f);
         livesText.alignment = TextAnchor.UpperRight;
         UpdateLivesText(SauceManager.Instance != null ? SauceManager.Instance.lives : 3);
-
-        // Timer — top center
-        GameObject timerObj = CreateTextElement(canvasObj.transform, "Timer",
-            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(-150f, -20f), new Vector2(300f, 60f));
-        timerText = timerObj.GetComponent<Text>();
-        timerText.font = font;
-        timerText.fontSize = 36;
-        timerText.color = new Color(0.25f, 0.13f, 0.04f);
-        timerText.alignment = TextAnchor.UpperCenter;
     }
 
     GameObject CreateTextElement(Transform parent, string name,
@@ -82,16 +70,6 @@ public class InGameHUD : MonoBehaviour
         rt.anchoredPosition = anchoredPos;
         rt.sizeDelta = sizeDelta;
         return obj;
-    }
-
-    void Update()
-    {
-        if (timerText == null) return;
-        float t = Time.time - startTime;
-        string minutes = ((int)(t / 60)).ToString();
-        string seconds = ((int)(t % 60)).ToString("D2");
-        string decimals = ((int)(t * 100) % 100).ToString("D2");
-        timerText.text = minutes + ":" + seconds + "." + decimals;
     }
 
     void OnSauceChanged(int newSauce)
