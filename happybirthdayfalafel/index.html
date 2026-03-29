@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Happy 16th Birthday, Farida!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+/* ── RESET & BASE ── */
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background:#06101f;}
+
+/* ── CONFETTI ── */
+#cc{position:fixed;inset:0;pointer-events:none;z-index:9999;}
+
+/* ── PROGRESS BAR ── */
+#pt{position:fixed;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,.12);z-index:300;}
+#pf{height:100%;width:0%;background:rgba(255,255,255,.65);transition:width .5s ease;border-radius:0 3px 3px 0;}
+
+/* ── BACK BUTTON — prominent ── */
+#bb{
+  position:fixed;top:16px;left:16px;z-index:300;
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.18);
+  border:2px solid rgba(255,255,255,.5);
+  color:#fff;border-radius:100px;
+  padding:10px 22px;
+  font-family:'Fredoka One',cursive;font-size:1rem;
+  cursor:pointer;
+  transition:background .2s,transform .2s,opacity .3s,box-shadow .2s;
+  letter-spacing:.5px;backdrop-filter:blur(10px);
+  box-shadow:0 2px 16px rgba(0,0,0,.25);
+  opacity:0;pointer-events:none;
+}
+#bb.vis{opacity:1;pointer-events:all;}
+#bb:hover{background:rgba(255,255,255,.32);transform:translateX(-3px);box-shadow:0 4px 24px rgba(0,0,0,.3);}
+#bb:active{transform:scale(.96);}
+
+.page{
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:60px 28px 52px;
+  overflow:hidden;
+  will-change:transform;
+  transition:transform .62s cubic-bezier(.77,0,.175,1);
+  transform:translateY(100%);
+}
+.page.cur{transform:translateY(0);}
+.page.prv{transform:translateY(-100%);}
+
+.btn{
+  display:inline-flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.14);
+  border:2px solid rgba(255,255,255,.38);
+  color:#fff;border-radius:100px;
+  padding:14px 34px;
+  font-family:'Fredoka One',cursive;font-size:1.06rem;
+  cursor:pointer;letter-spacing:.5px;
+  transition:background .2s,transform .15s,box-shadow .2s;
+  backdrop-filter:blur(8px);white-space:nowrap;
+}
+.btn:hover{background:rgba(255,255,255,.28);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.2);}
+.btn:active{transform:scale(.97);}
+.btn.blue-solid{background:#1D4ED8;border-color:#1e40af;box-shadow:0 6px 22px rgba(29,78,216,.4);}
+.btn.blue-solid:hover{background:#1e40af;}
+.btn.light-blue{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.5);}
+.btn.light-blue:hover{background:rgba(255,255,255,.35);}
+
+#p0{background:radial-gradient(ellipse at 60% 40%, #1e3a8a 0%, #0a1628 60%, #060d1f 100%);text-align:center;gap:18px;}
+.hrings{position:absolute;width:min(580px,94vw);height:min(580px,94vw);opacity:.08;pointer-events:none;animation:spin 32s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hey{font-family:'Fredoka One',cursive;font-size:.78rem;letter-spacing:4px;text-transform:uppercase;color:#93c5fd;background:rgba(147,197,253,.1);border:1px solid rgba(147,197,253,.2);padding:5px 18px;border-radius:100px;}
+.hname{font-family:'Fredoka One',cursive;font-size:clamp(4.5rem,18vw,11rem);color:#fff;line-height:.92;}
+.hname::after{content:'.';color:#60a5fa;}
+.hsub{font-size:clamp(.95rem,2.5vw,1.3rem);color:rgba(255,255,255,.55);font-weight:700;max-width:380px;}
+.hage{font-family:'Fredoka One',cursive;font-size:clamp(8rem,32vw,20rem);color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.045);position:absolute;bottom:-55px;right:-10px;pointer-events:none;user-select:none;line-height:1;}
+#p1{background:#eef4ff;text-align:center;gap:22px;}
+.itag{font-family:'Fredoka One',cursive;font-size:.74rem;letter-spacing:4px;text-transform:uppercase;color:#1d4ed8;background:rgba(29,78,216,.08);border:1px solid rgba(29,78,216,.18);padding:5px 18px;border-radius:100px;}
+.ihead{font-family:'Fredoka One',cursive;font-size:clamp(2rem,5.5vw,3.3rem);color:#0f172a;line-height:1.15;max-width:540px;}
+.ihead span{color:#1d4ed8;}
+.ibod{font-size:clamp(.92rem,2vw,1.12rem);font-weight:700;color:rgba(15,23,42,.55);max-width:460px;line-height:1.75;}
+.idiv{width:54px;height:4px;border-radius:4px;background:linear-gradient(90deg,#93c5fd,#1d4ed8);}
+#p1 .btn{background:#1d4ed8;border-color:#1e3a8a;color:#fff;}
+#p1 .btn:hover{background:#1e3a8a;}
+
+.fp{
+  text-align:center;
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:76px 32px 62px;
+  overflow:hidden;
+  will-change:transform;
+  transition:transform .62s cubic-bezier(.77,0,.175,1);
+  transform:translateY(100%);
+}
+.fp.cur{transform:translateY(0);}
+.fp.prv{transform:translateY(-100%);}
+
+.g1 {background:linear-gradient(145deg,#0a1628 0%,#1e3a8a 100%);}
+.g2 {background:linear-gradient(145deg,#0d1b3e 0%,#2563eb 100%);}
+.g3 {background:linear-gradient(145deg,#0c2340 0%,#0284c7 100%);}
+.g4 {background:linear-gradient(145deg,#0a2540 0%,#0ea5e9 100%);}
+.g5 {background:linear-gradient(145deg,#0f172a 0%,#3b82f6 100%);}
+.g6 {background:linear-gradient(145deg,#0b1f3a 0%,#1d4ed8 90%,#60a5fa 100%);}
+.g7 {background:linear-gradient(145deg,#1e2060 0%,#4f46e5 60%,#818cf8 100%);}
+.g8 {background:linear-gradient(145deg,#0c1a3a 0%,#1e40af 70%,#3b82f6 100%);}
+.g9 {background:linear-gradient(145deg,#062040 0%,#0369a1 100%);}
+.g10{background:linear-gradient(145deg,#071e38 0%,#0ea5e9 80%,#38bdf8 100%);}
+.g11{background:linear-gradient(145deg,#1a1a50 0%,#6366f1 70%,#a5b4fc 100%);}
+.g12{background:linear-gradient(145deg,#0a1c38 0%,#0284c7 60%,#7dd3fc 100%);}
+.g13{background:linear-gradient(145deg,#0f1740 0%,#2563eb 60%,#93c5fd 100%);}
+.g14{background:linear-gradient(145deg,#0e2244 0%,#1d4ed8 50%,#60a5fa 100%);}
+.g15{background:linear-gradient(145deg,#0a1830 0%,#1e3a8a 50%,#93c5fd 100%);}
+.g16{background:linear-gradient(148deg,#06101f 0%,#1e3a8a 35%,#2563eb 70%,#7dd3fc 100%);}
+
+/* grain */
+.fp::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");opacity:.5;pointer-events:none;z-index:0;}
+/* number watermark */
+.fwm{font-family:'Fredoka One',cursive;font-size:clamp(11rem,38vw,24rem);color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.07);line-height:1;position:absolute;bottom:-3rem;right:-1rem;pointer-events:none;user-select:none;z-index:0;}
+/* inner */
+.fin{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:20px;max-width:560px;width:100%;}
+.flbl{font-family:'Fredoka One',cursive;font-size:.72rem;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,.45);background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.13);padding:5px 16px;border-radius:100px;}
+/* illustration container */
+.fill{width:clamp(96px,18vw,118px);height:clamp(96px,18vw,118px);animation:fi 4.5s ease-in-out infinite;filter:drop-shadow(0 6px 28px rgba(0,0,0,.25));}
+@keyframes fi{0%,100%{transform:translateY(0px)}50%{transform:translateY(-9px)}}
+.ftxt{font-family:'Fredoka One',cursive;font-size:clamp(1.5rem,3.7vw,2.6rem);color:#fff;line-height:1.26;text-shadow:0 2px 24px rgba(0,0,0,.2);}
+
+#p18{background:radial-gradient(ellipse at 50% 30%,#1e3a8a 0%,#0c1a38 60%,#06101f 100%);gap:24px;text-align:center;}
+.ptitle{font-family:'Fredoka One',cursive;font-size:clamp(1.8rem,5vw,2.7rem);color:#fff;}
+.lbox{background:rgba(255,255,255,.07);backdrop-filter:blur(14px);border:2px solid rgba(255,255,255,.16);border-radius:22px;padding:42px 36px;max-width:600px;width:100%;position:relative;text-align:left;}
+.lic{width:46px;height:46px;position:absolute;top:-23px;left:50%;transform:translateX(-50%);background:#1d4ed8;border-radius:50%;border:3px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;}
+.lgrt{font-family:'Fredoka One',cursive;font-size:1.6rem;color:#93c5fd;margin-bottom:12px;}
+.lbod{font-size:1rem;font-weight:700;color:rgba(255,255,255,.85);line-height:1.85;}
+.lsgn{margin-top:20px;font-family:'Fredoka One',cursive;font-size:1.22rem;color:#60a5fa;}
+#p19{background:#eef4ff;gap:18px;justify-content:flex-start;padding-top:74px;}
+.mt{font-family:'Fredoka One',cursive;font-size:clamp(1.7rem,4.8vw,2.6rem);color:#0f172a;text-align:center;}
+.ms{font-size:.8rem;font-weight:700;color:#2563eb;letter-spacing:2px;text-transform:uppercase;text-align:center;margin-top:-8px;}
+.ml{display:flex;flex-direction:column;gap:9px;max-width:600px;width:100%;}
+.mi{display:flex;align-items:flex-start;gap:12px;background:#fff;border-radius:14px;padding:13px 17px;box-shadow:0 3px 14px rgba(29,78,216,.08);border-left:4px solid #3b82f6;}
+.miw{width:33px;height:33px;flex-shrink:0;background:#dbeafe;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.miw svg{width:17px;height:17px;}
+.mitxt{font-size:.88rem;font-weight:700;color:#0f172a;line-height:1.4;padding-top:4px;}
+#p19 .btn{background:#1d4ed8;border-color:#1e3a8a;margin-top:2px;}
+#p19 .btn:hover{background:#1e3a8a;}
+#p20{background:radial-gradient(ellipse at 50% 50%,#1e3a8a 0%,#0a1628 55%,#060d1f 100%);text-align:center;gap:22px;}
+.fring{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:.07;}
+.fbig{font-family:'Fredoka One',cursive;font-size:clamp(2.3rem,8vw,5rem);color:#fff;line-height:1.15;}
+.fbig span{color:#60a5fa;display:block;}
+.fsub{font-size:clamp(.9rem,2.1vw,1.12rem);font-weight:700;color:rgba(255,255,255,.58);max-width:420px;}
+.cfbtn{display:inline-flex;align-items:center;gap:10px;background:#1d4ed8;color:#fff;border:none;border-radius:100px;padding:14px 34px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 6px 24px rgba(29,78,216,.5);}
+.cfbtn:hover{transform:scale(1.05);box-shadow:0 10px 32px rgba(29,78,216,.6);}
+.cfbtn:active{transform:scale(.97);}
+
+@keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.cur .fin,.cur .hey,.cur .hname,.cur .hsub,.cur .btn,.cur .cfbtn,
+.cur .itag,.cur .ihead,.cur .ibod,.cur .idiv,
+.cur .lbox,.cur .ptitle,.cur .mt,.cur .ms,.cur .ml,.cur .fbig,.cur .fsub
+{animation:fu .58s ease both;}
+.cur .hey{animation-delay:.05s}.cur .hname{animation-delay:.1s}.cur .hsub{animation-delay:.18s}.cur .btn{animation-delay:.26s}
+.cur .itag{animation-delay:.05s}.cur .ihead{animation-delay:.11s}.cur .idiv{animation-delay:.17s}.cur .ibod{animation-delay:.21s}
+.cur .fin{animation-delay:.08s}
+.cur .ptitle{animation-delay:.06s}.cur .lbox{animation-delay:.12s}
+.cur .mt{animation-delay:.05s}.cur .ms{animation-delay:.1s}.cur .ml{animation-delay:.15s}
+.cur .fbig{animation-delay:.08s}.cur .fsub{animation-delay:.15s}.cur .cfbtn{animation-delay:.22s}
+body.ntr .page,body.ntr .fp{transition:none!important;}
+</style>
+</head>
+<body class="ntr">
+<canvas id="cc"></canvas>
+<div id="pt"><div id="pf"></div></div>
+
+<button id="bb" onclick="back()">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 5-7 7 7 7"/></svg>
+  Back
+</button>
+<div class="page cur" id="p0">
+  <svg class="hrings" viewBox="0 0 500 500" fill="none" stroke="white">
+    <circle cx="250" cy="250" r="70"/><circle cx="250" cy="250" r="120" stroke-width=".8"/>
+    <circle cx="250" cy="250" r="175" stroke-width=".65"/><circle cx="250" cy="250" r="235" stroke-width=".45"/>
+    <line x1="250" y1="15" x2="250" y2="485" stroke-width=".35"/>
+    <line x1="15" y1="250" x2="485" y2="250" stroke-width=".35"/>
+    <line x1="74" y1="74" x2="426" y2="426" stroke-width=".25"/>
+    <line x1="426" y1="74" x2="74" y2="426" stroke-width=".25"/>
+  </svg>
+  <div class="hey">April 6th &nbsp;&middot;&nbsp;SWEET SIXTEEN</div>
+  <h1 class="hname">FALAFEL</h1>
+  <p class="hsub">is officially, legally, catastrophically sixteen years old. tbh idk how u made it this far but good job</p>
+  <button class="btn" onclick="next()" style="margin-top:10px;">
+    Open &nbsp;<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+  </button>
+  <span class="hage">16</span>
+</div>
+<div class="page" id="p1">
+  <div class="itag">BOOM</div>
+  <h2 class="ihead">You just turned <span>sixteen.</span><br>so um happy birthday</h2>
+  <div class="idiv"></div>
+  <p class="ibod">OKAY SO LIKE LISTEN THIS IS REALLYYYYY CRINGE AND CORNY but GENUINELY i could not think of anything at all and you sent me like 10 reels of this stuff so ITS THE ONLY THING I COULD THINK OF. HAPPY BIRTHDAY so like since ive been 16 longer than you (you're literally a baby) im gonna tell you some things (thats the best way i can describe what you're abt to read)</p>
+  <button class="btn" onclick="next()">tfadali ya birthday girl &nbsp;<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+</div>
+<div class="page fp g1" id="p2">
+  <div class="fwm">01</div>
+  <div class="fin">
+    </svg>
+    <div class="ftxt">I hope you enjoy this as much as I enjoyed making it</div>
+    <p>(PLEASE)</p>
+    <button class="btn" onclick="next()">(you press this to go down btw) &nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+<div class="page fp g2" id="p3">
+  <div class="fin">
+    <div class="ftxt">Since you're offically 16 you are now of age to date season 1 VI</div>
+    <button class="btn" onclick="next()">moving on &nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+<div class="page fp g3" id="p4">
+  <div class="fin">
+    <div class="ftxt">sooo just to put things into perspective you can only blame your issues on "being a kid" for 2 more years.</div>
+    <button class="btn" onclick="next()">idk if i mentioned this but this button is the "next" button&nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+<div class="page fp g4" id="p5">
+  <div class="fin">
+    <div class="ftxt">out of everyone who's ever turned 16 you're doing.. an okay job like normal 6/10</div>
+    <button class="btn" onclick="next()">yeah the button didnt change&nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+<div class="page fp g5" id="p6">
+    <div class="ftxt">you've been alive 5840 days, thats like 16 YEARS oh wait.</div>
+    <button class="btn" onclick="next()">i dont think i need to say it anymore &nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+    <div class="ftxt">out of those 5840 days youve been asleep for about 58,000 hours AND YOU'RE STILL TIRED ALL THE TIME</div>
+  </div>
+</div>
+<div class="page fp g7" id="p8">
+  <div class="fwm">07</div>
+  <div class="fin">
+    <div class="ftxt">something ive noticed about you is.. you have really small biceps</div>
+    <button class="btn" onclick="next()">okay im just gonna start putting random shit here &nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+<div class="page fp g8" id="p9">
+    <div class="ftxt">actually, nevermind i just remembered that we wouldnt even be talking if it werent for ur biceps.</div>
+    <button class="btn" onclick="next()">:O &nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+<div class="page fp g9" id="p10">
+    <div class="ftxt">YOU MIGHT UNLOCK PUSHUPS THIS YEAR</div>
+    <button class="btn" onclick="next()">boom &nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+<div class="page fp g10" id="p11">
+    <div class="ftxt">remember that time when you sent me THIS and called it dark humor.</div>
+<video id="cringeVideo" autoplay playsinline width="250" onclick="this.play()">
+    <source src="cringe.mp4" type="video/mp4">
+    if u cant see this ur browser has a problem idk go laptop or sum 
+</video>
+</script>
+   <button class="btn" onclick="document.getElementById('cringeVideo').pause(); next();">
+    click on the video to replay it btw (this is still the next button) &nbsp;
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+    </svg>
+</button>
+  </div>
+</div>
+<div class="page fp g11" id="p12">
+    <div class="ftxt">feel like i have to say this SOMEWHERE here since it wont stick in ur dense skull YOU HAVE AMAZING HAIR, the best ever.</div>
+    <button class="btn" onclick="next()">click this!! &nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+<div class="page fp g12" id="p13">
+    <div class="ftxt">Moving on from that</div>
+    <button class="btn" onclick="next()">YAYY shatoora &nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+<div class="page fp g13" id="p14">
+    <div class="ftxt">yk while writing this im really craving falafel, like the food </div>
+    <button class="btn" onclick="next()">yeah you dont care do u :(&nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+<div class="page fp g14" id="p15">
+    <div class="ftxt"idk if you get this a lot but you're a very scary person when you're angry</div>
+    <button class="btn" onclick="next()">u better be reading this and not just clicking keda ta5bees&nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+<div class="page fp g15" id="p16">
+    <div class="ftxt">YEAH IM RUNNING OUT OF IDEAS IDK IF U CAN TELL</div>
+    <button class="btn" onclick="next()">this is so corny im gonna jump&nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+<div class="page fp g16" id="p17">
+ <div class="lbod">
+        <div class="ptitle">REAL TALK</div>
+    <button class="btn blue-solid" onclick="next()">OKAY 5alasna zana5a heres some real talk &nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+  </div>
+</div>
+<div class="page" id="p18">
+  <div class="ptitle">REAL TALK</div>
+  <div class="lbox">
+    <div class="lic">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+    </div>
+    <div class="lgrt">Dear Farida,</div>
+    <div class="lbod">
+      <p>Okay so its offically the first birthday of urs that ive known u (hopefully not the last idfk i might do sm stupid)</p><br/>
+      <p>Im bad with this kind of stuff which is why ive been joking the whole time, but HONESTLY you do mean a lot to me and I love talking to you and our convos and the stupid reels/tt's you send me (except the manhating ones) and LIKE a lot of things, you're funny and you know when to be mean and when to be nice and overall you are just an awesome person, mind you i will never say this again or acknowledge that i said it, infact after sending this link to you i might go jump off a building and die BUT thank you for being there for me to talk to and stuff IT MEANS THE WORLD TO ME  </p><br/>
+      <p>IM REEALLY BAD AT THIS SHIT ik ive said that 4 times but like HAPPY BIRTHDAY I HOPE ITS A GOOD ONE</p>
+    </div>
+    <div class="lsgn">&mdash;Karam;</div>
+  </div>
+  <button class="btn" onclick="next()" style="margin-top:8px;">Continue &nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+</div>
+<div class="page" id="p19">
+  <div class="fring">
+    <svg width="min(800px,130vw)" height="min(800px,130vh)" viewBox="0 0 500 500" fill="none" stroke="white">
+      <circle cx="250" cy="250" r="80" stroke-width="1.5"/>
+      <circle cx="250" cy="250" r="150" stroke-width="1"/>
+      <circle cx="250" cy="250" r="215" stroke-width=".7"/>
+      <circle cx="250" cy="250" r="280" stroke-width=".4"/>
+    </svg>
+  </div>
+  <div class="fbig">Happy sweet 16<span>Farida.</span></div>
+  <p class="fsub">I really REALLY really hope you liked this.</p>
+  <button class="cfbtn" onclick="launchConfetti()">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="m5.8 11.3-1.9 5.4 5.4-1.9 9-9a2 2 0 0 0-2.8-2.8Z"/><path d="m10.3 15.8 1.4-1.4"/><path d="m2 22 4-1-3-3Z"/></svg>
+    CONFETIIIIII
+  </button>
+  <button class="btn" onclick="gotoPage(0)" style="margin-top:4px;">
+    Start over &nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+  </button>
+</div>
+
+<script>
+const pages=Array.from(document.querySelectorAll('.page'));
+const N=pages.length;
+let cur=0;
+const pf=document.getElementById('pf');
+const bb=document.getElementById('bb');
+function gotoPage(n){
+  if(n<0||n>=N)return;
+  pages.forEach((p,i)=>{p.classList.remove('cur','prv');if(i===n)p.classList.add('cur');else if(i<n)p.classList.add('prv');});
+  cur=n;
+  pf.style.width=(n/(N-1)*100)+'%';
+  bb.classList.toggle('vis',n>0);
+  if(pages[n].id==='p20')setTimeout(launchConfetti,400);
+}
+function next(){gotoPage(cur+1);}
+function back(){gotoPage(cur-1);}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'||e.key==='ArrowRight')next();
+  if(e.key==='ArrowUp'||e.key==='ArrowLeft')back();
+});
+gotoPage(0);
+requestAnimationFrame(()=>requestAnimationFrame(()=>document.body.classList.remove('ntr')));
+
+const cv=document.getElementById('cc');
+const c2=cv.getContext('2d');
+let ps=[],aid;
+function rsz(){cv.width=innerWidth;cv.height=innerHeight;}
+rsz();window.addEventListener('resize',rsz);
+const CL=['#93c5fd','#60a5fa','#3b82f6','#1d4ed8','#dbeafe','#bfdbfe','#1e3a8a','#e0f2fe','#7dd3fc','#fff'];
+function Pt(x,y){this.x=x;this.y=y;this.vx=(Math.random()-.5)*9;this.vy=Math.random()*-13-4;this.g=.36;this.c=CL[Math.floor(Math.random()*CL.length)];this.s=Math.random()*9+4;this.r=Math.random()<.5;this.ro=Math.random()*Math.PI*2;this.rs=(Math.random()-.5)*.22;this.a=1;this.da=Math.random()*.012+.007;}
+Pt.prototype.tick=function(){this.vy+=this.g;this.x+=this.vx;this.y+=this.vy;this.ro+=this.rs;this.a-=this.da;};
+Pt.prototype.draw=function(){c2.save();c2.globalAlpha=Math.max(0,this.a);c2.fillStyle=this.c;c2.translate(this.x,this.y);c2.rotate(this.ro);if(this.r)c2.fillRect(-this.s/2,-this.s/4,this.s,this.s/2);else{c2.beginPath();c2.arc(0,0,this.s/2,0,Math.PI*2);c2.fill();}c2.restore();};
+function anim(){c2.clearRect(0,0,cv.width,cv.height);ps=ps.filter(p=>p.a>0&&p.y<cv.height+50);ps.forEach(p=>{p.tick();p.draw();});if(ps.length)aid=requestAnimationFrame(anim);else c2.clearRect(0,0,cv.width,cv.height);}
+function launchConfetti(){cancelAnimationFrame(aid);ps=[];const cx=cv.width/2;for(let i=0;i<260;i++)ps.push(new Pt(cx+(Math.random()-.5)*cv.width*.88,cv.height+10));anim();}
+window.addEventListener('load',()=>setTimeout(launchConfetti,700));
+</script>
+</body>
+</html>
