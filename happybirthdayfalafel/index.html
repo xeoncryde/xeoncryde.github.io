@@ -165,6 +165,29 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .cur .mt{animation-delay:.05s}.cur .ms{animation-delay:.1s}.cur .ml{animation-delay:.15s}
 .cur .fbig{animation-delay:.08s}.cur .fsub{animation-delay:.15s}.cur .cfbtn{animation-delay:.22s}
 body.ntr .page,body.ntr .fp{transition:none!important;}
+
+/* ── MOBILE ── */
+@media(max-width:600px){
+  .page,.fp{padding:52px 16px 44px;}
+  /* Let buttons wrap instead of overflowing off-screen */
+  .btn{white-space:normal;text-align:center;padding:12px 20px;font-size:.9rem;line-height:1.35;}
+  .cfbtn{white-space:normal;text-align:center;padding:12px 22px;font-size:1rem;}
+  /* Back button smaller so it doesn't cover content */
+  #bb{padding:8px 14px;font-size:.85rem;gap:6px;}
+  /* Letter page: reduce padding, allow scrolling */
+  #p18{overflow-y:auto;justify-content:flex-start;padding-top:72px;}
+  .lbox{padding:28px 18px;}
+  .lbod{font-size:.9rem;}
+  /* Video: constrain to screen width */
+  video{max-width:min(260px,78vw);height:auto;}
+  /* Fact text slightly smaller on tiny screens */
+  .ftxt{font-size:clamp(1.2rem,5.2vw,2rem);}
+  .ibod{font-size:.88rem;}
+}
+@media(max-width:380px){
+  .btn{font-size:.82rem;padding:10px 16px;}
+  .hname{font-size:clamp(3rem,16vw,7rem);}
+}
 </style>
 </head>
 <body class="ntr">
@@ -226,11 +249,15 @@ body.ntr .page,body.ntr .fp{transition:none!important;}
   </div>
 </div>
 <div class="page fp g5" id="p6">
+  <div class="fin">
     <div class="ftxt">you've been alive 5840 days, thats like 16 YEARS oh wait.</div>
     <button class="btn" onclick="next()">its still next! &nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
   </div>
 </div>
+<div class="page fp g6" id="p7">
+  <div class="fin">
     <div class="ftxt">out of those 5840 days youve been asleep for about 58,000 hours AND YOU'RE STILL LAZY ALL THE TIME</div>
+    <button class="btn" onclick="next()">ok &nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
   </div>
 </div>
 <div class="page fp g7" id="p8">
@@ -256,9 +283,8 @@ body.ntr .page,body.ntr .fp{transition:none!important;}
     <source src="cringe.mp4" type="video/mp4">
     if u cant see this ur browser has a problem idk go laptop or sum 
 </video>
-</script>
    <button class="btn" onclick="document.getElementById('cringeVideo').pause(); next();">
-    click on the video to replay it btw (this is still the next button) &nbsp;
+    click on the video to replay it (next)&nbsp;
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
     </svg>
@@ -281,7 +307,7 @@ body.ntr .page,body.ntr .fp{transition:none!important;}
   </div>
 </div>
 <div class="page fp g14" id="p15">
-    <div class="ftxt"idk if you get this a lot but you're a very scary person when you're angry</div>
+    <div class="ftxt">idk if you get this a lot but you're a very scary person when you're angry</div>
     <button class="btn" onclick="next()">u better be reading these and not just clicking ta5bees&nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
   </div>
 </div>
@@ -291,7 +317,7 @@ body.ntr .page,body.ntr .fp{transition:none!important;}
   </div>
 </div>
 <div class="page fp g16" id="p17">
- <div class="lbod">
+ <div class="fin">
         <div class="ptitle">REAL TALK</div>
     <button class="btn blue-solid" onclick="next()">KILL ME&nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
   </div>
@@ -312,7 +338,7 @@ body.ntr .page,body.ntr .fp{transition:none!important;}
   </div>
   <button class="btn" onclick="next()" style="margin-top:8px;">Continue &nbsp;<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
 </div>
-<div class="page" id="p19">
+<div class="page" id="p20">
   <div class="fring">
     <svg width="min(800px,130vw)" height="min(800px,130vh)" viewBox="0 0 500 500" fill="none" stroke="white">
       <circle cx="250" cy="250" r="80" stroke-width="1.5"/>
