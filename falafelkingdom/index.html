@@ -914,8 +914,8 @@
     
     // Level completion tracking — persisted in localStorage
     let completedLevels = JSON.parse(localStorage.getItem('fk_progress') || '[]');
-    const MAX_LEVELS = 10;
-    const WORLD_Z_MIN = -300;
+    const MAX_LEVELS = 15;
+    const WORLD_Z_MIN = -520;
     function saveProgress() { localStorage.setItem('fk_progress', JSON.stringify(completedLevels)); }
 
     let checkpoints = [];  // 3D checkpoint objects in the scene
@@ -934,6 +934,12 @@
         // Show continue button if there's progress
         if (completedLevels.length > 0) {
             document.getElementById('continue-btn').classList.remove('hidden');
+        }
+
+        // Expansion UI: update subtitle and play button if original game is complete
+        if (completedLevels.includes(10)) {
+            document.querySelector('.menu-subtitle').innerText = 'THE RETURN — ZONES 11–15';
+            document.getElementById('play-btn').innerText = 'RETURN TO THE MOUNTAIN';
         }
         
         initMenuStars();
@@ -1667,6 +1673,126 @@
             farida_care: "Bloop climbed all the way to the top alone just to hold onto hope. They waited for you.",
             happy: ["*looks out at the mountain* ...From up here I can see all of them. All the falafels you helped. All ten zones. You did that, Farida.", "I came up here alone to hope harder. And it worked. You're here. We have hummus. The whole mountain is happy because of you.", "This is where I want to be when everything changes. Right here, at the top, watching it happen. And it happened. You did it. ...Thank you."]
         },
+        Ripple:  {
+            emoji: '🌊',
+            intro: ["*holding a seashell up to where an ear would be* Shh. I'm listening. This is Concha. Concha has been talking to me for three days. I can't hear what she's saying exactly. But the general feeling is: comfort. Optimism. Soft wave energy."],
+            choices_sad: ["What does the shell say?", "Three days is a long time.", "How are you holding up?"],
+            response_sad: {
+                "What does the shell say?": ["She says the ocean is far away but not gone. She says tides come back. She says hummus is like a tide. That last part might be me. But Concha didn't correct me. She said nothing, which I'm taking as agreement.", "Every time I feel really bad I hold her up and I hear the ocean. Which is actually just ambient sound, my therapist says. But Concha and I have an understanding that goes beyond acoustics."],
+                "Three days is a long time.": ["It is. I've learned a lot about myself in three days. Mainly that I need hummus more than I thought. Also that Concha is genuinely good company. She doesn't project. She doesn't give unsolicited advice. She just hums.", "Day one I held her for comfort. Day two I started talking back. Day three I started asking questions. She answers in silence. I'm starting to think silence is actually the most honest response."],
+                "How are you holding up?": ["Honestly? Concha helps. I hold her and I remember that things move, even slowly. That the water always comes back. That something that feels still is usually just building up to something.", "I'm not great. But I have Concha and I have hope and one of those is a seashell and one of them is a feeling and both are currently doing heavy lifting."]
+            },
+            farida_care: "Ripple has been listening to a seashell named Concha for three days for emotional support. The shell is doing its best.",
+            happy: ["CONCHA!! CONCHA DID YOU HEAR THAT!! The hummus came back! The tide came back! You were RIGHT and also you were a seashell but you were RIGHT!!", "*holds Concha up one more time* Thank you. You held me through it. I'm going to put you somewhere nice. Somewhere you can hear the wind. You deserve wind.", "The ocean feeling is real now. Everything is moving again. Concha called it. I will never doubt a seashell again in my life."]
+        },
+        Flint:   {
+            emoji: '⚡',
+            intro: ["*standing next to a lightning rod with eyes closed* Don't mind me. I'm just channelling my rage into Rod. This is Rod. Rod is a lightning rod. I've been funnelling approximately seventy-two hours of anger into Rod and Rod has been handling it with incredible structural integrity."],
+            choices_sad: ["Who's Rod?", "That sounds healthy actually.", "How long have you been doing this?"],
+            response_sad: {
+                "Who's Rod?": ["Rod is a lightning rod. About four feet tall. Excellent conductor. I found him on day one when I realised I was too angry to be around other falafels and needed somewhere to put it. Rod volunteered by existing.", "Rod doesn't flinch. Rod doesn't tell me to calm down. Rod just stands there and absorbs. We've been together through seventy-two solid hours of this. Rod is the most reliable relationship I've ever had."],
+                "That sounds healthy actually.": ["It IS. I read somewhere that you need to express anger, not suppress it. So I'm expressing it. Directly into metal. Via whatever frequency rage operates on. Rod and I have developed a whole system.", "I rated it: positive experience, 5/5. Rod absorbs the voltage, I feel lighter afterward. We've got a rhythm. Every few hours I release a wave. Rod just— takes it. Every time. Unbothered. Rod is a legend."],
+                "How long have you been doing this?": ["Seventy-two hours give or take. Not continuously obviously — I sleep near Rod, which helps. I wake up, assess my anger level, determine if a session is needed, conduct the session, thank Rod, and eat a small snack if I have one.", "I've been doing it so long that now when I'm not near Rod I feel slightly unmoored. Like I'm carrying rage with nowhere to route it. Rod is my routing system. I genuinely cannot overstate how important Rod has become to my wellbeing."]
+            },
+            farida_care: "Flint has been radiating seventy-two hours of rage into a lightning rod named Rod. This is fine. Rod is fine.",
+            happy: ["I have one more thing to give Rod. *faces Rod* Thank you, Rod. We did it. You absorbed everything and now it's over. I'm going to stand here quietly for thirty seconds in gratitude. *stands quietly for thirty seconds* Okay. We're good.", "The rage is gone. All of it. The hummus is back and there's nothing to be angry about and I feel— light. I feel actually light. Rod did that. You did that. Both of you did that.", "*to Rod* I'll visit. Don't think I won't. *to Farida* I'll visit Rod. I don't want him to think this was just about the crisis."]
+        },
+        Sprig:   {
+            emoji: '🌱',
+            intro: ["*carefully guarding a tiny sprout in a pot* This is Hope. I started growing Hope on day one of the crisis because I needed something to take care of. Hope is point-three centimetres tall. Hope has not had an easy week. Neither have I. We've been learning from each other."],
+            choices_sad: ["Hope is very small.", "That's actually really sweet.", "How is Hope doing?"],
+            response_sad: {
+                "Hope is very small.": ["She is. But she's growing. Point three centimetres is more than zero. Zero is what she was when this started. Point three is progress. I update Hope every morning. Today's update: still point three. But firmly point three. Stable.", "I told Hope about the hummus situation. I explain everything to Hope. She doesn't react in visible ways. But she grew, didn't she? She grew. Something heard me. I choose to believe that something was Hope."],
+                "That's actually really sweet.": ["Thank you. Some people looked at my tiny plant and said 'Sprig that's just dirt.' But dirt is how everything starts. Hope started as dirt and now she's a sprout and I believe in her completely.", "I've been reading to Hope. Just short things. Updates about the mountain. Status reports. Things I observe. She gets the full picture. She's an informed plant. Informed plants grow better. I have no data to support this. I believe it anyway."],
+                "How is Hope doing?": ["Good! Stable. Point three centimetres, no signs of distress. I moved her slightly closer to the light yesterday. She responded by continuing to exist, which I'm counting as enthusiasm.", "She had a wobbly day on day two. I was worried. But she steadied. I think she could feel that I was watching. Or the light improved. Both. I'm saying both."]
+            },
+            farida_care: "Sprig has been growing a 0.3cm plant named Hope since the crisis began. Hope is doing fine. Sprig is doing their best.",
+            happy: ["HOPE!! *holds pot up* She grew. Look — she grew. During all of this she was GROWING. She knew. I told her and she grew. That's a response. I'm calling that a response.", "I'm going to tell Hope everything about you, Farida. She's going to get the full account. Updated with accurate information. *to Hope* This is Farida. Farida brought the hummus back. Hope, say hello. *waits* She said hello in growth language.", "Point three became point four. I measured it just now. Right now, while we were talking. Hope grew. I think she's been waiting for this moment as much as I have."]
+        },
+        Mist:    {
+            emoji: '🌫️',
+            intro: ["*from inside a large blanket* ...I'm in Barry. This is Barry. Barry is my blanket. Barry and I have been together since day one of the crisis. I came out once on day two to check the situation and then I went back in. Barry is warm. Barry is safe. Barry doesn't have bullies."],
+            choices_sad: ["Come out of the blanket.", "Barry sounds cozy.", "Are you okay in there?"],
+            response_sad: {
+                "Come out of the blanket.": ["I will. When there's hummus. That's the deal I made with myself. Hummus = out of Barry. No hummus = in Barry. It's a fair deal. Barry agreed. Barry always agrees. Barry is, again, a blanket.", "I tried coming out on day two. I assessed the situation — still no hummus, still bullies — and I made an informed decision to go back in. I've been in Barry ever since. I have zero regrets. Barry is excellent."],
+                "Barry sounds cozy.": ["Barry IS cozy. I've been recommending Barry to other falafels but most of them already have coping mechanisms. Pebble has Gary. Dumpli has the sign. I have Barry. I think we all found our thing.", "Barry has kept me from spiralling. When I feel the spiral coming I just pull Barry tighter and the spiral bounces off. It's like a spiral shield. A soft spiral shield. I might patent this."],
+                "Are you okay in there?": ["Broadly yes. I have limited sensory input which is helping. I'm warm. I've been thinking a lot. Mostly about hummus but also about things that are good that aren't hummus. The list is shorter than I'd like but it exists.", "I'm okay. I'm very much okay in here. I'm just also staying in here until there's a reason to come out. Give me a reason, Farida. Come on. Give me the reason."]
+            },
+            farida_care: "Mist is inside a blanket named Barry and has been since day one. Barry has been very supportive. Bring hummus to open the blanket.",
+            happy: ["*emerges slowly from Barry* ...Oh. It happened. Is this real? Is this outside? *looks around* It's outside. And there's hummus. Barry, I'm coming out. For real this time. *folds Barry carefully* I'll be back, Barry. For sleeping. Not for crisis management. Just sleeping.", "Barry has served his purpose. Barry is now a regular blanket again. The crisis blanket era is OVER. I'm recommending Barry to everyone but as a comfort object, not a coping mechanism. There's a difference. It matters.", "I was in there for days. And now I'm out and everything is okay and the first breath of outside air feels incredible. Farida. Thank you. I mean it. Thank you for the reason."]
+        },
+        Dew:     {
+            emoji: '💧',
+            intro: ["*standing with an open umbrella* I've had Claude open for four days. This is Claude. Claude is my umbrella. I know it's not raining. I know. But I don't know what's going to happen next and I would rather be prepared than caught off guard by precipitation. Or other things. Claude stays open."],
+            choices_sad: ["The sky isn't going to attack.", "Four days is a long time for an umbrella.", "That's very cautious."],
+            response_sad: {
+                "The sky isn't going to attack.": ["That's what people say before the sky attacks. I'm not saying it will. I'm saying it COULD. The bullies came and nobody expected THAT. After the bullies I decided to expect more things. Claude is the physical embodiment of expecting more things.", "Also — and I want to be clear about this — Claude is now on a stick. He fell on day two and I propped him on a stick so he could stay open without me holding him. Claude is self-supporting now. I'm very proud of him."],
+                "Four days is a long time for an umbrella.": ["It is. Claude has been through a lot. He's a little faded on the left panel. I call that a badge of honour. He's been open through sun and mild wind and one very confusing drizzle that felt like the sky was testing me.", "I talk to Claude about this. About whether it's reasonable to have an umbrella open for four days with no rain. Claude's position, as far as I can interpret, is: better to have it and not need it. I agree, Claude. I agree."],
+                "That's very cautious.": ["Epistemically humble is the phrase I prefer. I don't know what the sky is planning. I don't know what the bullies are planning. I don't know what anything is planning. Claude prepares me for the possibility of plans.", "Crumble asked if they could document Claude in the scroll. I said yes. Claude is now part of the official historical record. As 'the umbrella of uncertainty.' That's my contribution to this crisis. That, and Claude."]
+            },
+            farida_care: "Dew has had an umbrella named Claude open for four days just in case. Claude is now on a stick. This is called preparedness.",
+            happy: ["*looks up at Claude* ...I think I can close Claude now. *slowly closes umbrella* Okay. Okay yes. Claude can rest. We made it through everything Claude was worried about and nothing bad happened to us and the hummus is back. Claude was right to be cautious. The universe proved him wrong. That's the best possible outcome.", "I'm going to keep Claude. Just — not open. As a reminder that caution is good but so is trusting the moment. Claude taught me both. By being an umbrella on a stick for four days.", "Thank you, Farida. Claude and I discussed you. Well — I discussed you to Claude. Claude was optimistic. Claude was open the whole time, after all. Openness is his whole thing."]
+        },
+        Haze:    {
+            emoji: '🌙',
+            intro: ["*surrounded by star maps* I've made thirty-seven star maps. At night, when I can't sleep, I come out here and map the stars and look for patterns. Signs. Something that says 'it's going to be okay.' Last night I saw a shooting star. I made a hummus wish. I think it worked, actually. You're here."],
+            choices_sad: ["What have the stars said?", "Thirty-seven maps is a lot.", "What are you looking for exactly?"],
+            response_sad: {
+                "What have the stars said?": ["Mostly they've said: 'we are very far away and cannot directly intervene in your hummus situation.' Which is fair. But they also move, and the patterns shift, and some nights certain constellations are very prominent in ways that feel encouraging.", "Map twenty-three I named the 'Return Constellation.' It's Farida-shaped. Not literally — it's four stars in an approximate triangle — but when I look at it I feel like something is coming. And something came. You came. Map twenty-three was right."],
+                "Thirty-seven maps is a lot.": ["I know. I started because I needed something to do with my nights. Now I have a collection. Crumble asked if they could document the maps in the scroll. I said yes but only if they note that each one was made with genuine astronomical intent, not just idle hobby.", "Each map represents one night of watching and waiting. Thirty-seven nights of evidence that the sky is still there. That the universe is still operating. That something larger than the hummus crisis is continuing uninterrupted. That helps."],
+                "What are you looking for exactly?": ["Honestly? Signs. Confirmation. Something to look at that says 'the scale of things means this will pass.' The stars are very good at providing that. They've been here for billions of years through situations much worse than bullies stealing hummus.", "Also I made a hummus wish on a shooting star two nights ago. And here you are. Either that was a coincidence or the universe has a very specific and efficient wish-processing system. I'm open to both explanations."]
+            },
+            farida_care: "Haze has made 37 star maps looking for signs and made a hummus wish on a shooting star. You are the wish.",
+            happy: ["The wish worked. I made a hummus wish and you are here. I'm going to make a note on map thirty-seven. 'Shooting star wish: successful. Subject: hummus. Outcome: Farida. Wish fulfilled on day four.'", "I'm going to stay up tonight just to look. Not to look for signs — just to look. To see the stars in context of something good having happened. That's a different kind of looking. A grateful kind.", "Thank you, Farida. You were in the stars. I saw you. You were the triangle with four points. I named the constellation after you. It's official now. Look up on a clear night. That's yours."]
+        },
+        Crest:   {
+            emoji: '🏔️',
+            intro: ["*standing very straight next to a flag* I've been here since day one. The flag says 'HUMMUS WILL RETURN.' I made it on the first morning. I didn't know if it was true. I decided to make it true by saying it loudly near a mountain. Pumpi drew a sun on it. I let them. It's a good sun."],
+            choices_sad: ["The flag is very determined.", "Have you left the flag at all?", "What if the hummus doesn't return?"],
+            response_sad: {
+                "The flag is very determined.": ["The flag speaks for me when I run out of words. Which has been several times. On day two I just stood next to the flag and pointed at it. That counts as communication. Crumble wrote about it in the scroll. 'Crest pointed at flag. No words needed. Entry complete.'", "I'm going to keep the flag after this is over. Not for crisis reasons. For— reminder reasons. Evidence that I believed something before I knew it was true. That's important to have evidence of."],
+                "Have you left the flag at all?": ["I sleep next to the flag. Standing up, mostly. I don't fully sleep — I sort of lean. The flag keeps me upright. We hold each other. That sounds like I'm being poetic but it is literally true: I would have fallen over without the flag's structural support.", "On day three I moved three metres to get a better view of the mountain path. I came back immediately. The flag needed company. Also I was nervous. The flag grounds me. That's a different kind of grounding than Pebble's Gary situation but similar in spirit."],
+                "What if the hummus doesn't return?": ["Then the flag is wrong. And I will have stood next to a wrong flag for days. And I will have to live with that. *long pause* ...But I don't think it's going to be wrong. I think I made a true flag. I think the flag knew something I didn't.", "I had that thought on day two. I looked at the flag and thought: what if we just sit here forever next to a flag about something that doesn't come back. And then I thought: no. That's not what happens. Good things come back. The flag is right."]
+            },
+            farida_care: "Crest has been standing next to a flag reading 'HUMMUS WILL RETURN' since day one. They sleep next to it. The flag was right.",
+            happy: ["*stares at flag* ...IT'S RIGHT. THE FLAG IS RIGHT. I SAID HUMMUS WILL RETURN AND HUMMUS HAS RETURNED AND I WAS RIGHT THE WHOLE TIME AND SOMETIMES YOU JUST HAVE TO STAND NEXT TO THE THING YOU BELIEVE IN UNTIL IT HAPPENS!!!", "I'm going to keep this flag forever. In a good place. Somewhere visible. 'HUMMUS WILL RETURN' — past tense now in our hearts, present tense on the flag always. Pumpi's sun is perfect on it. The flag is complete.", "Pumpi!! PUMPI!! COME HERE!! The flag was right! Your sun is smiling because IT KNEW!! *to Farida* Thank you. For being the thing the flag was about."]
+        },
+        Lumen:   {
+            emoji: '🕯️',
+            intro: ["*tending a candle* I've been keeping this vigil since day one. Candle's been going for four days. It's gone out eleven times. I've relit it eleven times. This is Re-Light Twelve. Twelve relights of the same vigil candle. I did a fire safety assessment on day two. The assessment said: continue."],
+            choices_sad: ["Eleven re-lights is dedication.", "What is the vigil for?", "Isn't that a fire hazard?"],
+            response_sad: {
+                "Eleven re-lights is dedication.": ["Eleven is the number of times things got dark. Twelve is the number of times I decided to push back. I've been counting. Every relight is a data point. The data says: I'm not stopping.", "The candle going out isn't failure. The candle going out and getting relit is the whole story. That's what I'm documenting here. Not the darkness. The relighting. Crumble is writing it down in the scroll. 'Eleven relights as of this entry. Counting continues.'"],
+                "What is the vigil for?": ["For the mountain. For the falafels. For the idea that things will be okay. A vigil doesn't have to be for something specific — it's for the principle of staying with something until it resolves.", "Also I wanted to do something that required maintenance. Something I had to come back to. The candle needs me. Every time it goes out it needs me to come back and relight it. That responsibility kept me going. The candle needed me so I had to keep being needed."],
+                "Isn't that a fire hazard?": ["I did a full fire safety assessment on day two and rated it: low risk, manageable, proceed with caution. I've cleared the area around the candle. I have a contingency plan for wind. The assessment was thorough.", "Also — and this is important — I am a falafel, not a fire marshal. My assessment has limits. But I've been careful. Nothing has caught fire. The vigil continues. This is Re-Light Twelve. Thirteen will not be necessary. I believe that with my whole heart."]
+            },
+            farida_care: "Lumen has relit their vigil candle eleven times over four days. This is Re-Light Twelve. The vigil was for you, even before you existed to them.",
+            happy: ["*cups hands around candle* ...Twelve. This is twelve. And it's the last one. Not because the candle went out — because we don't NEED it anymore. The vigil is complete. The vigil worked. *blows out candle gently* Thank you for everything you were.", "Eleven times it went dark. Twelve times it came back. And now I don't need the count anymore because the thing I was holding for is here. You're here. Farida is here and the hummus is back and Re-Light Twelve is the last entry in the vigil log.", "I'm going to keep the candle somewhere safe. Unlit. As evidence of what was held through. Evidence that someone stayed awake and kept relighting and didn't stop. That matters. You matter. Thank you."]
+        },
+        Gale:    {
+            emoji: '🌬️',
+            intro: ["*running with a kite* This is Marco. I made Marco on day one when I realised I needed something to do with my hands and my legs and the part of my brain that was going to spiral if I let it. I've been flying Marco for four days. We run in circles. The circles help."],
+            choices_sad: ["How much have you run?", "Have you thought about the hummus at all?", "Marco sounds like a good kite."],
+            response_sad: {
+                "How much have you run?": ["A lot. I don't know the exact distance. It's circles so it's hard to calculate. I've mapped the circle. Crumble helped. It's about forty metres around. I've done it... a lot of times. The number is very high.", "The running helps. While I'm running I'm thinking about Marco and wind patterns and kite aerodynamics and not thinking about the hummus. The moment I stop running the thoughts start. So I mostly don't stop. I've gotten very good at running."],
+                "Have you thought about the hummus at all?": ["Every time Marco dips. When Marco dips the wind changes and there's a moment where I have to stop focusing on the kite and the thoughts rush in. The hummus thoughts. The 'what if it doesn't come back' thoughts. I just pull Marco back up and start running again.", "I'm aware this is displacement. I know what I'm doing. But what's the alternative — stand still and think? No. We run. We fly Marco. We keep moving. The movement is the coping mechanism. Marco is the coping mechanism. Marco and I have an understanding."],
+                "Marco sounds like a good kite.": ["Marco is an excellent kite. I built him from scratch on day one out of things I found. He handles well. He has good lift. He's reliable. He doesn't spiral unexpectedly. Which is more than I can say for my emotions, so I respect it about him.", "Marco is calm. Even when the wind is bad, Marco adjusts. Finds a new angle. Keeps flying. I've been taking notes from Marco. On how to adjust. On how to keep flying even when the conditions are bad. Marco is a kite and also a life philosophy."]
+            },
+            farida_care: "Gale has been running in circles flying a kite named Marco for four days to avoid thinking about the hummus. Marco is a very good kite.",
+            happy: ["*stops running* ...I stopped. I stopped running and I'm still here and nothing bad happened. The hummus is back and Marco is still flying and I didn't need to keep running. I can just— *stands still* ...Oh. Oh this is nice. Being still.", "MARCO!! *holds kite up* We did it!! We ran for four days and we made it!! You and me!! We didn't stop and now we don't have to!! *hugs kite* Marco says you're welcome. I can tell by his aerodynamics.", "I'm going to fly Marco sometimes. Not to avoid thinking. Just for fun. For joy. For the feeling of running with something that goes up. That's what Marco was meant for. Crisis running was temporary. Joy flying is permanent. Thank you, Farida, for giving us back joy flying."]
+        },
+        Veil:    {
+            emoji: '🌸',
+            intro: ["*holding a stack of flower crowns* I've been making these since day one. Nineteen crowns. One for every falafel on the mountain — the original ones — and one extra. Crown nineteen. Crown nineteen is for whoever would come back when they didn't have to. I've been holding it since day one. Waiting for the right head."],
+            choices_sad: ["Nineteen flower crowns.", "You really believed things would get better.", "Can I have mine?"],
+            response_sad: {
+                "Nineteen flower crowns.": ["Nineteen. I counted them every morning. As a way of counting something that wasn't days of no-hummus. Flower crowns are a better thing to count. They're full of colour. The counting made mornings feel like inventory instead of waiting.", "Each one is slightly different. I used what I could find. Some are more elaborate than the others — I had more time on some days. Crown twelve has an extra loop. Crown seven has a little twirl. Crown nineteen is the most careful one. I spent the longest on nineteen."],
+                "You really believed things would get better.": ["I had to. If I stopped believing I would have stopped making crowns. And if I stopped making crowns I would have had nothing to do but wait. The crowns gave the believing something to do. Belief with a task is easier to maintain than belief with nothing.", "Also — I needed crown nineteen to exist. The idea of it. Someone was going to come. Someone was going to need a crown. I had to make sure it was ready. It kept me going, making sure the crown was ready for the person who didn't have to come but would."],
+                "Can I have mine?": ["*pauses* ...Yes. Yes, this is yours. I made it for you. I made it before I knew your name, or what you'd look like, or when you'd come. I just knew someone would, and they'd deserve a crown, and it needed to be ready.", "*carefully places crown nineteen* There. It fits perfectly. I knew it would. I made it to fit the person who would come back when they didn't have to. I made it to fit you."]
+            },
+            farida_care: "Veil has been holding 19 flower crowns since day one. Crown 19 is for whoever comes. It's yours, Farida.",
+            happy: ["*distributes crowns* Everyone gets one. EVERYONE gets one. I've been waiting to hand these out. This is the moment. *to Farida* Yours is nineteen. You are crown nineteen. You were always crown nineteen.", "I made these on faith. Pure faith. And faith was right. Faith was right and you're here and everyone on this mountain has a flower crown and I've never felt better about a craft project in my life.", "Thank you, Farida. Thank you for being the person crown nineteen was made for. Thank you for coming back when you didn't have to. The crown was always yours. I just had to hold it until you got here."]
+        },
     };
 
     // Bully personalities
@@ -1748,6 +1874,71 @@
                 "...okay?": "Okay?? OKAY? I confess my greatest crime and you say OKAY? I've been holding onto this for DAYS screw you"
             },
             final: "*shoves*"
+        },
+        {
+            name: 'Cinder',
+            lines: ["Halt. There is a toll.",
+                    "The toll is: go back down.",
+                    "I know. I know it's a bad toll. I literally just invented it. I own that."],
+            choices: ["That's a terrible toll.", "What do I get for paying?", "I'm not going back down."],
+            response: {
+                "That's a terrible toll.": "Yeah. I know. It's my first day. The other bullies said 'invent a toll' and I panicked and this is what came out. I'm not proud of it. The toll stands though.",
+                "What do I get for paying?": "...Nothing. You go back down and then you're down. That's it. That's the full toll experience. I didn't think through the incentive structure. Day one problems.",
+                "I'm not going back down.": "That is... technically the most sensible response to a bad toll. I respect it. I still have to do the job though. Sorry."
+            },
+            final: "Apologies for the toll. It was a bad toll. *halfhearted shove*"
+        },
+        {
+            name: 'Smoulder',
+            lines: ["Oh. You're Farida.",
+                    "They said you were legendary. I was expecting a cape. Do you not have a cape?",
+                    "No cape. That's fine. That's genuinely fine. I just— expected a cape. You should get a cape."],
+            choices: ["I don't have a cape.", "What kind of cape?", "Can we focus?"],
+            response: {
+                "I don't have a cape.": "Right, yes, obviously. I just think given your reputation — multiple zones cleared, bullies defeated, hummus shared — you've earned some kind of visual distinction. A cape would communicate that. Just a suggestion.",
+                "What kind of cape?": "Oh! Good question. Something that moves dramatically when you run. Purple, maybe? To match the whole Farida energy. Gold trim. Small falafel embroidered on the back. I've thought about this more than I should have given that I'm supposed to be stopping you.",
+                "Can we focus?": "Yes! Right. Sorry. You're very impressive and I got distracted. Professionally: I have to do this. Personally: you should absolutely get a cape."
+            },
+            final: "For what it's worth — genuinely impressive work up here. Get a cape. *recommending shove*"
+        },
+        {
+            name: 'Ashen',
+            lines: ["The Head Crisp is watching.",
+                    "I don't know which direction. Probably that one. Or that one.",
+                    "I just work here. This zone was assigned to me. Nothing personal."],
+            choices: ["Who is The Head Crisp?", "That's not very intimidating.", "Okay."],
+            response: {
+                "Who is The Head Crisp?": "The one in charge. Very organised. Has a spreadsheet. Has had a spreadsheet about you specifically for several days now. Column headers include things like 'arrival time' and 'persistence level.' It's thorough. It's alarming, honestly.",
+                "That's not very intimidating.": "I KNOW. I'm working on the delivery. 'The Head Crisp is watching' should be scarier. It sounds scary in my head. Out loud it just sounds like a cooking instruction. I'll workshop it.",
+                "Okay.": "...That's it? Just 'okay'? I give you the whole 'The Head Crisp is watching' thing and you say okay? You're very calm. That's slightly unsettling. Good trait for climbing a mountain though."
+            },
+            final: "Nothing personal. Genuinely. You're doing great. *encouraging shove* — wait no — *shove*"
+        },
+        {
+            name: 'Blaze',
+            lines: ["I don't want to be here.",
+                    "I saw the plant. Zone thirteen. The little one. Hope. She looks great.",
+                    "The Head Crisp's spreadsheet has a red column for falafels I don't defeat. I really don't want to be in the red column."],
+            choices: ["The plant is named Hope.", "Who's The Head Crisp?", "You don't have to do this."],
+            response: {
+                "The plant is named Hope.": "Hope. That's— that's a good name. Tell Sprig she looks healthy. The green is really coming in. I watched her for a while from across the zone. I didn't go closer because I was supposed to be patrolling but I watched. She's doing really well.",
+                "Who's The Head Crisp?": "The bully in charge of all of this. Has a spreadsheet. Very into data. Not very into people not following the spreadsheet. Red column is bad. The red column means things. I don't want to know what the red column means.",
+                "You don't have to do this.": "*long pause* ...I know. But the spreadsheet. The red column. I just— I need to not be in the red column. I'm sorry. I really am. Tell Sprig Hope looks great."
+            },
+            final: "I'm sorry. I really am. Tell Sprig Hope looks great. *apologetic shove*"
+        },
+        {
+            name: 'The Head Crisp',
+            lines: ["So. You made it.",
+                    "I have a spreadsheet. It has six tabs. Tab four is about you specifically. Column G is 'she won again.' Column G has been updated eight times already.",
+                    "I had a whole monologue prepared. Very dramatic. You walked in looking completely unbothered and now I can't remember any of it."],
+            choices: ["Update the spreadsheet.", "What's in column G?", "I heard about your spreadsheet."],
+            response: {
+                "Update the spreadsheet.": "*opens spreadsheet* Fine. Arrival time: now. Demeanour: infuriatingly calm. Monologue: ruined. Column G: *typing* 'she's here. she said to update the spreadsheet. she knew about the spreadsheet.' This is going in the appendix.",
+                "What's in column G?": "Column G is 'she won again.' It started as a hypothetical column. I labelled it that before you got here because I was statistically accounting for the possibility. It is the most populated column in the sheet. Eight entries. Nine, probably, soon.",
+                "I heard about your spreadsheet.": "From who. From Blaze? It was Blaze. I knew Blaze was going to say something. Blaze is in column B: 'not enthusiastic about this operation.' Column B is also very full. I have data on everything. The data is not going well."
+            },
+            final: "Column G updated. *updates spreadsheet in real time* Intervention unsuccessful. *shoves, less convincingly than planned*"
         }
     ];
     let bullyDialogueIndex = 0;
@@ -1756,7 +1947,8 @@
     const FALAFEL_NAMES = [
         'Pebble','Dumpli','Crispy','Glob','Mochi','Bitsy',
         'Nubs','Wobbli','Kiki','Flump','Sog','Blinky',
-        'Dizzy','Pumpi','Crumble','Dotty','Squash','Tuffet','Bloop'
+        'Dizzy','Pumpi','Crumble','Dotty','Squash','Tuffet','Bloop',
+        'Ripple','Flint','Sprig','Mist','Dew','Haze','Crest','Lumen','Gale','Veil'
     ];
     let falafelNameIndex = 0;
 
@@ -2276,6 +2468,132 @@
             addFalafelInZone(-9, 73, -277, 10);  // Tuffet
             addFalafelInZone(-6, 76, -293, 10);  // Bloop (on the palace platform)
             // No gate — this is the final zone!
+
+
+            // ── ZONE 11 — "Twilight Ridge"  y=80  z≈-310  ─────────────────────
+            addPlatform(-6, 80, -310, 14, 1, 12, 0x9B59B6);
+            addCheckpoint(-6, 81, -308, 11);
+
+            addBully(-8, 81, -314);
+
+            addPlatform(-16, 80, -316, 5, 1, 5, 0x8E44AD);
+            addPlatform(4, 80, -318, 5, 1, 5, 0x8E44AD);
+            addPlatform(-6, 81, -322, 6, 1, 6, 0xA569BD);
+
+            addJarInZone(-16, 81, -316, 11);
+            addJarInZone(4, 81, -318, 11);
+            addJarInZone(-6, 82, -322, 11);
+            addJarInZone(-7, 81, -312, 11);
+
+            addFalafelInZone(-4, 81, -311, 11);  // Ripple
+            addFalafelInZone(-9, 81, -311, 11);  // Flint
+
+            createGateZone(-6, 80, -328, 10, 11);
+            addMovingPlatform(-6, 80, -334, 4, 1, 4, 0x8E44AD, 'x', -4, 4);
+            addPlatform(-6, 80, -340, 8, 1, 5, 0x9B59B6);
+            addLadder(-6, 80.5, -340, 8);
+
+
+            // ── ZONE 12 — "The Amber Archives"  y=88  z≈-344  ─────────────────
+            addPlatform(-6, 88, -344, 14, 1, 12, 0xE67E22);
+            addCheckpoint(-6, 89, -342, 12);
+
+            addBully(-8, 89, -346);
+            addBully(-2, 89, -350);
+
+            addPlatform(-16, 88, -348, 5, 1, 5, 0xCA6F1E);
+            addPlatform(4, 88, -352, 5, 1, 5, 0xCA6F1E);
+            addPlatform(-6, 89, -356, 6, 1, 6, 0xD4AC0D);
+
+            addJarInZone(-16, 89, -348, 12);
+            addJarInZone(4, 89, -352, 12);
+            addJarInZone(-6, 90, -356, 12);
+            addJarInZone(-7, 89, -346, 12);
+
+            addFalafelInZone(-4, 89, -345, 12);  // Sprig
+            addFalafelInZone(-9, 89, -345, 12);  // Mist
+
+            createGateZone(-6, 88, -362, 10, 12);
+            addMovingPlatform(-6, 88, -368, 4, 1, 4, 0xCA6F1E, 'z', -2, 2);
+            addPlatform(-6, 88, -374, 8, 1, 5, 0xE67E22);
+            addLadder(-6, 88.5, -374, 8);
+
+
+            // ── ZONE 13 — "Storm Spire"  y=96  z≈-378  ───────────────────────
+            addPlatform(-6, 96, -378, 14, 1, 12, 0x2C3E50);
+            addCheckpoint(-6, 97, -376, 13);
+
+            addBully(-10, 97, -380);
+            addBully(-1, 97, -384);
+
+            addPlatform(-14, 97, -384, 4, 1, 4, 0x34495E);
+            addPlatform(2, 97, -386, 4, 1, 4, 0x34495E);
+            addPlatform(-6, 98, -390, 5, 1, 5, 0x2C3E50);
+
+            addJarInZone(-14, 98, -384, 13);
+            addJarInZone(2, 98, -386, 13);
+            addJarInZone(-6, 99, -390, 13);
+            addJarInZone(-7, 97, -380, 13);
+
+            addFalafelInZone(-4, 97, -379, 13);  // Dew
+            addFalafelInZone(-9, 97, -379, 13);  // Haze
+
+            createGateZone(-6, 96, -396, 10, 13);
+            addMovingPlatform(-8, 96, -402, 4, 1, 4, 0x34495E, 'x', -4, 2);
+            addMovingPlatform(-2, 96, -406, 4, 1, 4, 0x34495E, 'x', 2, -4);
+            addPlatform(-6, 96, -412, 8, 1, 5, 0x2C3E50);
+            addLadder(-6, 96.5, -412, 8);
+
+
+            // ── ZONE 14 — "Crystal Summit"  y=104  z≈-418  ───────────────────
+            addPlatform(-6, 104, -418, 14, 1, 12, 0xAED6F1);
+            addCheckpoint(-6, 105, -416, 14);
+
+            addBully(-10, 105, -420);
+            addBully(-2, 105, -424);
+            addBully(-6, 105, -426);
+
+            addPlatform(-16, 104, -422, 5, 1, 5, 0x85C1E9);
+            addPlatform(4, 104, -426, 5, 1, 5, 0x85C1E9);
+            addPlatform(-6, 105, -430, 5, 1, 5, 0xD6EAF8);
+
+            addJarInZone(-16, 105, -422, 14);
+            addJarInZone(4, 105, -426, 14);
+            addJarInZone(-6, 106, -430, 14);
+            addJarInZone(-7, 105, -420, 14);
+            addJarInZone(-3, 105, -420, 14);
+
+            addFalafelInZone(-4, 105, -419, 14);  // Crest
+            addFalafelInZone(-9, 105, -419, 14);  // Lumen
+
+            createGateZone(-6, 104, -436, 10, 14);
+            addMovingPlatform(-6, 104, -442, 4, 1, 4, 0x85C1E9, 'x', -4, 4);
+            addPlatform(-6, 104, -448, 8, 1, 5, 0xAED6F1);
+            addLadder(-6, 104.5, -448, 8);
+
+
+            // ── ZONE 15 — "The Return Summit — Final"  y=112  z≈-452  ─────────
+            addPlatform(-6, 112, -452, 22, 1, 22, 0xF4D03F);
+            addCheckpoint(-6, 113, -450, 15);
+
+            addBully(-12, 113, -456);
+            addBully(2, 113, -460);
+            addBully(-6, 113, -463);
+
+            addPlatform(-14, 114, -458, 5, 1, 5, 0xF39C12);
+            addPlatform(4, 114, -460, 5, 1, 5, 0xF39C12);
+            addPlatform(-6, 115, -466, 6, 1, 6, 0xF4D03F);
+
+            addJarInZone(-14, 115, -458, 15);
+            addJarInZone(4, 115, -460, 15);
+            addJarInZone(-6, 116, -466, 15);
+            addJarInZone(-8, 113, -454, 15);
+            addJarInZone(-2, 113, -454, 15);
+            addJarInZone(-4, 115, -461, 15);
+
+            addFalafelInZone(-4, 113, -453, 15);  // Gale
+            addFalafelInZone(-9, 113, -453, 15);  // Veil
+            // No gate — final zone!
 
         } else if(lvl > 1) {
             // Hot-reloading any level above 1 rebuilds the whole mountain.
@@ -2989,6 +3307,79 @@ function addFalafel(x,y,z,sad) {
     let cutscenePanel = 0;
     let typingInterval = null;
     let cutsceneAnimationFrame = null;
+
+    // ── EXPANSION INTRO CUTSCENE DATA ─────────────────────────────────────────
+    const EXPANSION_CUTSCENE_DATA = [
+        {
+            speaker: "👑 QUEEN BLOOP",
+            speakerStyle: "color:#f4d03f;",
+            text: "Farida. I know you just left. I know you had a show to watch. I watched you leave from my telescope. I didn't say anything because I thought it was over. <span class='highlight'>It is not over.</span>",
+            scene: "ending_king",
+            speakerMood: "sad"
+        },
+        {
+            speaker: "👑 QUEEN BLOOP",
+            speakerStyle: "color:#f4d03f;",
+            text: "They came back. <span class='highlight'>Different ones.</span> Meaner ones. The previous bullies apparently told the new ones that someone came and undid everything. The new ones took that <span class='highlight'>personally.</span>",
+            scene: "attack",
+            speakerMood: "sad"
+        },
+        {
+            speaker: "🔥 THE HEAD CRISP  (new bully, very annoyed)",
+            speakerStyle: "color:#ff6060;",
+            text: "So you saved the mountain last time. That's cute. We weren't there last time. <span class='highlight'>We're here now.</span> And we brought more jars to steal. And a spreadsheet. We made a spreadsheet.",
+            scene: "attack",
+            speakerMood: "bully"
+        },
+        {
+            speaker: "🧆 PEBBLE  (via Gary)",
+            speakerStyle: "color:#c8e6ff;",
+            text: "Gary told me to tell you we need help again. Gary didn't actually say that. I translated. Gary's message was <span class='highlight'>sitting very still</span>, which I interpret as urgency.",
+            scene: "sad",
+            speakerMood: "sad"
+        },
+        {
+            speaker: "⚡ FARIDA",
+            speakerStyle: "color:#c8a8f0;font-size:15px;letter-spacing:2px;",
+            text: "I hadn't even gotten to the good part of my show. I hadn't even— okay. <span class='highlight'>Okay.</span> I'm coming back. But this time I want the certificate to be LAMINATED. I'm serious. Laminate it.",
+            scene: "ready",
+            speakerMood: "hero"
+        }
+    ];
+
+    function startExpansionCutscene() {
+        cutscenePanel = 0;
+        // Temporarily swap in expansion data
+        window._activeCutsceneData = EXPANSION_CUTSCENE_DATA;
+        const dots = document.getElementById('cutscene-dots');
+        dots.innerHTML = '';
+        for (let i = 0; i < EXPANSION_CUTSCENE_DATA.length; i++) {
+            const d = document.createElement('span');
+            d.className = 'cutscene-dot' + (i === 0 ? ' active' : '');
+            dots.appendChild(d);
+        }
+        showScreen('cutscene');
+        showExpansionCutscenePanel(0);
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        startAmbientMusic();
+    }
+
+    function showExpansionCutscenePanel(index) {
+        const data = EXPANSION_CUTSCENE_DATA[index];
+        const spEl = document.getElementById('cutscene-speaker');
+        spEl.textContent = data.speaker;
+        spEl.style.cssText = (data.speakerStyle || 'color:#f4d03f;') + 'font-size:13px;letter-spacing:2px;margin-bottom:10px;text-transform:uppercase;';
+        renderCutsceneScene(data.scene, data.speakerMood);
+        typeText(data.text, document.getElementById('cutscene-dialogue'));
+        document.querySelectorAll('#cutscene-dots .cutscene-dot').forEach((d, i) => {
+            d.className = 'cutscene-dot' + (i === index ? ' active' : '');
+        });
+        if (index === EXPANSION_CUTSCENE_DATA.length - 1) {
+            document.getElementById('cutscene-next-btn').innerText = 'RETURN TO THE MOUNTAIN';
+        } else {
+            document.getElementById('cutscene-next-btn').innerText = 'CONTINUE';
+        }
+    }
     
     const CUTSCENE_DATA = [
         {
@@ -3227,22 +3618,25 @@ function addFalafel(x,y,z,sad) {
     }
 
     function advanceCutscene() {
+        const activeData = window._activeCutsceneData || CUTSCENE_DATA;
         if (typingInterval) {
-            // Skip to end of current text
             clearInterval(typingInterval);
             typingInterval = null;
-            const data = CUTSCENE_DATA[cutscenePanel];
-            document.getElementById('cutscene-dialogue').innerHTML = data.text;
+            document.getElementById('cutscene-dialogue').innerHTML = activeData[cutscenePanel].text;
             return;
         }
         
         cutscenePanel++;
-        if (cutscenePanel >= CUTSCENE_TOTAL) {
+        if (cutscenePanel >= activeData.length) {
             skipCutscene();
             return;
         }
         
-        showCutscenePanel(cutscenePanel);
+        if (window._activeCutsceneData) {
+            showExpansionCutscenePanel(cutscenePanel);
+        } else {
+            showCutscenePanel(cutscenePanel);
+        }
     }
     
     function showCutscenePanel(index) {
@@ -3254,7 +3648,7 @@ function addFalafel(x,y,z,sad) {
         typeText(data.text, document.getElementById('cutscene-dialogue'));
         
         // Update dots
-        document.querySelectorAll('.cutscene-dot').forEach((d, i) => {
+        document.querySelectorAll('#cutscene-dots .cutscene-dot').forEach((d, i) => {
             d.className = 'cutscene-dot' + (i === index ? ' active' : '');
         });
         
@@ -3271,26 +3665,19 @@ function addFalafel(x,y,z,sad) {
             clearInterval(typingInterval);
             typingInterval = null;
         }
-        localStorage.setItem('fk_cutscene_seen', '1');
-        if (game.pendingStart) {
-            game.pendingStart = false;
-            _doStartGame();
+        if (window._activeCutsceneData) {
+            // Expansion intro finished/skipped
+            window._activeCutsceneData = null;
+            localStorage.setItem('fk_expansion_seen', '1');
+            selectLevel(11);
         } else {
-            showScreen('main-menu');
-        }
-    }
-
-    function skipCutscene() {
-        if (typingInterval) {
-            clearInterval(typingInterval);
-            typingInterval = null;
-        }
-        localStorage.setItem('fk_cutscene_seen', '1');
-        if (game.pendingStart) {
-            game.pendingStart = false;
-            _doStartGame();
-        } else {
-            showScreen('main-menu');
+            localStorage.setItem('fk_cutscene_seen', '1');
+            if (game.pendingStart) {
+                game.pendingStart = false;
+                _doStartGame();
+            } else {
+                showScreen('main-menu');
+            }
         }
     }
 
@@ -3340,8 +3727,83 @@ function addFalafel(x,y,z,sad) {
         }
     ];
     let endingPanel = 0;
+    let _expansionEnding = false;
+
+    // ── EXPANSION ENDING DATA ─────────────────────────────────────────────────
+    const EXPANSION_ENDING_DATA = [
+        {
+            speaker: "NARRATOR",
+            speakerStyle: "color:#f4d03f;",
+            text: "She came back. Nobody told her to. Well — Bloop did, via telescope. But <span class='highlight'>she came back.</span> All the way up the mountain. Again. For the falafels. For the hummus. For the principle of the thing.",
+            scene: "ending_win"
+        },
+        {
+            speaker: "👑 QUEEN BLOOP",
+            speakerStyle: "color:#f4d03f;font-size:13px;",
+            text: "I watched through the telescope the whole time. I saw you handle Cinder at the toll zone. I saw you talk to Blaze about Hope the plant. I saw The Head Crisp update the spreadsheet in real time. <span class='highlight'>Column G. 'She won again.'</span>",
+            scene: "ending_king"
+        },
+        {
+            speaker: "🔥 THE HEAD CRISP",
+            speakerStyle: "color:#ff6060;font-size:13px;",
+            text: "Column G confirmed. Intervention unsuccessful. Hummus restored. Farida achievement rate: <span class='highlight'>100%</span>. Recommend discontinuing operations. Also recommend getting a hobby that isn't stealing hummus. Noted in the appendix.",
+            scene: "ending_ceremony"
+        },
+        {
+            speaker: "🌸 VEIL",
+            speakerStyle: "color:#ffb6d9;font-size:13px;",
+            text: "I have flower crowns for everyone. <span class='highlight'>Everyone.</span> Crown nineteen is for Farida. I made it on faith. It fits perfectly. I knew it would. I made it to fit the person who would come back when they didn't have to.",
+            scene: "ending_ceremony"
+        },
+        {
+            speaker: "🌱 SPRIG",
+            speakerStyle: "color:#82E0AA;font-size:13px;",
+            text: "Hope is <span class='highlight'>0.4 centimetres</span> now. She grew while you were climbing. I think she knew you were coming. I told her. She grew. I'm calling that a response.",
+            scene: "ending_all"
+        },
+        {
+            speaker: "⚡ FARIDA",
+            speakerStyle: "color:#c8a8f0;font-size:15px;letter-spacing:2px;",
+            text: "Okay. Okay that's it. I'm DONE. I love you all. I am going HOME. I have a show. I have tiktok. I have a life. <span class='highlight'>Laminate the certificate.</span> Both of them. Put them side by side. I want a WALL.",
+            scene: "ending_all"
+        },
+        {
+            speaker: "NARRATOR",
+            speakerStyle: "color:#f4d03f;",
+            text: "The mountain was happy. The hummus was shared. The Head Crisp's spreadsheet was eventually recycled into a very good paper airplane. <span class='highlight'>Farida went home and watched her show.</span> Hope reached 0.5 centimetres by morning.",
+            scene: "ending_all"
+        }
+    ];
+
+    function startExpansionEndingCutscene() {
+        _expansionEnding = true;
+        endingPanel = 0;
+        const dots = document.getElementById('ending-dots');
+        dots.innerHTML = '';
+        for (let i = 0; i < EXPANSION_ENDING_DATA.length; i++) {
+            const d = document.createElement('span');
+            d.className = 'cutscene-dot' + (i === 0 ? ' active' : '');
+            dots.appendChild(d);
+        }
+        showScreen('ending-cutscene');
+        showExpansionEndingPanel(0);
+    }
+
+    function showExpansionEndingPanel(index) {
+        const data = EXPANSION_ENDING_DATA[index];
+        const spEl = document.getElementById('ending-speaker');
+        spEl.textContent = data.speaker;
+        spEl.style.cssText = (data.speakerStyle || 'color:#f4d03f;') + 'font-size:13px;letter-spacing:2px;margin-bottom:10px;text-transform:uppercase;';
+        renderEndingScene(data.scene);
+        typeText(data.text, document.getElementById('ending-dialogue'));
+        document.querySelectorAll('#ending-dots .cutscene-dot').forEach((d, i) => {
+            d.className = 'cutscene-dot' + (i === index ? ' active' : '');
+        });
+        document.getElementById('ending-next-btn').innerText = index === EXPANSION_ENDING_DATA.length - 1 ? 'CLAIM YOUR REWARD' : 'CONTINUE';
+    }
 
     function startEndingCutscene() {
+        _expansionEnding = false;
         endingPanel = 0;
         const dots = document.getElementById('ending-dots');
         dots.innerHTML = '';
@@ -3368,22 +3830,33 @@ function addFalafel(x,y,z,sad) {
     }
 
     function advanceEnding() {
+        const activeEndData = _expansionEnding ? EXPANSION_ENDING_DATA : ENDING_DATA;
         if (typingInterval) {
             clearInterval(typingInterval);
             typingInterval = null;
-            document.getElementById('ending-dialogue').innerHTML = ENDING_DATA[endingPanel].text;
+            document.getElementById('ending-dialogue').innerHTML = activeEndData[endingPanel].text;
             return;
         }
         endingPanel++;
-        if (endingPanel >= ENDING_DATA.length) {
+        if (endingPanel >= activeEndData.length) {
             skipEnding();
             return;
         }
-        showEndingPanel(endingPanel);
+        if (_expansionEnding) {
+            showExpansionEndingPanel(endingPanel);
+        } else {
+            showEndingPanel(endingPanel);
+        }
     }
 
     function skipEnding() {
         if (typingInterval) { clearInterval(typingInterval); typingInterval = null; }
+        const certP = document.querySelector('#cert-menu .cert p');
+        const stamp = document.querySelector('#cert-menu .stamp');
+        if (completedLevels.includes(15)) {
+            if (certP) certP.innerHTML = "Has conquered the Falafel Mountain twice,<br>returned when she absolutely did not have to,<br>defeated The Head Crisp AND their spreadsheet,<br>and reminded every single falafel on the mountain — old and new —<br>that one determined person is all it ever takes.<br><br>(Crown nineteen was always yours, Farida.)";
+            if (stamp) stamp.textContent = 'TWICE CERTIFIED';
+        }
         showScreen('cert-menu');
         sound('win');
     }
@@ -3670,9 +4143,16 @@ function addFalafel(x,y,z,sad) {
         if(typeof THREE === 'undefined') { alert("Engine failed"); return; }
         if (!gameInitialized) init();
         
+        // Show expansion intro if original game is complete and expansion not seen
+        if (completedLevels.includes(10) && !localStorage.getItem('fk_expansion_seen')) {
+            startExpansionCutscene();
+            return;
+        }
+
         // Show cutscene on first play
         if (!localStorage.getItem('fk_cutscene_seen')) {
             cutscenePanel = 0;
+            window._activeCutsceneData = null;
             initCutsceneDots();
             showCutscenePanel(0);
             showScreen('cutscene');
@@ -3789,7 +4269,11 @@ function addFalafel(x,y,z,sad) {
         if (game.level >= MAX_LEVELS) {
             game.active = false;
             sound('unlock');
-            startEndingCutscene();
+            if (completedLevels.includes(10)) {
+                startExpansionEndingCutscene();
+            } else {
+                startEndingCutscene();
+            }
             return;
         }
         // Pause game while showing level complete screen
@@ -3804,7 +4288,12 @@ function addFalafel(x,y,z,sad) {
             "Someone built a statue of you. It looks nothing like you. They tried.",
             "A falafel said this is the best day of their life. Low bar. You cleared it.",
             "Four falafels are now naming their children after you. Godspeed.",
-            "YOU DID IT! The mountain is crying. So is the hummus. Everyone is crying. 🧆"
+            "YOU DID IT! The mountain is crying. So is the hummus. Everyone is crying. 🧆",
+            "The Head Crisp updated their spreadsheet. Column: 'we're losing.' Correct column.",
+            "A bully filed a second HR complaint. HR is still a falafel. You won again.",
+            "The expansion falafels have started a support group. It's called 'We Were Right To Wait.'",
+            "Gary the rock sent a thank-you note. It was blank. Pebble says that's Gary's way.",
+            "You did it AGAIN. The mountain didn't think you'd come back. The mountain was wrong. 🧆"
         ];
         document.getElementById('lvl-msg').innerText = msgs[game.level - 1] || 'Great Job!';
         showScreen('level-menu');
@@ -4290,6 +4779,11 @@ function addFalafel(x,y,z,sad) {
         [ -6, 58, -200 ],       // Zone 8 — Volcano Pass
         [ -6, 66, -232 ],       // Zone 9 — Sky Garden
         [ -6, 74, -274 ],       // Zone 10 — Falafel Palace
+        [ -6, 82, -308 ],       // Zone 11 — Twilight Ridge
+        [ -6, 90, -342 ],       // Zone 12 — Amber Archives
+        [ -6, 98, -376 ],       // Zone 13 — Storm Spire
+        [ -6, 106, -416 ],      // Zone 14 — Crystal Summit
+        [ -6, 114, -450 ],      // Zone 15 — Return Summit
     ];
 
     function selectLevel(lvl) {
