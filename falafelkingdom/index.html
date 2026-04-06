@@ -3307,6 +3307,7 @@ function addFalafel(x,y,z,sad) {
     let cutscenePanel = 0;
     let typingInterval = null;
     let cutsceneAnimationFrame = null;
+    let _expansionCutsceneActive = false; // true while expansion intro cutscene is showing
 
     // ── EXPANSION INTRO CUTSCENE DATA ─────────────────────────────────────────
     const EXPANSION_CUTSCENE_DATA = [
@@ -3349,8 +3350,7 @@ function addFalafel(x,y,z,sad) {
 
     function startExpansionCutscene() {
         cutscenePanel = 0;
-        // Temporarily swap in expansion data
-        window._activeCutsceneData = EXPANSION_CUTSCENE_DATA;
+        _expansionCutsceneActive = true;
         const dots = document.getElementById('cutscene-dots');
         dots.innerHTML = '';
         for (let i = 0; i < EXPANSION_CUTSCENE_DATA.length; i++) {
@@ -3618,7 +3618,7 @@ function addFalafel(x,y,z,sad) {
     }
 
     function advanceCutscene() {
-        const activeData = window._activeCutsceneData || CUTSCENE_DATA;
+        const activeData = _expansionCutsceneActive ? EXPANSION_CUTSCENE_DATA : CUTSCENE_DATA;
         if (typingInterval) {
             clearInterval(typingInterval);
             typingInterval = null;
@@ -3632,7 +3632,7 @@ function addFalafel(x,y,z,sad) {
             return;
         }
         
-        if (window._activeCutsceneData) {
+        if (_expansionCutsceneActive) {
             showExpansionCutscenePanel(cutscenePanel);
         } else {
             showCutscenePanel(cutscenePanel);
@@ -3665,9 +3665,9 @@ function addFalafel(x,y,z,sad) {
             clearInterval(typingInterval);
             typingInterval = null;
         }
-        if (window._activeCutsceneData) {
+        if (_expansionCutsceneActive) {
             // Expansion intro finished/skipped
-            window._activeCutsceneData = null;
+            _expansionCutsceneActive = false;
             localStorage.setItem('fk_expansion_seen', '1');
             selectLevel(11);
         } else {
@@ -3727,7 +3727,7 @@ function addFalafel(x,y,z,sad) {
         }
     ];
     let endingPanel = 0;
-    let _expansionEnding = false;
+    let _endingIsExpansion = false; // true when showing expansion ending cutscene
 
     // ── EXPANSION ENDING DATA ─────────────────────────────────────────────────
     const EXPANSION_ENDING_DATA = [
@@ -3776,7 +3776,7 @@ function addFalafel(x,y,z,sad) {
     ];
 
     function startExpansionEndingCutscene() {
-        _expansionEnding = true;
+        _endingIsExpansion = true;
         endingPanel = 0;
         const dots = document.getElementById('ending-dots');
         dots.innerHTML = '';
@@ -3803,7 +3803,7 @@ function addFalafel(x,y,z,sad) {
     }
 
     function startEndingCutscene() {
-        _expansionEnding = false;
+        _endingIsExpansion = false;
         endingPanel = 0;
         const dots = document.getElementById('ending-dots');
         dots.innerHTML = '';
@@ -3830,7 +3830,7 @@ function addFalafel(x,y,z,sad) {
     }
 
     function advanceEnding() {
-        const activeEndData = _expansionEnding ? EXPANSION_ENDING_DATA : ENDING_DATA;
+        const activeEndData = _endingIsExpansion ? EXPANSION_ENDING_DATA : ENDING_DATA;
         if (typingInterval) {
             clearInterval(typingInterval);
             typingInterval = null;
@@ -3842,7 +3842,7 @@ function addFalafel(x,y,z,sad) {
             skipEnding();
             return;
         }
-        if (_expansionEnding) {
+        if (_endingIsExpansion) {
             showExpansionEndingPanel(endingPanel);
         } else {
             showEndingPanel(endingPanel);
@@ -4152,7 +4152,7 @@ function addFalafel(x,y,z,sad) {
         // Show cutscene on first play
         if (!localStorage.getItem('fk_cutscene_seen')) {
             cutscenePanel = 0;
-            window._activeCutsceneData = null;
+            _expansionCutsceneActive = false;
             initCutsceneDots();
             showCutscenePanel(0);
             showScreen('cutscene');
@@ -4269,11 +4269,7 @@ function addFalafel(x,y,z,sad) {
         if (game.level >= MAX_LEVELS) {
             game.active = false;
             sound('unlock');
-            if (completedLevels.includes(10)) {
-                startExpansionEndingCutscene();
-            } else {
-                startEndingCutscene();
-            }
+            startExpansionEndingCutscene();
             return;
         }
         // Pause game while showing level complete screen
