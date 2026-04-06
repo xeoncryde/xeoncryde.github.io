@@ -1395,10 +1395,13 @@
         scene.add(gate);
 
         // Invisible solid blocker — a real Mesh so Box3 collision works reliably
-        // It's tall (12 units) and wide (width+1 so edges are covered)
+        // Width is intentionally MUCH wider than the visual gate (covers the full
+        // world X range ~-35 to +35) so the player can never walk or jump around
+        // the sides by standing on a side platform. Visual gate is unchanged.
         // Height 30 so bottom sits 10 units below the gate's y (covers grass-floor gaps)
         const BLOCKER_H = 30;
-        const blockerGeo = new THREE.BoxGeometry(width + 1, BLOCKER_H, 0.6);
+        const BLOCKER_W = 70; // spans the entire world width; visual gate is unchanged
+        const blockerGeo = new THREE.BoxGeometry(BLOCKER_W, BLOCKER_H, 0.6);
         const blockerMat = new THREE.MeshBasicMaterial({ visible: false });
         const blocker = new THREE.Mesh(blockerGeo, blockerMat);
         // Centre so bottom = y - 10 (safely below any approach level for all zones)
