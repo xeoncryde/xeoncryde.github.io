@@ -156,6 +156,8 @@
             roomCode = code;
             FKUI.updateRoomCode(code);
             updateLoadingStatus('Waiting for player 2...');
+          }).catch(function () {
+            FKUI.showDisconnected('Could not create room. Please go back to lobby and try again.');
           });
         }, 2000);
       });
