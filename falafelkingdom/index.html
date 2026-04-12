@@ -1,542 +1,660 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Falafel Kingdom — Co-op Lobby</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(180deg, #0a0a12 0%, #12162a 50%, #1a1f35 100%);
-            color: #fff;
-            user-select: none;
-        }
-
-        /* Stars */
-        .menu-stars { position: absolute; width: 100%; height: 100%; pointer-events: none; }
-        .menu-star { position: absolute; background: #fff; border-radius: 50%; animation: twinkle 3s infinite; }
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.1; }
-            50% { opacity: 0.6; }
-        }
-
-        /* Layout */
-        .menu {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10;
-        }
-
-        /* Logo canvas */
-        .menu-logo { width: 120px; height: 120px; margin-bottom: 10px; }
-
-        /* Typography */
-        h1 {
-            font-size: 56px; color: #fff; margin: 0 0 10px 0;
-            text-transform: uppercase; letter-spacing: 6px; font-weight: 300;
-        }
-        .subtitle {
-            font-size: 22px; color: #c9a227; margin: 0 0 40px 0;
-            font-weight: 300; letter-spacing: 4px; text-transform: uppercase;
-        }
-        .label {
-            font-size: 14px; color: rgba(255,255,255,0.5); text-transform: uppercase;
-            letter-spacing: 3px; margin-bottom: 12px; font-weight: 400;
-        }
-
-        /* Buttons */
-        button {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.25);
-            color: #fff;
-            padding: 18px 50px;
-            font-size: 14px;
-            border-radius: 2px;
-            cursor: pointer;
-            margin: 6px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            min-width: 260px;
-            position: relative;
-            overflow: hidden;
-            font-family: inherit;
-        }
-        button::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.5s;
-        }
-        button:hover::before { transform: translateX(100%); }
-        button:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.5);
-            box-shadow: 0 0 30px rgba(255,255,255,0.1);
-        }
-        button:active { transform: scale(0.98); }
-        button:disabled { opacity: 0.3; cursor: not-allowed; }
-        button.primary {
-            background: linear-gradient(135deg, #c9a227 0%, #f4d03f 50%, #c9a227 100%);
-            border: none;
-            color: #1a1a2e;
-            font-weight: 600;
-            box-shadow: 0 4px 20px rgba(201, 162, 39, 0.3);
-        }
-        button.primary:hover {
-            box-shadow: 0 6px 30px rgba(201, 162, 39, 0.5);
-            transform: translateY(-2px);
-        }
-        button.primary:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        button.secondary {
-            background: transparent;
-            color: rgba(255,255,255,0.8);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        button.secondary:hover {
-            background: rgba(255,255,255,0.05);
-            border-color: rgba(255,255,255,0.4);
-        }
-
-        /* Room code display */
-        .room-code {
-            font-size: 56px;
-            font-family: 'Courier New', monospace;
-            color: #f4d03f;
-            letter-spacing: 14px;
-            margin: 8px 0 6px 0;
-            cursor: pointer;
-            padding: 8px 20px;
-            border: 2px dashed rgba(201, 162, 39, 0.3);
-            border-radius: 6px;
-            transition: border-color 0.3s, background 0.3s;
-        }
-        .room-code:hover {
-            border-color: rgba(201, 162, 39, 0.6);
-            background: rgba(201, 162, 39, 0.05);
-        }
-        .copy-hint {
-            font-size: 12px;
-            color: rgba(255,255,255,0.3);
-            letter-spacing: 2px;
-            margin-bottom: 24px;
-            transition: color 0.3s;
-        }
-        .copy-hint.copied { color: #4caf50; }
-
-        /* Waiting spinner */
-        .waiting {
-            color: rgba(255,255,255,0.5);
-            font-size: 14px;
-            letter-spacing: 2px;
-            margin: 16px 0 24px 0;
-        }
-        .spinner-dots::after {
-            content: '';
-            animation: dots 1.4s steps(4, end) infinite;
-        }
-        @keyframes dots {
-            0%   { content: ''; }
-            25%  { content: '.'; }
-            50%  { content: '..'; }
-            75%  { content: '...'; }
-            100% { content: ''; }
-        }
-
-        /* Join input */
-        .code-input {
-            font-size: 42px;
-            font-family: 'Courier New', monospace;
-            color: #f4d03f;
-            background: rgba(255,255,255,0.05);
-            border: 2px solid rgba(255,255,255,0.15);
-            border-radius: 4px;
-            text-align: center;
-            width: 200px;
-            padding: 10px 16px;
-            letter-spacing: 10px;
-            text-transform: uppercase;
-            outline: none;
-            caret-color: #f4d03f;
-            transition: border-color 0.3s;
-            margin: 8px 0 16px 0;
-        }
-        .code-input:focus { border-color: rgba(201, 162, 39, 0.6); }
-        .code-input.error { border-color: #e07070; animation: shake 0.4s; }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-6px); }
-            40%, 80% { transform: translateX(6px); }
-        }
-
-        /* Error text */
-        .error-text {
-            color: #e07070;
-            font-size: 13px;
-            letter-spacing: 1px;
-            margin-top: 8px;
-            min-height: 20px;
-        }
-
-        /* Status message (connected) */
-        .status-msg {
-            color: #4caf50;
-            font-size: 16px;
-            letter-spacing: 2px;
-            margin: 20px 0;
-        }
-
-        /* Single player link */
-        .sp-link {
-            margin-top: 36px;
-            color: rgba(255,255,255,0.35);
-            font-size: 13px;
-            letter-spacing: 1px;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        .sp-link:hover { color: rgba(255,255,255,0.7); }
-
-        /* Footer */
-        .footer {
-            position: absolute; bottom: 20px; width: 100%; text-align: center;
-            color: rgba(255,255,255,0.2); font-size: 11px; pointer-events: none;
-            font-weight: 300; letter-spacing: 2px;
-        }
-
-        /* View transitions */
-        .view { display: flex; flex-direction: column; align-items: center; }
-        .hidden { display: none !important; }
-
-        /* Fade-in helper */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(15px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .fade-in { animation: fadeInUp 0.4s ease-out both; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Falafel Kingdom &#8212; Co-op Adventure</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#08080f;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:#e0e0e0}
+.hidden{display:none!important}
+.star{position:fixed;border-radius:50%;background:#fff;pointer-events:none;z-index:0;animation:twinkle 3s ease-in-out infinite alternate}
+@keyframes twinkle{0%{opacity:.2;transform:scale(.8)}100%{opacity:1;transform:scale(1.2)}}
+#screen-lobby{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a0a12 0%,#12162a 50%,#1a1f35 100%)}
+.lobby-card{text-align:center;padding:40px;max-width:420px;width:90%}
+.lobby-card h1{font-size:42px;background:linear-gradient(135deg,#f4d03f,#c9a227);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.lobby-card .subtitle{color:#a0a8c0;font-size:14px;letter-spacing:3px;text-transform:uppercase;margin-bottom:30px}
+.logo-canvas{display:block;margin:0 auto 20px;width:100px;height:100px}
+.btn{display:block;width:100%;padding:14px;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:12px;transition:all .2s;letter-spacing:1px;text-transform:uppercase}
+.btn.primary{background:linear-gradient(135deg,#f4d03f,#c9a227);color:#1a1a2e;border:none}
+.btn.primary:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(244,208,63,.4)}
+.btn.primary:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.btn.secondary{background:transparent;color:#a0a8c0;border:1px solid rgba(160,168,192,.3)}
+.btn.secondary:hover{border-color:#f4d03f;color:#f4d03f}
+.room-code-display{font-family:'Courier New',monospace;font-size:56px;color:#f4d03f;padding:16px 28px;border:2px dashed rgba(244,208,63,.3);border-radius:12px;display:inline-block;letter-spacing:8px;cursor:pointer;transition:all .3s;margin:12px 0 6px;user-select:all}
+.room-code-display:hover{border-color:#f4d03f;background:rgba(244,208,63,.06)}
+.copy-hint{font-size:12px;color:#606880;margin-bottom:16px}
+.waiting{display:flex;align-items:center;justify-content:center;gap:10px;color:#a0a8c0;font-size:14px;margin:14px 0}
+.spinner{width:18px;height:18px;border:2px solid rgba(244,208,63,.3);border-top-color:#f4d03f;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status-msg{color:#2ecc71;font-size:14px;margin:10px 0;min-height:20px}
+label.field-label{display:block;font-size:12px;color:#606880;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.code-input{width:160px;text-align:center;font-family:'Courier New',monospace;font-size:42px;letter-spacing:6px;padding:12px;background:rgba(255,255,255,.04);border:1px solid rgba(244,208,63,.3);border-radius:10px;color:#f4d03f;outline:none;text-transform:uppercase}
+.code-input:focus{border-color:#f4d03f;box-shadow:0 0 12px rgba(244,208,63,.15)}
+.error-text{color:#e74c3c;font-size:13px;min-height:20px;margin:8px 0}
+.link-back{display:inline-block;color:#606880;font-size:13px;text-decoration:none;margin-top:10px;transition:color .2s}
+.link-back:hover{color:#f4d03f}
+#screen-game{position:fixed;inset:0;z-index:50;background:#08080f}
+#game-container{width:100%;height:100%}
+#game-container canvas{display:block;width:100%!important;height:100%!important}
+#hud-room-badge{position:fixed;top:12px;left:14px;z-index:30;font-family:'Courier New',monospace;font-size:14px;color:#f4d03f;background:rgba(0,0,0,.5);padding:4px 10px;border-radius:6px;cursor:pointer;pointer-events:auto;border:1px solid rgba(244,208,63,.2)}
+#hud-level{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:30;font-size:15px;color:#e0e0e0;text-align:center;pointer-events:none;text-shadow:0 1px 4px #000}
+#hud-players{position:fixed;top:12px;right:14px;z-index:30;display:flex;gap:16px;pointer-events:none}
+.player-hud{display:flex;align-items:center;gap:6px;font-size:13px;color:#e0e0e0}
+.player-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.player-dot.p1{background:#c9a227}
+.player-dot.p2{background:#2ecc71}
+.you-tag{font-size:10px;color:#f4d03f;margin-left:2px}
+#hud-hints{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:30;text-align:center;font-size:13px;color:#a0a8c0;pointer-events:none;max-width:600px;line-height:1.5}
+#hud-chatlog{position:fixed;bottom:50px;left:14px;z-index:30;pointer-events:none;display:flex;flex-direction:column;gap:4px;max-width:300px}
+.chat-msg{font-size:13px;color:#e0e0e0;background:rgba(0,0,0,.55);padding:3px 8px;border-radius:6px;opacity:1;transition:opacity .6s}
+.chat-msg.fading{opacity:0}
+#chat-input-wrap{position:fixed;bottom:14px;left:14px;z-index:35;display:none}
+#chat-input{width:280px;padding:8px 12px;font-size:14px;background:rgba(0,0,0,.7);border:1px solid rgba(244,208,63,.3);border-radius:8px;color:#e0e0e0;outline:none}
+#chat-input:focus{border-color:#f4d03f}
+.speech-bubble{position:fixed;z-index:32;pointer-events:none;background:rgba(0,0,0,.7);color:#fff;font-size:13px;padding:4px 10px;border-radius:10px;white-space:nowrap;transform:translate(-50%,-100%);opacity:1;transition:opacity .5s}
+.overlay{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;flex-direction:column;background:rgba(0,0,0,.75);opacity:0;pointer-events:none;transition:opacity .3s}
+.overlay.active{opacity:1;pointer-events:auto}
+.overlay h2{font-size:36px;color:#f4d03f;margin-bottom:12px}
+.overlay p{font-size:16px;color:#a0a8c0;margin-bottom:8px}
+.overlay .btn{width:auto;min-width:200px;margin-top:16px}
+.confetti{position:fixed;width:8px;height:8px;z-index:41;pointer-events:none;border-radius:2px;animation:confettiFall 3s linear forwards}
+@keyframes confettiFall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
+#overlay-respawn{background:rgba(200,0,0,.3)}
+</style>
 </head>
 <body>
-    <!-- Stars background -->
-    <div class="menu-stars" id="menu-stars"></div>
+<div id="starfield"></div>
+<!-- LOBBY SCREEN -->
+<div id="screen-lobby">
+  <div id="view-main" class="lobby-card">
+    <canvas class="logo-canvas" id="logo1" width="100" height="100"></canvas>
+    <h1>Falafel Kingdom</h1>
+    <p class="subtitle">Co-op Adventure</p>
+    <button class="btn primary" onclick="showHost()">HOST GAME</button>
+    <button class="btn secondary" onclick="showJoin()">JOIN GAME</button>
+    <a class="link-back" href="singleplayer.html">&#8592; Single Player</a>
+  </div>
+  <div id="view-host" class="lobby-card hidden">
+    <canvas class="logo-canvas" id="logo2" width="100" height="100"></canvas>
+    <h1>Falafel Kingdom</h1>
+    <label class="field-label">YOUR ROOM CODE</label>
+    <div class="room-code-display" id="host-code" onclick="copyCode()" title="Click to copy">----</div>
+    <div class="copy-hint">click code to copy</div>
+    <div class="waiting" id="host-waiting"><div class="spinner"></div>Waiting for player 2&#8230;</div>
+    <div class="status-msg hidden" id="host-status"></div>
+    <button class="btn secondary" onclick="cancelHost()">Cancel</button>
+  </div>
+  <div id="view-join" class="lobby-card hidden">
+    <canvas class="logo-canvas" id="logo3" width="100" height="100"></canvas>
+    <h1>Falafel Kingdom</h1>
+    <label class="field-label">ENTER ROOM CODE</label>
+    <input class="code-input" id="join-input" maxlength="4" autocomplete="off" spellcheck="false" placeholder="XXXX">
+    <div class="error-text" id="join-error"></div>
+    <button class="btn primary" id="join-btn" onclick="doJoin()" disabled>JOIN</button>
+    <button class="btn secondary" onclick="cancelJoin()">Back</button>
+  </div>
+</div>
+<!-- GAME SCREEN -->
+<div id="screen-game" class="hidden">
+  <div id="game-container"></div>
+  <div id="hud-room-badge" onclick="copyRoomCode()">[ ---- ]</div>
+  <div id="hud-level">Level 1</div>
+  <div id="hud-players">
+    <div class="player-hud"><span class="player-dot p1"></span><span id="hud-p1-hummus">&#x1FAD8;&#215;3</span><span class="you-tag hidden" id="hud-p1-you">YOU</span></div>
+    <div class="player-hud"><span class="player-dot p2"></span><span id="hud-p2-hummus">&#x1FAD8;&#215;3</span><span class="you-tag hidden" id="hud-p2-you">YOU</span></div>
+  </div>
+  <div id="hud-hints"></div>
+  <div id="hud-chatlog"></div>
+  <div id="chat-input-wrap"><input id="chat-input" placeholder="Type message... (Enter to send, Esc to cancel)"></div>
+  <div class="overlay" id="overlay-waiting"><h2>WAITING FOR PLAYER 2&#8230;</h2><div class="spinner" style="width:28px;height:28px;border-width:3px"></div></div>
+  <div class="overlay" id="overlay-levelcomplete">
+    <h2 id="lc-title">LEVEL COMPLETE!</h2>
+    <p id="lc-time"></p>
+    <button class="btn primary hidden" id="lc-next" onclick="nextLevel()">NEXT LEVEL</button>
+    <p class="hidden" id="lc-wait">Waiting for host&#8230;</p>
+  </div>
+  <div class="overlay" id="overlay-gamecomplete">
+    <h2>&#x1F9C6; FALAFEL KINGDOM COMPLETE! &#x1F9C6;</h2>
+    <p>You conquered all 5 levels together!</p>
+    <button class="btn primary" onclick="backToMenu()">BACK TO MENU</button>
+  </div>
+  <div class="overlay" id="overlay-respawn"><h2>RESPAWNING&#8230;</h2></div>
+  <div class="overlay" id="overlay-pause"><h2>PAUSED</h2><p>Press P to resume</p></div>
+  <div class="overlay" id="overlay-disconnect">
+    <h2>DISCONNECTED</h2>
+    <p id="dc-reason">Connection lost.</p>
+    <button class="btn primary" onclick="backToMenu()">BACK TO MENU</button>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script>
+(function(){
+"use strict";
 
-    <!-- Main menu content -->
-    <div class="menu">
-        <!-- Main buttons view -->
-        <div class="view" id="view-main">
-            <canvas id="falafel-logo" class="menu-logo" width="120" height="120"></canvas>
-            <h1>Falafel Kingdom</h1>
-            <div class="subtitle">Co-op Adventure</div>
-            <button class="primary" onclick="showHost()">Host Game</button>
-            <button class="secondary" onclick="showJoin()">Join Game</button>
-            <a href="singleplayer.html" class="sp-link">&larr; Single Player</a>
-        </div>
+/* ========== CONSTANTS ========== */
+var CHARS="ABCDEFGHJKLMNPQRSTUVWXYZ";
+var GRAVITY=0.015,MOVE_SPEED=0.12,JUMP_VELOCITY=0.35,FRICTION=0.85,PLAYER_SIZE=0.8,FALL_DEATH_Y=-10;
+var BOOST_JUMP_VY=0.9,BOOST_JUMP_FORWARD=0.4,BULLY_CHASE_SPEED=0.06,BULLY_PATROL_SPEED=0.05;
+var BULLY_STUN_DURATION=180,BULLY_CATCH_DIST=0.5,BULLY_DUAL_STUN_DIST=2.0;
+var CONVEYOR_SPEED=0.06,CRUMBLE_DELAY=90,CRUMBLE_RESPAWN=300,SPICE_LAUNCH_VY=0.6;
+var GARLIC_DURATION=300,RESPAWN_DELAY=90,BOOST_RANGE=1.5;
+var STATE_RATE=40;
 
-        <!-- Host view -->
-        <div class="view hidden" id="view-host">
-            <canvas id="falafel-logo-host" class="menu-logo" width="120" height="120"></canvas>
-            <h1>Falafel Kingdom</h1>
-            <div class="label">Your Room Code</div>
-            <div class="room-code" id="room-code" onclick="copyCode()" title="Click to copy">----</div>
-            <div class="copy-hint" id="copy-hint">click to copy</div>
-            <div class="waiting">Waiting for player 2<span class="spinner-dots"></span></div>
-            <div class="status-msg hidden" id="host-status"></div>
-            <button class="secondary" onclick="cancelHost()">Cancel</button>
-        </div>
+/* ========== GLOBALS ========== */
+var isHost=false,peer=null,conn=null,roomCode="";
+var gameStarted=false,gamePaused=false,levelStartTime=0;
+var currentLevelIndex=0;
+var scene,camera,renderer;
+var p1Mesh,p2Mesh;
+var platformMeshes=[],bullyMeshes={},portalMesh=null;
+var plateMeshes={},doorMeshes={};
+var spiceMeshes={},garlicMeshes={},conveyorMeshes={};
+var p1={x:0,y:2,z:0,vx:0,vy:0,vz:0,grounded:false,anim:"idle",hummus:3,alive:true,respawnTimer:0,garlicTimer:0};
+var p2={x:1.5,y:2,z:0,vx:0,vy:0,vz:0,grounded:false,anim:"idle",hummus:3,alive:true,respawnTimer:0,garlicTimer:0};
+var bullies=[];
+var pressureStates={};
+var crumbleStates={};
+var localInput={forward:false,left:false,back:false,right:false,jump:false,boost:false};
+var remoteInput={forward:false,left:false,back:false,right:false,jump:false,boost:false};
+var jumpPressed=false,remoteJumpPressed=false;
+var boostPressed=false,remoteBoostPressed=false;
+var chatOpen=false;
+var lastStateSend=0;
+var animFrame=0;
+var cameraShake=0;
+var speechBubbles=[];
+var chatMessages=[];
+var lastTime=0;
 
-        <!-- Join view -->
-        <div class="view hidden" id="view-join">
-            <canvas id="falafel-logo-join" class="menu-logo" width="120" height="120"></canvas>
-            <h1>Falafel Kingdom</h1>
-            <div class="label">Enter Room Code</div>
-            <input type="text" class="code-input" id="join-input" maxlength="4" placeholder="----" autocomplete="off" spellcheck="false">
-            <div class="error-text" id="join-error"></div>
-            <button class="primary" id="join-btn" onclick="doJoin()" disabled>Join</button>
-            <button class="secondary" onclick="cancelJoin()">Back</button>
-        </div>
-    </div>
+/* ========== LEVEL DATA ========== */
+var LEVELS=[
+{id:1,name:"The Chickpea Fields",subtitle:"Tutorial",bgColor:"#1a2a1a",fogColor:"#1a2a1a",fogDensity:0.02,spawnP1:{x:0,y:2,z:0},spawnP2:{x:1.5,y:2,z:0},platforms:[{x:10,y:-0.15,z:0,w:28,h:0.3,d:8,color:0x4a7c2e,type:"static"},{x:5,y:0.4,z:-2.5,w:2.5,h:0.5,d:2.5,color:0x8B7355,type:"static"},{x:5,y:0.4,z:2.5,w:2.5,h:0.5,d:2.5,color:0x8B7355,type:"static"},{x:9,y:1.5,z:-3,w:0.5,h:3,d:3,color:0x888888,type:"static"},{x:9,y:1.5,z:3,w:0.5,h:3,d:3,color:0x888888,type:"static"},{x:13,y:0.5,z:0,w:3,h:0.6,d:3,color:0x8B7355,type:"static"},{x:17,y:1.2,z:0,w:3,h:0.6,d:3,color:0x8B7355,type:"static"},{x:21,y:2.0,z:0,w:4,h:0.6,d:4,color:0xD2B48C,type:"static"}],bullies:[{id:"L1_B1",x:14,y:0.15,z:0,waypoints:[{x:12,y:0.15,z:0},{x:18,y:0.15,z:0}],speed:0.03,isBoss:false}],pressurePairs:[{pairId:"L1_A",plates:[{x:5,y:0.65,z:-2.5},{x:5,y:0.65,z:2.5}],door:{x:9,y:0.8,z:0},timedDuration:null}],spiceTraps:[],garlicZones:[],conveyors:[],exitPortal:{x:21,y:3.5,z:0},hints:["Stand on both gold plates to open the door!","Jump with Space \u2014 move with WASD or Arrow Keys!"]},
+{id:2,name:"The Spice Market",subtitle:"Hot Oil Atmosphere",bgColor:"#2a1a0a",fogColor:"#3a2010",fogDensity:0.03,spawnP1:{x:0,y:2,z:0},spawnP2:{x:1.5,y:2,z:0},platforms:[{x:0,y:-0.15,z:0,w:6,h:0.3,d:5,color:0xD2B48C,type:"static"},{x:5,y:0,z:0,w:3,h:0.3,d:2,color:0x7a5230,type:"static"},{x:9.5,y:0.3,z:0,w:5,h:0.4,d:6,color:0xD2B48C,type:"static"},{x:9.5,y:0.6,z:-3,w:2.5,h:0.3,d:2,color:0x8B7355,type:"static"},{x:9.5,y:0.6,z:3,w:2.5,h:0.3,d:2,color:0x8B7355,type:"static"},{x:13,y:1.2,z:-2.5,w:0.4,h:2.5,d:2,color:0x888888,type:"static"},{x:13,y:1.2,z:2.5,w:0.4,h:2.5,d:2,color:0x888888,type:"static"},{x:16,y:0.5,z:0,w:3,h:0.3,d:2,color:0x7a5230,type:"static"},{x:19,y:0.9,z:0,w:2,h:0.3,d:2,color:0x7a5230,type:"static"},{x:25,y:0.7,z:0,w:5,h:0.4,d:5,color:0xD2B48C,type:"static"},{x:29,y:0.9,z:0,w:4,h:0.4,d:6,color:0xD2B48C,type:"static"},{x:29,y:1.2,z:-3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:29,y:1.2,z:3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:32,y:1.5,z:-2,w:0.4,h:2.5,d:2,color:0x888888,type:"static"},{x:32,y:1.5,z:2,w:0.4,h:2.5,d:2,color:0x888888,type:"static"},{x:35,y:0.5,z:0,w:4,h:0.4,d:4,color:0xD2B48C,type:"static"}],bullies:[{id:"L2_B1",x:16,y:0.65,z:0,waypoints:[{x:15,y:0.65,z:0},{x:19,y:0.65,z:0}],speed:0.05,isBoss:false},{id:"L2_B2",x:27,y:0.9,z:0,waypoints:[{x:25,y:0.9,z:0},{x:29,y:0.9,z:0}],speed:0.05,isBoss:false}],pressurePairs:[{pairId:"L2_A",plates:[{x:9.5,y:0.75,z:-3},{x:9.5,y:0.75,z:3}],door:{x:13,y:0.5,z:0},timedDuration:null},{pairId:"L2_B",plates:[{x:29,y:1.35,z:-3},{x:29,y:1.35,z:3}],door:{x:32,y:0.8,z:0},timedDuration:null}],spiceTraps:[{id:"L2_S1",x:5,y:0.15,z:0},{id:"L2_S2",x:16,y:0.65,z:0.5},{id:"L2_S3",x:19,y:1.05,z:0},{id:"L2_S4",x:25,y:0.9,z:1}],garlicZones:[],conveyors:[],exitPortal:{x:35,y:2,z:0},hints:["Use E near your partner to launch them across!","Spice traps launch you skyward \u2014 time your jumps!"]},
+{id:3,name:"The Bully Bazaar",subtitle:"Market Mayhem",bgColor:"#1a1a2a",fogColor:"#1a1a2a",fogDensity:0.02,spawnP1:{x:0,y:2,z:0},spawnP2:{x:1.5,y:2,z:0},platforms:[{x:0,y:-0.15,z:0,w:8,h:0.3,d:8,color:0x888888,type:"static"},{x:6,y:1,z:-3.5,w:5,h:0.5,d:3,color:0x7a5230,type:"static"},{x:6,y:1,z:3.5,w:5,h:0.5,d:3,color:0x7a5230,type:"static"},{x:10,y:0,z:0,w:8,h:0.3,d:3,color:0x888888,type:"static"},{x:16,y:1.8,z:0,w:4,h:0.5,d:4,color:0x7a5230,type:"static"},{x:14,y:0.9,z:-2.5,w:2,h:0.4,d:2,color:0x8B7355,type:"static"},{x:14,y:0.9,z:2.5,w:2,h:0.4,d:2,color:0x8B7355,type:"static"},{x:20,y:1.8,z:0,w:2.5,h:0.3,d:2.5,color:0xF4A832,type:"moving",moveAxis:"x",moveSpeed:0.04,moveRange:4},{x:26,y:1.8,z:0,w:5,h:0.5,d:5,color:0x888888,type:"static"},{x:28,y:2.2,z:-3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:28,y:2.2,z:3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:31,y:3,z:-2,w:0.4,h:3,d:2,color:0x888888,type:"static"},{x:31,y:3,z:2,w:0.4,h:3,d:2,color:0x888888,type:"static"},{x:34,y:1.5,z:0,w:4,h:0.5,d:4,color:0xD2B48C,type:"static"}],bullies:[{id:"L3_B1",x:8,y:0.15,z:0,waypoints:[{x:7,y:0.15,z:0},{x:13,y:0.15,z:0}],speed:0.05,isBoss:false},{id:"L3_B2",x:11,y:0.15,z:1,waypoints:[{x:7,y:0.15,z:1},{x:13,y:0.15,z:1}],speed:0.04,isBoss:false},{id:"L3_B3",x:6,y:1.25,z:-3.5,waypoints:[{x:4,y:1.25,z:-3.5},{x:8,y:1.25,z:-3.5}],speed:0.04,isBoss:false},{id:"L3_B4",x:26,y:2.05,z:0,waypoints:[{x:24,y:2.05,z:-2},{x:28,y:2.05,z:2}],speed:0.05,isBoss:false}],pressurePairs:[{pairId:"L3_A",plates:[{x:28,y:2.5,z:-3},{x:28,y:2.5,z:3}],door:{x:31,y:1.8,z:0},timedDuration:null}],spiceTraps:[],garlicZones:[{id:"L3_G1",x:10,y:0.15,z:0,width:3,depth:2},{id:"L3_G2",x:26,y:2.05,z:-2,width:2,depth:2}],conveyors:[],exitPortal:{x:34,y:3,z:0},hints:["Get close to a bully together to confuse it!","Green garlic clouds reverse your controls \u2014 be careful!"]},
+{id:4,name:"The Falafel Factory",subtitle:"Industrial Grind",bgColor:"#0a0a0f",fogColor:"#0a0a12",fogDensity:0.025,spawnP1:{x:0,y:2,z:0},spawnP2:{x:1.5,y:2,z:0},platforms:[{x:0,y:-0.15,z:0,w:7,h:0.3,d:6,color:0x3a3f4a,type:"static"},{x:6.5,y:0,z:0,w:6,h:0.25,d:3,color:0x607080,type:"static"},{x:12,y:0.3,z:0,w:5,h:0.4,d:6,color:0x3a3f4a,type:"static"},{x:12,y:0.6,z:-3,w:2,h:0.3,d:2,color:0x607080,type:"static"},{x:12,y:0.6,z:3,w:2,h:0.3,d:2,color:0x607080,type:"static"},{x:15.5,y:1.5,z:-2.5,w:0.5,h:3,d:2,color:0x3a3f4a,type:"static"},{x:15.5,y:1.5,z:2.5,w:0.5,h:3,d:2,color:0x3a3f4a,type:"static"},{x:19,y:0,z:0,w:5,h:0.3,d:6,color:0x3a3f4a,type:"static"},{x:18,y:1,z:-1.5,w:2,h:0.3,d:2,color:0xF4A832,type:"moving",moveAxis:"y",moveSpeed:0.03,moveRange:2},{x:20,y:2,z:1.5,w:2,h:0.3,d:2,color:0xF4A832,type:"moving",moveAxis:"y",moveSpeed:0.03,moveRange:2},{x:22,y:3,z:0,w:4,h:0.4,d:4,color:0x607080,type:"static"},{x:26,y:3,z:0,w:5,h:0.4,d:6,color:0x3a3f4a,type:"static"},{x:26,y:3.3,z:-3,w:2,h:0.3,d:2,color:0x607080,type:"static"},{x:26,y:3.3,z:3,w:2,h:0.3,d:2,color:0x607080,type:"static"},{x:29.5,y:4.2,z:-2,w:0.4,h:3,d:2,color:0x3a3f4a,type:"static"},{x:29.5,y:4.2,z:2,w:0.4,h:3,d:2,color:0x3a3f4a,type:"static"},{x:33,y:2.8,z:0,w:6,h:0.25,d:3,color:0x607080,type:"static"},{x:37,y:2.5,z:0,w:4,h:0.4,d:5,color:0x3a3f4a,type:"static"},{x:37,y:2.8,z:-2,w:2,h:0.3,d:2,color:0xC0392B,type:"static"},{x:44,y:2.5,z:0,w:5,h:0.4,d:5,color:0x3a3f4a,type:"static"},{x:48,y:2.5,z:0,w:4,h:0.4,d:4,color:0x607080,type:"static"}],bullies:[{id:"L4_B1",x:12,y:0.5,z:0,waypoints:[{x:10,y:0.5,z:-1},{x:14,y:0.5,z:1}],speed:0.06,isBoss:false},{id:"L4_B2",x:26,y:3.2,z:0,waypoints:[{x:24,y:3.2,z:0},{x:28,y:3.2,z:0}],speed:0.06,isBoss:false},{id:"L4_B3",x:44,y:2.7,z:0,waypoints:[{x:42,y:2.7,z:-1},{x:46,y:2.7,z:1}],speed:0.04,isBoss:false}],pressurePairs:[{pairId:"L4_A",plates:[{x:12,y:0.7,z:-3},{x:12,y:0.7,z:3}],door:{x:15.5,y:0.5,z:0},timedDuration:null},{pairId:"L4_B",plates:[{x:26,y:3.5,z:-3},{x:26,y:3.5,z:3}],door:{x:29.5,y:3,z:0},timedDuration:null},{pairId:"L4_CANNON",plates:[{x:37,y:3.1,z:-2},{x:37,y:2.7,z:1.5}],door:{x:44,y:5,z:0},timedDuration:null}],spiceTraps:[],garlicZones:[],conveyors:[{id:"L4_C1",x:6.5,y:0.13,z:0,length:5,direction:"x+"},{id:"L4_C2",x:33,y:2.93,z:0,length:5,direction:"x+"}],exitPortal:{x:48,y:4,z:0},hints:["Conveyor belts push you \u2014 use them to gain speed!","The Falafel Cannon: P1 stands on the red plate while P2 boosts off the edge!"]},
+{id:5,name:"The Tahini Tower",subtitle:"Final Ascent",bgColor:"#0f0a1a",fogColor:"#0f0a1a",fogDensity:0.015,spawnP1:{x:0,y:2,z:0},spawnP2:{x:1.5,y:2,z:0},platforms:[{x:0,y:-0.15,z:0,w:10,h:0.3,d:8,color:0xC8AD7F,type:"static"},{x:4,y:0.8,z:0,w:3,h:0.4,d:3,color:0x888888,type:"static"},{x:2,y:1.8,z:0,w:3,h:0.4,d:3,color:0x888888,type:"static"},{x:-1,y:3,z:0,w:8,h:0.4,d:6,color:0xC8AD7F,type:"static"},{x:5.5,y:3,z:0,w:5,h:0.3,d:2,color:0x7a5230,type:"static"},{x:5.5,y:3,z:3,w:3,h:0.3,d:2,color:0xD2B48C,type:"crumbling"},{x:10,y:3.3,z:0,w:5,h:0.4,d:6,color:0xC8AD7F,type:"static"},{x:10,y:3.6,z:-3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:10,y:3.6,z:3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:13.5,y:4.5,z:-2,w:0.4,h:3,d:2,color:0x888888,type:"static"},{x:13.5,y:4.5,z:2,w:0.4,h:3,d:2,color:0x888888,type:"static"},{x:15,y:4.5,z:0,w:3,h:0.4,d:3,color:0x888888,type:"static"},{x:13,y:5.5,z:0,w:3,h:0.4,d:3,color:0x888888,type:"static"},{x:8,y:6.5,z:0,w:12,h:0.4,d:8,color:0xC8AD7F,type:"static"},{x:3,y:7,z:0,w:2.5,h:0.3,d:2.5,color:0xF4A832,type:"moving",moveAxis:"y",moveSpeed:0.03,moveRange:3},{x:0,y:10,z:0,w:10,h:0.4,d:8,color:0xC8AD7F,type:"static"},{x:-2,y:10.3,z:-3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:4,y:10.3,z:3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:6,y:11.5,z:-2,w:0.4,h:3,d:2,color:0x888888,type:"static"},{x:6,y:11.5,z:2,w:0.4,h:3,d:2,color:0x888888,type:"static"},{x:8,y:10,z:0,w:5,h:0.25,d:3,color:0x607080,type:"static"},{x:13,y:10,z:0,w:2.5,h:0.3,d:2.5,color:0xF4A832,type:"moving",moveAxis:"x",moveSpeed:0.04,moveRange:3},{x:18,y:13,z:0,w:14,h:0.5,d:10,color:0x6a4c93,type:"static"},{x:13,y:14.5,z:-4,w:1.5,h:3,d:1.5,color:0x888888,type:"static"},{x:13,y:14.5,z:4,w:1.5,h:3,d:1.5,color:0x888888,type:"static"},{x:23,y:14.5,z:-4,w:1.5,h:3,d:1.5,color:0x888888,type:"static"},{x:23,y:14.5,z:4,w:1.5,h:3,d:1.5,color:0x888888,type:"static"},{x:23,y:13.4,z:-3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:23,y:13.4,z:3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:25.5,y:14.5,z:-2,w:0.5,h:3,d:2,color:0x888888,type:"static"},{x:25.5,y:14.5,z:2,w:0.5,h:3,d:2,color:0x888888,type:"static"},{x:28,y:13.5,z:0,w:4,h:0.6,d:4,color:0xF4A832,type:"static"}],bullies:[{id:"L5_B1",x:5,y:3.15,z:0,waypoints:[{x:3,y:3.15,z:0},{x:8,y:3.15,z:0}],speed:0.05,isBoss:false},{id:"L5_B2",x:8,y:6.7,z:-2,waypoints:[{x:4,y:6.7,z:-2},{x:12,y:6.7,z:-2}],speed:0.05,isBoss:false},{id:"L5_B3",x:8,y:6.7,z:2,waypoints:[{x:4,y:6.7,z:2},{x:12,y:6.7,z:2}],speed:0.04,isBoss:false},{id:"L5_B4",x:2,y:10.2,z:0,waypoints:[{x:-2,y:10.2,z:0},{x:4,y:10.2,z:0}],speed:0.05,isBoss:false},{id:"L5_BOSS",x:18,y:13.25,z:0,waypoints:[{x:15,y:13.25,z:-3},{x:21,y:13.25,z:3},{x:18,y:13.25,z:0}],speed:0.04,isBoss:true}],pressurePairs:[{pairId:"L5_A",plates:[{x:10,y:3.75,z:-3},{x:10,y:3.75,z:3}],door:{x:13.5,y:3.5,z:0},timedDuration:null},{pairId:"L5_B",plates:[{x:-2,y:10.6,z:-3},{x:4,y:10.6,z:3}],door:{x:6,y:10.2,z:0},timedDuration:180},{pairId:"L5_C",plates:[{x:23,y:13.7,z:-3},{x:23,y:13.7,z:3}],door:{x:25.5,y:13.2,z:0},timedDuration:null}],spiceTraps:[{id:"L5_S1",x:5.5,y:3.15,z:0},{id:"L5_S2",x:7,y:3.15,z:0},{id:"L5_S3",x:8,y:10.13,z:1}],garlicZones:[{id:"L5_G1",x:8,y:6.7,z:0,width:4,depth:3},{id:"L5_G2",x:0,y:10.2,z:2,width:3,depth:2}],conveyors:[{id:"L5_CV1",x:8,y:10.13,z:0,length:4,direction:"x+"}],exitPortal:{x:28,y:15.5,z:0},hints:["The Boss Bully is huge \u2014 both of you must get within 3 units to stun it!","Timed plates only stay active for 3 seconds \u2014 hurry!","Use every trick you have learned to climb the tower!"]}
+];
 
-    <!-- Footer -->
-    <div class="footer">FALAFEL KINGDOM &copy; 2025 &mdash; Powered by friendship and hummus</div>
+/* ========== STARFIELD & LOGO ========== */
+function createStars(){
+  var c=document.getElementById("starfield");
+  for(var i=0;i<25;i++){
+    var s=document.createElement("div");s.className="star";
+    var sz=Math.random()*2+1;
+    s.style.cssText="width:"+sz+"px;height:"+sz+"px;left:"+Math.random()*100+"%;top:"+Math.random()*100+"%;animation-delay:"+Math.random()*3+"s;animation-duration:"+(2+Math.random()*3)+"s";
+    c.appendChild(s);
+  }
+}
 
-    <script>
-    (function() {
-        // ── Stars ──
-        const starsContainer = document.getElementById('menu-stars');
-        for (let i = 0; i < 25; i++) {
-            const star = document.createElement('div');
-            star.className = 'menu-star';
-            const size = Math.random() * 3 + 1;
-            star.style.cssText = 'width:' + size + 'px;height:' + size + 'px;left:' + (Math.random()*100) + '%;top:' + (Math.random()*100) + '%;animation-delay:' + (Math.random()*3) + 's;animation-duration:' + (1.5+Math.random()*2.5) + 's;';
-            starsContainer.appendChild(star);
-        }
+function drawFalafel(canvas){
+  var ctx=canvas.getContext("2d"),W=canvas.width,H=canvas.height,cx=W/2,t=0;
+  (function draw(){
+    t+=0.03;var bob=Math.sin(t)*4;ctx.clearRect(0,0,W,H);var cy=H/2+bob;
+    ctx.beginPath();ctx.arc(cx,cy,32,0,Math.PI*2);
+    var g=ctx.createRadialGradient(cx-8,cy-8,4,cx,cy,32);
+    g.addColorStop(0,"#d4a347");g.addColorStop(1,"#8B6914");ctx.fillStyle=g;ctx.fill();
+    ctx.fillStyle="#2c1810";ctx.beginPath();ctx.arc(cx-10,cy-6,4,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(cx+10,cy-6,4,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(cx-9,cy-7,1.5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(cx+11,cy-7,1.5,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="#2c1810";ctx.lineWidth=2;ctx.lineCap="round";
+    ctx.beginPath();ctx.arc(cx,cy,14,0.2,Math.PI-0.2);ctx.stroke();
+    ctx.fillStyle="rgba(255,150,150,0.35)";
+    ctx.beginPath();ctx.arc(cx-18,cy+4,6,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(cx+18,cy+4,6,0,Math.PI*2);ctx.fill();
+    requestAnimationFrame(draw);
+  })();
+}
 
-        // ── Falafel logo animation ──
-        function initFalafelCanvas(id) {
-            const canvas = document.getElementById(id);
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            function draw(time) {
-                ctx.clearRect(0, 0, 120, 120);
-                const floatY = Math.sin(time * 0.003) * 5;
+/* ========== LOBBY ========== */
+function showView(id){
+  document.querySelectorAll(".lobby-card").forEach(function(c){c.classList.add("hidden");});
+  document.getElementById(id).classList.remove("hidden");
+}
+function genCode(){var c="";for(var i=0;i<4;i++)c+=CHARS[Math.floor(Math.random()*CHARS.length)];return c;}
 
-                // Glow
-                const gradient = ctx.createRadialGradient(60, 60 + floatY, 30, 60, 60 + floatY, 60);
-                gradient.addColorStop(0, 'rgba(201, 162, 39, 0.3)');
-                gradient.addColorStop(1, 'rgba(201, 162, 39, 0)');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, 120, 120);
+window.showHost=function(){
+  showView("view-host");roomCode=genCode();
+  document.getElementById("host-code").textContent=roomCode;
+  document.getElementById("host-status").classList.add("hidden");
+  document.getElementById("host-waiting").classList.remove("hidden");
+  isHost=true;createHostPeer();
+};
 
-                // Body
-                ctx.beginPath();
-                ctx.arc(60, 60 + floatY, 40, 0, Math.PI * 2);
-                const bodyGrad = ctx.createRadialGradient(45, 45 + floatY, 5, 60, 60 + floatY, 45);
-                bodyGrad.addColorStop(0, '#e8c080');
-                bodyGrad.addColorStop(1, '#a67c52');
-                ctx.fillStyle = bodyGrad;
-                ctx.fill();
+function createHostPeer(){
+  if(peer){try{peer.destroy();}catch(e){}}
+  peer=new Peer("fk-"+roomCode);
+  peer.on("open",function(){document.getElementById("host-code").textContent=roomCode;});
+  peer.on("error",function(err){
+    if(err.type==="unavailable-id"){roomCode=genCode();document.getElementById("host-code").textContent=roomCode;createHostPeer();}
+  });
+  peer.on("connection",function(c){
+    conn=c;setupConn();
+    document.getElementById("host-waiting").classList.add("hidden");
+    var st=document.getElementById("host-status");st.textContent="Player 2 connected!";st.classList.remove("hidden");
+    setTimeout(function(){onBothConnected();},600);
+  });
+}
 
-                // Eyes
-                ctx.fillStyle = '#2c2c2c';
-                ctx.beginPath();
-                ctx.arc(48, 55 + floatY, 6, 0, Math.PI * 2);
-                ctx.arc(72, 55 + floatY, 6, 0, Math.PI * 2);
-                ctx.fill();
+window.cancelHost=function(){if(peer){try{peer.destroy();}catch(e){}}peer=null;conn=null;showView("view-main");};
+window.showJoin=function(){showView("view-join");document.getElementById("join-input").value="";document.getElementById("join-error").textContent="";document.getElementById("join-btn").disabled=true;isHost=false;};
+window.cancelJoin=function(){if(peer){try{peer.destroy();}catch(e){}}peer=null;conn=null;showView("view-main");};
 
-                // Eye shine
-                ctx.fillStyle = '#fff';
-                ctx.beginPath();
-                ctx.arc(50, 53 + floatY, 2, 0, Math.PI * 2);
-                ctx.arc(74, 53 + floatY, 2, 0, Math.PI * 2);
-                ctx.fill();
+document.getElementById("join-input").addEventListener("input",function(){
+  this.value=this.value.toUpperCase().replace(/[^A-Z]/g,"");
+  document.getElementById("join-btn").disabled=(this.value.length!==4);
+  document.getElementById("join-error").textContent="";
+});
+document.getElementById("join-input").addEventListener("keydown",function(e){if(e.key==="Enter"&&this.value.length===4)doJoin();});
 
-                // Smile
-                ctx.strokeStyle = '#5c4030';
-                ctx.lineWidth = 3;
-                ctx.lineCap = 'round';
-                ctx.beginPath();
-                ctx.arc(60, 62 + floatY, 12, 0.2, Math.PI - 0.2);
-                ctx.stroke();
+window.doJoin=function(){
+  roomCode=document.getElementById("join-input").value.toUpperCase();
+  document.getElementById("join-btn").disabled=true;document.getElementById("join-error").textContent="";
+  if(peer){try{peer.destroy();}catch(e){}}
+  peer=new Peer();
+  peer.on("open",function(){
+    conn=peer.connect("fk-"+roomCode,{reliable:true});
+    conn.on("open",function(){setupConn();setTimeout(function(){onBothConnected();},400);});
+    conn.on("error",function(){document.getElementById("join-error").textContent="Connection failed.";document.getElementById("join-btn").disabled=false;});
+  });
+  peer.on("error",function(){document.getElementById("join-error").textContent="Could not find room \""+roomCode+"\".";document.getElementById("join-btn").disabled=false;});
+};
 
-                // Blush
-                ctx.fillStyle = 'rgba(255, 150, 150, 0.4)';
-                ctx.beginPath();
-                ctx.arc(38, 68 + floatY, 8, 0, Math.PI * 2);
-                ctx.arc(82, 68 + floatY, 8, 0, Math.PI * 2);
-                ctx.fill();
+window.copyCode=function(){navigator.clipboard.writeText(roomCode).catch(function(){});var el=document.getElementById("host-code");el.style.borderColor="#2ecc71";setTimeout(function(){el.style.borderColor="";},800);};
+window.copyRoomCode=function(){navigator.clipboard.writeText(roomCode).catch(function(){});var el=document.getElementById("hud-room-badge");el.style.borderColor="#2ecc71";setTimeout(function(){el.style.borderColor="";},800);};
 
-                requestAnimationFrame(draw);
-            }
-            requestAnimationFrame(draw);
-        }
+function setupConn(){
+  conn.on("data",onNetMessage);
+  conn.on("close",function(){onDisconnect("Player disconnected.");});
+  conn.on("error",function(){onDisconnect("Connection error.");});
+  peer.on("disconnected",function(){try{peer.reconnect();}catch(e){onDisconnect("Lost connection to server.");}});
+}
 
-        initFalafelCanvas('falafel-logo');
-        initFalafelCanvas('falafel-logo-host');
-        initFalafelCanvas('falafel-logo-join');
+/* ========== TRANSITION ========== */
+function onBothConnected(){
+  document.getElementById("screen-lobby").classList.add("hidden");
+  document.getElementById("screen-game").classList.remove("hidden");
+  document.getElementById("hud-room-badge").textContent="[ "+roomCode+" ]";
+  if(isHost)document.getElementById("hud-p1-you").classList.remove("hidden");
+  else document.getElementById("hud-p2-you").classList.remove("hidden");
+  initGame();
+}
+function onDisconnect(msg){document.getElementById("dc-reason").textContent=msg||"Connection lost.";document.getElementById("overlay-disconnect").classList.add("active");gamePaused=true;}
 
-        // ── State ──
-        let peer = null;
-        let conn = null;
-        let timeoutId = null;
+window.backToMenu=function(){
+  if(peer){try{peer.destroy();}catch(e){}}peer=null;conn=null;gameStarted=false;gamePaused=false;
+  document.querySelectorAll(".overlay").forEach(function(o){o.classList.remove("active");});
+  document.getElementById("screen-game").classList.add("hidden");
+  document.getElementById("screen-lobby").classList.remove("hidden");
+  showView("view-main");
+  if(renderer){renderer.dispose();var gc=document.getElementById("game-container");while(gc.firstChild)gc.removeChild(gc.firstChild);}
+  renderer=null;scene=null;camera=null;
+};
 
-        const viewMain = document.getElementById('view-main');
-        const viewHost = document.getElementById('view-host');
-        const viewJoin = document.getElementById('view-join');
-        const roomCodeEl = document.getElementById('room-code');
-        const copyHintEl = document.getElementById('copy-hint');
-        const hostStatusEl = document.getElementById('host-status');
-        const joinInput = document.getElementById('join-input');
-        const joinBtn = document.getElementById('join-btn');
-        const joinError = document.getElementById('join-error');
+/* ========== NETWORKING ========== */
+function sendMsg(type,data){if(conn&&conn.open){try{conn.send({t:type,d:data});}catch(e){}}}
 
-        function showView(view) {
-            viewMain.classList.add('hidden');
-            viewHost.classList.add('hidden');
-            viewJoin.classList.add('hidden');
-            view.classList.remove('hidden');
-            view.classList.add('fade-in');
-        }
+function onNetMessage(msg){
+  if(!msg||!msg.t)return;
+  switch(msg.t){
+    case "STATE":onStateMsg(msg.d);break;
+    case "INPUT":remoteInput=msg.d.input||remoteInput;if(msg.d.jump)remoteJumpPressed=true;if(msg.d.boost)remoteBoostPressed=true;break;
+    case "CHAT":addChatMessage(isHost?"P2":"P1",msg.d.text);showBubble(isHost?"p2":"p1",msg.d.text);break;
+    case "EVENT":onEventMsg(msg.d);break;
+  }
+}
+function onStateMsg(d){
+  if(isHost)return;
+  if(d.p1)Object.assign(p1,d.p1);if(d.p2)Object.assign(p2,d.p2);
+  if(d.bullies)bullies=d.bullies;if(d.pressureStates)pressureStates=d.pressureStates;
+  if(d.crumbleStates)crumbleStates=d.crumbleStates;
+  if(d.paused!==undefined)gamePaused=d.paused;
+  if(d.level!==undefined&&d.level!==currentLevelIndex){currentLevelIndex=d.level;loadLevel(currentLevelIndex);}
+}
+function onEventMsg(d){
+  switch(d.event){
+    case "levelComplete":showLevelComplete(d.time);break;
+    case "nextLevel":currentLevelIndex=d.level;loadLevel(currentLevelIndex);hideLevelComplete();break;
+    case "gameComplete":showGameComplete();break;
+    case "bubble":showBubble(d.who,d.text);break;
+    case "respawn":if(d.who===(isHost?"p1":"p2"))showRespawnFlash();break;
+  }
+}
 
-        function generateCode() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-            let code = '';
-            for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
-            return code;
-        }
+/* ========== THREE.JS INIT ========== */
+function initGame(){
+  var container=document.getElementById("game-container");
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,200);
+  camera.position.set(0,8,14);
+  renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.setClearColor(0x08080f);container.appendChild(renderer.domElement);
+  var amb=new THREE.AmbientLight(0x404050,0.6);scene.add(amb);
+  var dir=new THREE.DirectionalLight(0xfff5e0,0.8);dir.position.set(10,20,10);dir.castShadow=true;
+  dir.shadow.mapSize.set(1024,1024);dir.shadow.camera.left=-30;dir.shadow.camera.right=50;
+  dir.shadow.camera.top=30;dir.shadow.camera.bottom=-10;dir.shadow.camera.far=80;scene.add(dir);
+  p1Mesh=createPlayerMesh(0xc9a227,"p1");p2Mesh=createPlayerMesh(0x2ecc71,"p2");
+  scene.add(p1Mesh);scene.add(p2Mesh);
+  currentLevelIndex=0;loadLevel(0);gameStarted=true;gamePaused=false;levelStartTime=Date.now();
+  window.addEventListener("resize",onResize);
+  document.addEventListener("keydown",onKeyDown);document.addEventListener("keyup",onKeyUp);
+  lastTime=performance.now();requestAnimationFrame(gameLoop);
+}
+function onResize(){if(!camera||!renderer)return;camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);}
 
-        function cleanupPeer() {
-            if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
-            if (conn) { try { conn.close(); } catch(e) {} conn = null; }
-            if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
-        }
+/* ========== PLAYER MESH ========== */
+function createPlayerMesh(color,name){
+  var g=new THREE.Group();g.name=name;
+  var body=new THREE.Mesh(new THREE.SphereGeometry(0.5,16,16),new THREE.MeshLambertMaterial({color:color}));
+  body.castShadow=true;g.add(body);
+  var eyeGeo=new THREE.SphereGeometry(0.08,8,8),eyeMat=new THREE.MeshBasicMaterial({color:0x2c1810});
+  var lE=new THREE.Mesh(eyeGeo,eyeMat);lE.position.set(-0.15,0.1,0.42);g.add(lE);
+  var rE=new THREE.Mesh(eyeGeo,eyeMat);rE.position.set(0.15,0.1,0.42);g.add(rE);
+  var pupGeo=new THREE.SphereGeometry(0.03,6,6),pupMat=new THREE.MeshBasicMaterial({color:0xffffff});
+  var lP=new THREE.Mesh(pupGeo,pupMat);lP.position.set(-0.13,0.12,0.48);g.add(lP);
+  var rP=new THREE.Mesh(pupGeo,pupMat);rP.position.set(0.17,0.12,0.48);g.add(rP);
+  var sc=new THREE.EllipseCurve(0,0,0.18,0.12,0.2,Math.PI-0.2,false);
+  var sp=sc.getPoints(12);var sg=new THREE.BufferGeometry().setFromPoints(sp);
+  var smile=new THREE.Line(sg,new THREE.LineBasicMaterial({color:0x2c1810}));
+  smile.position.set(0,-0.05,0.46);smile.rotation.z=Math.PI;g.add(smile);
+  var bGeo=new THREE.CircleGeometry(0.08,8),bMat=new THREE.MeshBasicMaterial({color:0xff9696,transparent:true,opacity:0.35,side:THREE.DoubleSide});
+  var lB=new THREE.Mesh(bGeo,bMat);lB.position.set(-0.3,-0.05,0.4);g.add(lB);
+  var rB=new THREE.Mesh(bGeo,bMat);rB.position.set(0.3,-0.05,0.4);g.add(rB);
+  return g;
+}
 
-        // ── HOST ──
-        window.showHost = function() {
-            const code = generateCode();
-            roomCodeEl.textContent = code;
-            copyHintEl.textContent = 'click to copy';
-            copyHintEl.classList.remove('copied');
-            hostStatusEl.classList.add('hidden');
-            showView(viewHost);
+function animatePlayer(mesh,state,dt){
+  if(!mesh)return;animFrame+=dt;var t=animFrame;
+  if(!state.alive){mesh.rotation.z+=dt*3;mesh.position.y=state.y-2;return;}
+  mesh.position.set(state.x,state.y,state.z);mesh.rotation.z=0;mesh.rotation.x=0;
+  var body=mesh.children[0];if(!body)return;
+  if(state.anim==="walk"){mesh.position.y=state.y+Math.sin(t*12)*0.08;mesh.rotation.x=Math.sin(t*10)*0.1;body.scale.set(1,1,1);}
+  else if(state.anim==="jump"){body.scale.set(0.9,1.15,0.9);}
+  else if(state.anim==="fall"){body.scale.set(1.1,0.85,1.1);}
+  else{mesh.position.y=state.y+Math.sin(t*3)*0.04;body.scale.set(1,1,1);}
+  if(state.garlicTimer>0){body.material.emissive=new THREE.Color(0x00ff00);body.material.emissiveIntensity=0.3;}
+  else{body.material.emissive=new THREE.Color(0x000000);body.material.emissiveIntensity=0;}
+}
 
-            cleanupPeer();
-            peer = new Peer('fk-' + code);
+/* ========== LEVEL LOADING ========== */
+function loadLevel(idx){
+  platformMeshes.forEach(function(m){scene.remove(m);});platformMeshes=[];
+  Object.values(bullyMeshes).forEach(function(m){scene.remove(m);});bullyMeshes={};
+  Object.values(plateMeshes).forEach(function(m){scene.remove(m);});plateMeshes={};
+  Object.values(doorMeshes).forEach(function(m){scene.remove(m);});doorMeshes={};
+  Object.values(spiceMeshes).forEach(function(m){scene.remove(m);});spiceMeshes={};
+  Object.values(garlicMeshes).forEach(function(m){scene.remove(m);});garlicMeshes={};
+  Object.values(conveyorMeshes).forEach(function(m){scene.remove(m);});conveyorMeshes={};
+  if(portalMesh){scene.remove(portalMesh);portalMesh=null;}
+  var lv=LEVELS[idx];if(!lv)return;
+  scene.background=new THREE.Color(lv.bgColor);scene.fog=new THREE.FogExp2(new THREE.Color(lv.fogColor),lv.fogDensity);renderer.setClearColor(new THREE.Color(lv.bgColor));
+  p1.x=lv.spawnP1.x;p1.y=lv.spawnP1.y;p1.z=lv.spawnP1.z;p1.vx=0;p1.vy=0;p1.vz=0;p1.grounded=false;p1.anim="idle";p1.hummus=3;p1.alive=true;p1.respawnTimer=0;p1.garlicTimer=0;
+  p2.x=lv.spawnP2.x;p2.y=lv.spawnP2.y;p2.z=lv.spawnP2.z;p2.vx=0;p2.vy=0;p2.vz=0;p2.grounded=false;p2.anim="idle";p2.hummus=3;p2.alive=true;p2.respawnTimer=0;p2.garlicTimer=0;
+  // Platforms
+  lv.platforms.forEach(function(p,i){
+    var geo=new THREE.BoxGeometry(p.w,p.h,p.d);var mat=new THREE.MeshLambertMaterial({color:p.color});
+    var mesh=new THREE.Mesh(geo,mat);mesh.position.set(p.x,p.y,p.z);mesh.receiveShadow=true;mesh.castShadow=true;
+    mesh.userData=Object.assign({index:i},p);mesh.userData.origX=p.x;mesh.userData.origY=p.y;mesh.userData.origZ=p.z;
+    scene.add(mesh);platformMeshes.push(mesh);
+  });
+  // Pressure plates & doors
+  pressureStates={};
+  lv.pressurePairs.forEach(function(pp){
+    pp.plates.forEach(function(pl,pi){
+      var geo=new THREE.BoxGeometry(1,0.1,1);var mat=new THREE.MeshLambertMaterial({color:0xf4d03f,emissive:0x000000});
+      var mesh=new THREE.Mesh(geo,mat);mesh.position.set(pl.x,pl.y,pl.z);mesh.receiveShadow=true;scene.add(mesh);plateMeshes[pp.pairId+"_"+pi]=mesh;
+    });
+    var dg=new THREE.BoxGeometry(0.4,3,2);var dm=new THREE.MeshLambertMaterial({color:0x8B4513});
+    var door=new THREE.Mesh(dg,dm);door.position.set(pp.door.x,pp.door.y,pp.door.z);door.castShadow=true;scene.add(door);doorMeshes[pp.pairId]=door;
+    pressureStates[pp.pairId]={open:false,timer:0};
+  });
+  // Bullies
+  bullies=lv.bullies.map(function(b){return{id:b.id,x:b.x,y:b.y,z:b.z,waypoints:b.waypoints,speed:b.speed,isBoss:b.isBoss,wpIndex:0,stunTimer:0,origX:b.x,origY:b.y,origZ:b.z};});
+  bullies.forEach(function(b){
+    var sz=b.isBoss?1.5:0.7;var geo=new THREE.BoxGeometry(sz,sz,sz);var mat=new THREE.MeshLambertMaterial({color:0x333333});
+    var mesh=new THREE.Mesh(geo,mat);mesh.castShadow=true;
+    var eGeo=new THREE.SphereGeometry(sz*0.1,6,6);var eMat=new THREE.MeshBasicMaterial({color:0xff0000});
+    var le=new THREE.Mesh(eGeo,eMat);le.position.set(-sz*0.2,sz*0.15,sz*0.5);mesh.add(le);
+    var re=new THREE.Mesh(eGeo,eMat);re.position.set(sz*0.2,sz*0.15,sz*0.5);mesh.add(re);
+    mesh.position.set(b.x,b.y,b.z);scene.add(mesh);bullyMeshes[b.id]=mesh;
+  });
+  // Spice traps
+  lv.spiceTraps.forEach(function(s){
+    var geo=new THREE.BoxGeometry(0.8,0.15,0.8);var mat=new THREE.MeshLambertMaterial({color:0xff4500,emissive:0xff2200,emissiveIntensity:0.3});
+    var mesh=new THREE.Mesh(geo,mat);mesh.position.set(s.x,s.y,s.z);scene.add(mesh);spiceMeshes[s.id]=mesh;
+  });
+  // Garlic zones
+  lv.garlicZones.forEach(function(g){
+    var geo=new THREE.PlaneGeometry(g.width,g.depth);var mat=new THREE.MeshBasicMaterial({color:0x00ff00,transparent:true,opacity:0.15,side:THREE.DoubleSide});
+    var mesh=new THREE.Mesh(geo,mat);mesh.rotation.x=-Math.PI/2;mesh.position.set(g.x,g.y+0.05,g.z);scene.add(mesh);garlicMeshes[g.id]=mesh;
+  });
+  // Conveyors
+  lv.conveyors.forEach(function(c){
+    var geo=new THREE.BoxGeometry(c.length,0.1,1.5);var mat=new THREE.MeshLambertMaterial({color:0x607080});
+    var mesh=new THREE.Mesh(geo,mat);mesh.position.set(c.x,c.y,c.z);mesh.receiveShadow=true;
+    for(var i=0;i<Math.floor(c.length);i++){
+      var ag=new THREE.BoxGeometry(0.15,0.02,0.4);var am=new THREE.MeshBasicMaterial({color:0xf4d03f});
+      var arrow=new THREE.Mesh(ag,am);arrow.position.set(-c.length/2+0.5+i,0.06,0);mesh.add(arrow);
+    }
+    scene.add(mesh);conveyorMeshes[c.id]=mesh;
+  });
+  // Crumble states
+  crumbleStates={};lv.platforms.forEach(function(p,i){if(p.type==="crumbling"){crumbleStates[i]={timer:0,fallen:false,respawnTimer:0,origY:p.y};}});
+  // Exit portal
+  var pGeo=new THREE.TorusGeometry(0.8,0.15,8,24);var pMat=new THREE.MeshLambertMaterial({color:0xf4d03f,emissive:0xf4d03f,emissiveIntensity:0.5});
+  portalMesh=new THREE.Mesh(pGeo,pMat);portalMesh.position.set(lv.exitPortal.x,lv.exitPortal.y,lv.exitPortal.z);scene.add(portalMesh);
+  document.getElementById("hud-level").textContent="Level "+lv.id+" \u2014 "+lv.name;
+  document.getElementById("hud-hints").innerHTML=lv.hints.map(function(h){return "<div>"+h+"</div>";}).join("");
+  levelStartTime=Date.now();hideLevelComplete();
+}
 
-            peer.on('open', function() {
-                // ready, waiting for connections
-            });
+/* ========== PHYSICS (HOST) ========== */
+function buildColliders(){
+  var colliders=[];
+  platformMeshes.forEach(function(m){
+    var u=m.userData;if(u.type==="crumbling"){var cs=crumbleStates[u.index];if(cs&&cs.fallen)return;}
+    var hw=u.w/2,hh=u.h/2,hd=u.d/2;
+    colliders.push({minX:m.position.x-hw,maxX:m.position.x+hw,minY:m.position.y-hh,maxY:m.position.y+hh,minZ:m.position.z-hd,maxZ:m.position.z+hd,type:u.type||"static"});
+  });
+  var lv=LEVELS[currentLevelIndex];
+  lv.pressurePairs.forEach(function(pp){
+    if(!pressureStates[pp.pairId]||!pressureStates[pp.pairId].open){
+      var d=pp.door;colliders.push({minX:d.x-0.2,maxX:d.x+0.2,minY:d.y-1.5,maxY:d.y+1.5,minZ:d.z-1,maxZ:d.z+1,type:"door"});
+    }
+  });
+  return colliders;
+}
 
-            peer.on('connection', function(connection) {
-                conn = connection;
-                if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
-                hostStatusEl.textContent = 'Player 2 connected! Starting...';
-                hostStatusEl.classList.remove('hidden');
+function aabbOverlap(ax,ay,az,ahs,bx1,bx2,by1,by2,bz1,bz2){
+  return ax+ahs>bx1&&ax-ahs<bx2&&ay+ahs>by1&&ay-ahs<by2&&az+ahs>bz1&&az-ahs<bz2;
+}
 
-                setTimeout(function() {
-                    sessionStorage.setItem('fk_room', JSON.stringify({ code: code, role: 'host' }));
-                    window.location.href = 'game.html';
-                }, 1000);
-            });
+function moveAndCollide(p,colliders){
+  var hs=PLAYER_SIZE/2;
+  p.x+=p.vx;for(var i=0;i<colliders.length;i++){var c=colliders[i];if(aabbOverlap(p.x,p.y,p.z,hs,c.minX,c.maxX,c.minY,c.maxY,c.minZ,c.maxZ)){if(p.vx>0)p.x=c.minX-hs;else p.x=c.maxX+hs;p.vx=0;}}
+  p.y+=p.vy;p.grounded=false;for(var i=0;i<colliders.length;i++){var c=colliders[i];if(aabbOverlap(p.x,p.y,p.z,hs,c.minX,c.maxX,c.minY,c.maxY,c.minZ,c.maxZ)){if(p.vy<0){p.y=c.maxY+hs;p.vy=0;p.grounded=true;}else{p.y=c.minY-hs;p.vy=0;}}}
+  p.z+=p.vz;for(var i=0;i<colliders.length;i++){var c=colliders[i];if(aabbOverlap(p.x,p.y,p.z,hs,c.minX,c.maxX,c.minY,c.maxY,c.minZ,c.maxZ)){if(p.vz>0)p.z=c.minZ-hs;else p.z=c.maxZ+hs;p.vz=0;}}
+}
 
-            peer.on('error', function(err) {
-                if (err.type === 'unavailable-id') {
-                    // code collision — try again
-                    cancelHost();
-                    showHost();
-                }
-            });
-        };
+function applyInput(player,input,jf){
+  var garlic=player.garlicTimer>0;var mx=0,mz=0;
+  if(input.forward)mz+=(garlic?1:-1);if(input.back)mz+=(garlic?-1:1);
+  if(input.left)mx+=(garlic?1:-1);if(input.right)mx+=(garlic?-1:1);
+  if(mx||mz){var len=Math.sqrt(mx*mx+mz*mz);mx/=len;mz/=len;player.vx+=mx*MOVE_SPEED;player.vz+=mz*MOVE_SPEED;player.anim="walk";}
+  else{player.anim=player.grounded?"idle":(player.vy>0?"jump":"fall");}
+  if(jf&&player.grounded){player.vy=JUMP_VELOCITY;player.grounded=false;player.anim="jump";}
+  if(!player.grounded)player.anim=player.vy>0?"jump":"fall";
+}
 
-        window.copyCode = function() {
-            const code = roomCodeEl.textContent;
-            if (code === '----') return;
-            navigator.clipboard.writeText(code).then(function() {
-                copyHintEl.textContent = 'copied!';
-                copyHintEl.classList.add('copied');
-                setTimeout(function() {
-                    copyHintEl.textContent = 'click to copy';
-                    copyHintEl.classList.remove('copied');
-                }, 2000);
-            }).catch(function() {
-                // Fallback: select text
-                copyHintEl.textContent = 'copied!';
-                copyHintEl.classList.add('copied');
-            });
-        };
+function physicsUpdate(){
+  if(!isHost)return;var lv=LEVELS[currentLevelIndex];if(!lv)return;
+  // Moving & crumbling platforms
+  platformMeshes.forEach(function(m){
+    var u=m.userData;
+    if(u.type==="moving"){var t=Date.now()*0.001;if(u.moveAxis==="x")m.position.x=u.origX+Math.sin(t*u.moveSpeed*50)*u.moveRange;else if(u.moveAxis==="y")m.position.y=u.origY+Math.sin(t*u.moveSpeed*50)*u.moveRange;else if(u.moveAxis==="z")m.position.z=u.origZ+Math.sin(t*u.moveSpeed*50)*u.moveRange;}
+    if(u.type==="crumbling"){var cs=crumbleStates[u.index];if(cs&&cs.fallen){cs.respawnTimer--;if(cs.respawnTimer<=0){cs.fallen=false;cs.timer=0;m.position.y=cs.origY;m.visible=true;}}}
+  });
+  var colliders=buildColliders();
+  // P1
+  if(p1.alive){applyInput(p1,localInput,jumpPressed);jumpPressed=false;p1.vy-=GRAVITY;p1.vx*=FRICTION;p1.vz*=FRICTION;applyObjectEffects(p1,"p1",lv);moveAndCollide(p1,colliders);checkCrumble(p1);if(p1.y<FALL_DEATH_Y)killPlayer(p1,"p1");if(p1.garlicTimer>0)p1.garlicTimer--;}
+  else{p1.respawnTimer--;if(p1.respawnTimer<=0)respawnPlayer(p1,"p1",lv);}
+  // P2
+  if(p2.alive){applyInput(p2,remoteInput,remoteJumpPressed);remoteJumpPressed=false;p2.vy-=GRAVITY;p2.vx*=FRICTION;p2.vz*=FRICTION;applyObjectEffects(p2,"p2",lv);moveAndCollide(p2,colliders);checkCrumble(p2);if(p2.y<FALL_DEATH_Y)killPlayer(p2,"p2");if(p2.garlicTimer>0)p2.garlicTimer--;}
+  else{p2.respawnTimer--;if(p2.respawnTimer<=0)respawnPlayer(p2,"p2",lv);}
+  checkBoostJump();updateBullies();checkPressurePlates(lv);checkPortal(lv);
+}
 
-        window.cancelHost = function() {
-            cleanupPeer();
-            showView(viewMain);
-        };
+function applyObjectEffects(player,who,lv){
+  lv.spiceTraps.forEach(function(s){if(Math.abs(player.x-s.x)<0.6&&Math.abs(player.z-s.z)<0.6&&Math.abs(player.y-s.y)<0.6){player.vy=SPICE_LAUNCH_VY;player.grounded=false;showBubble(who,"\uD83C\uDF36\uFE0F HOT!");}});
+  lv.garlicZones.forEach(function(g){if(Math.abs(player.x-g.x)<g.width/2&&Math.abs(player.z-g.z)<g.depth/2&&Math.abs(player.y-g.y)<1){if(player.garlicTimer<=0)showBubble(who,"\u2B50 CONFUSED");player.garlicTimer=GARLIC_DURATION;}});
+  lv.conveyors.forEach(function(c){if(Math.abs(player.x-c.x)<c.length/2&&Math.abs(player.z-c.z)<0.75&&Math.abs(player.y-(c.y+0.1))<0.5){if(c.direction==="x+")player.vx+=CONVEYOR_SPEED;else if(c.direction==="x-")player.vx-=CONVEYOR_SPEED;else if(c.direction==="z+")player.vz+=CONVEYOR_SPEED;else if(c.direction==="z-")player.vz-=CONVEYOR_SPEED;}});
+}
 
-        // ── JOIN ──
-        window.showJoin = function() {
-            joinInput.value = '';
-            joinError.textContent = '';
-            joinInput.classList.remove('error');
-            joinBtn.disabled = true;
-            showView(viewJoin);
-            setTimeout(function() { joinInput.focus(); }, 100);
-        };
+function checkCrumble(player){
+  platformMeshes.forEach(function(m){var u=m.userData;if(u.type!=="crumbling")return;var cs=crumbleStates[u.index];if(!cs||cs.fallen)return;var hs=PLAYER_SIZE/2;
+  if(Math.abs(player.x-m.position.x)<u.w/2+hs&&Math.abs(player.z-m.position.z)<u.d/2+hs&&player.y-hs<m.position.y+u.h/2&&player.y-hs>m.position.y-u.h/2-0.3){cs.timer++;if(cs.timer>=CRUMBLE_DELAY){cs.fallen=true;cs.respawnTimer=CRUMBLE_RESPAWN;m.position.y=-50;m.visible=false;}}});
+}
 
-        joinInput.addEventListener('input', function() {
-            this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '');
-            joinBtn.disabled = this.value.length !== 4;
-            joinError.textContent = '';
-            joinInput.classList.remove('error');
-        });
+function killPlayer(player,who){if(!player.alive)return;player.alive=false;player.hummus=Math.max(0,player.hummus-1);player.respawnTimer=RESPAWN_DELAY;showBubble(who,"\uD83D\uDE31 NOOO");sendMsg("EVENT",{event:"respawn",who:who});if(who===(isHost?"p1":"p2"))showRespawnFlash();}
+function respawnPlayer(player,who,lv){player.alive=true;var sp=who==="p1"?lv.spawnP1:lv.spawnP2;player.x=sp.x;player.y=sp.y;player.z=sp.z;player.vx=0;player.vy=0;player.vz=0;player.garlicTimer=0;}
 
-        joinInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && this.value.length === 4) doJoin();
-        });
+function checkBoostJump(){
+  if(boostPressed&&p1.alive&&p2.alive&&p2.grounded){var dx=p1.x-p2.x,dz=p1.z-p2.z,dist=Math.sqrt(dx*dx+dz*dz);if(dist<BOOST_RANGE){p2.vy=BOOST_JUMP_VY;if(dist>0.01){p2.vx+=(p2.x-p1.x)/dist*BOOST_JUMP_FORWARD;p2.vz+=(p2.z-p1.z)/dist*BOOST_JUMP_FORWARD;}p2.grounded=false;cameraShake=0.5;showBubble("p2","\uD83D\uDE80 WHEEEEE!");showBubble("p1","\uD83D\uDCAA YEET!");}}
+  boostPressed=false;
+  if(remoteBoostPressed&&p2.alive&&p1.alive&&p1.grounded){var dx=p2.x-p1.x,dz=p2.z-p1.z,dist=Math.sqrt(dx*dx+dz*dz);if(dist<BOOST_RANGE){p1.vy=BOOST_JUMP_VY;if(dist>0.01){p1.vx+=(p1.x-p2.x)/dist*BOOST_JUMP_FORWARD;p1.vz+=(p1.z-p2.z)/dist*BOOST_JUMP_FORWARD;}p1.grounded=false;cameraShake=0.5;showBubble("p1","\uD83D\uDE80 WHEEEEE!");showBubble("p2","\uD83D\uDCAA YEET!");}}
+  remoteBoostPressed=false;
+}
 
-        window.doJoin = function() {
-            const code = joinInput.value.trim().toUpperCase();
-            if (code.length !== 4) return;
+function updateBullies(){
+  bullies.forEach(function(b){
+    if(b.stunTimer>0){b.stunTimer--;var mesh=bullyMeshes[b.id];if(mesh){mesh.rotation.y+=0.15;mesh.material.emissive=new THREE.Color(0xffff00);mesh.material.emissiveIntensity=0.3*Math.abs(Math.sin(b.stunTimer*0.2));}return;}
+    var d1=dist3(b,p1),d2=dist3(b,p2),stunDist=b.isBoss?3.0:BULLY_DUAL_STUN_DIST;
+    if(p1.alive&&p2.alive&&d1<stunDist&&d2<stunDist){b.stunTimer=BULLY_STUN_DURATION;showBubble("p1","\u2B50 GOT EM!");return;}
+    var target=null,tDist=Infinity;if(p1.alive&&d1<6){target=p1;tDist=d1;}if(p2.alive&&d2<6&&d2<tDist){target=p2;tDist=d2;}
+    if(target&&tDist<6){var spd=BULLY_CHASE_SPEED*(b.isBoss?0.8:1);var dx=target.x-b.x,dz=target.z-b.z,len=Math.sqrt(dx*dx+dz*dz)||1;b.x+=dx/len*spd;b.z+=dz/len*spd;if(p1.alive&&dist3(b,p1)<BULLY_CATCH_DIST)killPlayer(p1,"p1");if(p2.alive&&dist3(b,p2)<BULLY_CATCH_DIST)killPlayer(p2,"p2");}
+    else{var wp=b.waypoints[b.wpIndex];var dx=wp.x-b.x,dz=wp.z-b.z,len=Math.sqrt(dx*dx+dz*dz)||1;b.x+=dx/len*BULLY_PATROL_SPEED;b.z+=dz/len*BULLY_PATROL_SPEED;if(len<0.3)b.wpIndex=(b.wpIndex+1)%b.waypoints.length;}
+    var mesh=bullyMeshes[b.id];if(mesh){mesh.position.set(b.x,b.y,b.z);mesh.rotation.y=0;mesh.material.emissive=new THREE.Color(0x000000);}
+  });
+}
 
-            joinBtn.disabled = true;
-            joinError.textContent = '';
-            joinInput.classList.remove('error');
+function dist3(a,b){return Math.sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y)+(a.z-b.z)*(a.z-b.z));}
 
-            cleanupPeer();
-            peer = new Peer();
+function checkPressurePlates(lv){
+  lv.pressurePairs.forEach(function(pp){
+    var st=pressureStates[pp.pairId];if(!st)return;var allPressed=true;
+    pp.plates.forEach(function(pl,pi){
+      var onPlate=isOnPlate(p1,pl)||isOnPlate(p2,pl);var mesh=plateMeshes[pp.pairId+"_"+pi];
+      if(mesh){mesh.material.emissive=new THREE.Color(onPlate?0xf4d03f:0x000000);mesh.material.emissiveIntensity=onPlate?0.5:0;}
+      if(!onPlate)allPressed=false;
+    });
+    if(allPressed){st.open=true;if(pp.timedDuration)st.timer=pp.timedDuration;}
+    else if(pp.timedDuration&&st.open){st.timer--;if(st.timer<=0)st.open=false;}
+    var door=doorMeshes[pp.pairId];if(door){var ty=st.open?pp.door.y+5:pp.door.y;door.position.y+=(ty-door.position.y)*0.08;}
+  });
+}
+function isOnPlate(player,plate){return player.alive&&Math.abs(player.x-plate.x)<0.7&&Math.abs(player.z-plate.z)<0.7&&Math.abs(player.y-plate.y)<1.0;}
 
-            peer.on('open', function() {
-                conn = peer.connect('fk-' + code, { reliable: true });
+function checkPortal(lv){
+  var px=lv.exitPortal.x,py=lv.exitPortal.y,pz=lv.exitPortal.z;
+  var d1=Math.sqrt((p1.x-px)*(p1.x-px)+(p1.y-py)*(p1.y-py)+(p1.z-pz)*(p1.z-pz));
+  var d2=Math.sqrt((p2.x-px)*(p2.x-px)+(p2.y-py)*(p2.y-py)+(p2.z-pz)*(p2.z-pz));
+  if(p1.alive&&p2.alive&&d1<2&&d2<2)onLevelComplete();
+}
+function onLevelComplete(){gamePaused=true;var elapsed=((Date.now()-levelStartTime)/1000).toFixed(1);showLevelComplete(elapsed);sendMsg("EVENT",{event:"levelComplete",time:elapsed});}
 
-                // Timeout
-                timeoutId = setTimeout(function() {
-                    showJoinError('Room not found \u2014 check the code and try again');
-                    cleanupPeer();
-                    joinBtn.disabled = joinInput.value.length !== 4;
-                }, 10000);
+/* ========== UI OVERLAYS ========== */
+function showLevelComplete(time){
+  gamePaused=true;var lv=LEVELS[currentLevelIndex];
+  document.getElementById("lc-title").textContent=(lv?lv.name:"")+" COMPLETE!";
+  document.getElementById("lc-time").textContent="Time: "+time+"s";
+  if(currentLevelIndex>=LEVELS.length-1){showGameComplete();return;}
+  if(isHost){document.getElementById("lc-next").classList.remove("hidden");document.getElementById("lc-wait").classList.add("hidden");}
+  else{document.getElementById("lc-next").classList.add("hidden");document.getElementById("lc-wait").classList.remove("hidden");document.getElementById("lc-wait").textContent="Waiting for host\u2026";}
+  document.getElementById("overlay-levelcomplete").classList.add("active");
+}
+function hideLevelComplete(){document.getElementById("overlay-levelcomplete").classList.remove("active");gamePaused=false;}
 
-                conn.on('open', function() {
-                    if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
-                    joinError.textContent = '';
-                    hostStatusEl.textContent = '';
+window.nextLevel=function(){
+  if(!isHost)return;currentLevelIndex++;
+  if(currentLevelIndex>=LEVELS.length){showGameComplete();sendMsg("EVENT",{event:"gameComplete"});return;}
+  loadLevel(currentLevelIndex);hideLevelComplete();sendMsg("EVENT",{event:"nextLevel",level:currentLevelIndex});
+};
 
-                    // Show connected status in the join view
-                    joinInput.style.display = 'none';
-                    joinBtn.style.display = 'none';
-                    joinError.style.display = 'none';
-                    var statusDiv = document.createElement('div');
-                    statusDiv.className = 'status-msg';
-                    statusDiv.textContent = 'Connected! Starting...';
-                    viewJoin.insertBefore(statusDiv, viewJoin.querySelector('.secondary'));
+function showGameComplete(){gamePaused=true;document.getElementById("overlay-levelcomplete").classList.remove("active");document.getElementById("overlay-gamecomplete").classList.add("active");spawnConfetti();}
+function spawnConfetti(){
+  var colors=["#f4d03f","#2ecc71","#e74c3c","#3498db","#9b59b6","#e67e22"];
+  for(var i=0;i<80;i++){var c=document.createElement("div");c.className="confetti";c.style.left=Math.random()*100+"%";c.style.top="-10px";c.style.background=colors[Math.floor(Math.random()*colors.length)];c.style.animationDelay=Math.random()*2+"s";c.style.animationDuration=(2+Math.random()*2)+"s";document.body.appendChild(c);(function(el){setTimeout(function(){el.remove();},5000);})(c);}
+}
+function showRespawnFlash(){var o=document.getElementById("overlay-respawn");o.classList.add("active");setTimeout(function(){o.classList.remove("active");},1500);}
 
-                    setTimeout(function() {
-                        sessionStorage.setItem('fk_room', JSON.stringify({ code: code, role: 'client' }));
-                        window.location.href = 'game.html';
-                    }, 1000);
-                });
+/* ========== CHAT ========== */
+var EMOTES={":falafel:":"\uD83E\uDDC6",":hug:":"\uD83E\uDD17",":star:":"\u2B50",":wave:":"\uD83D\uDC4B",":fire:":"\uD83D\uDD25"};
+function openChat(){chatOpen=true;document.getElementById("chat-input-wrap").style.display="block";document.getElementById("chat-input").focus();}
+function closeChat(){chatOpen=false;document.getElementById("chat-input-wrap").style.display="none";document.getElementById("chat-input").value="";}
+function sendChat(){var inp=document.getElementById("chat-input");var text=inp.value.trim();if(!text){closeChat();return;}Object.keys(EMOTES).forEach(function(k){text=text.split(k).join(EMOTES[k]);});sendMsg("CHAT",{text:text});addChatMessage(isHost?"P1":"P2",text);showBubble(isHost?"p1":"p2",text);closeChat();}
+function addChatMessage(who,text){var log=document.getElementById("hud-chatlog");var div=document.createElement("div");div.className="chat-msg";div.textContent=who+": "+text;log.appendChild(div);chatMessages.push(div);if(chatMessages.length>4){var old=chatMessages.shift();old.remove();}setTimeout(function(){div.classList.add("fading");setTimeout(function(){div.remove();},600);},5000);}
+function showBubble(who,text){speechBubbles=speechBubbles.filter(function(b){if(b.who===who){b.el.remove();return false;}return true;});var div=document.createElement("div");div.className="speech-bubble";div.textContent=text;document.body.appendChild(div);speechBubbles.push({who:who,el:div,timer:120});if(isHost)sendMsg("EVENT",{event:"bubble",who:who,text:text});}
+function updateBubbles(){if(!camera||!renderer)return;speechBubbles=speechBubbles.filter(function(b){b.timer--;if(b.timer<=0){b.el.remove();return false;}if(b.timer<30)b.el.style.opacity=b.timer/30;var player=b.who==="p1"?p1:p2;var pos=new THREE.Vector3(player.x,player.y+1.2,player.z);pos.project(camera);var x=(pos.x*0.5+0.5)*window.innerWidth;var y=(-pos.y*0.5+0.5)*window.innerHeight;b.el.style.left=x+"px";b.el.style.top=y+"px";return true;});}
 
-                conn.on('error', function() {
-                    showJoinError('Connection failed \u2014 please try again');
-                    if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
-                    joinBtn.disabled = joinInput.value.length !== 4;
-                });
-            });
+/* ========== INPUT ========== */
+function onKeyDown(e){
+  if(chatOpen){if(e.key==="Enter"){e.preventDefault();sendChat();}if(e.key==="Escape"){e.preventDefault();closeChat();}return;}
+  switch(e.key.toLowerCase()){
+    case "w":case "arrowup":localInput.forward=true;break;case "s":case "arrowdown":localInput.back=true;break;
+    case "a":case "arrowleft":localInput.left=true;break;case "d":case "arrowright":localInput.right=true;break;
+    case " ":localInput.jump=true;jumpPressed=true;e.preventDefault();break;case "e":localInput.boost=true;boostPressed=true;break;
+    case "t":e.preventDefault();openChat();break;
+    case "p":if(isHost){gamePaused=!gamePaused;var po=document.getElementById("overlay-pause");if(gamePaused)po.classList.add("active");else po.classList.remove("active");}break;
+    case "escape":if(gamePaused&&isHost){gamePaused=false;document.getElementById("overlay-pause").classList.remove("active");}break;
+  }
+}
+function onKeyUp(e){if(chatOpen)return;switch(e.key.toLowerCase()){case "w":case "arrowup":localInput.forward=false;break;case "s":case "arrowdown":localInput.back=false;break;case "a":case "arrowleft":localInput.left=false;break;case "d":case "arrowright":localInput.right=false;break;case " ":localInput.jump=false;break;case "e":localInput.boost=false;break;}}
 
-            peer.on('error', function(err) {
-                if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
-                if (err.type === 'peer-unavailable') {
-                    showJoinError('Room not found \u2014 check the code and try again');
-                } else {
-                    showJoinError('Connection failed \u2014 please try again');
-                }
-                joinBtn.disabled = joinInput.value.length !== 4;
-            });
-        };
+/* ========== CAMERA ========== */
+function updateCamera(dt){
+  var midX=(p1.x+p2.x)/2,midY=(p1.y+p2.y)/2,midZ=(p1.z+p2.z)/2;
+  var tx=midX,ty=midY+8,tz=midZ+14,lerpF=1-Math.pow(0.05,dt);
+  camera.position.x+=(tx-camera.position.x)*lerpF;camera.position.y+=(ty-camera.position.y)*lerpF;camera.position.z+=(tz-camera.position.z)*lerpF;
+  if(cameraShake>0){camera.position.x+=(Math.random()-0.5)*cameraShake;camera.position.y+=(Math.random()-0.5)*cameraShake;cameraShake*=0.9;if(cameraShake<0.01)cameraShake=0;}
+  camera.lookAt(midX,midY,midZ);
+}
 
-        function showJoinError(msg) {
-            joinError.textContent = msg;
-            joinInput.classList.add('error');
-            setTimeout(function() { joinInput.classList.remove('error'); }, 600);
-        }
+/* ========== GAME LOOP ========== */
+function gameLoop(time){
+  if(!gameStarted)return;requestAnimationFrame(gameLoop);
+  var dt=(time-lastTime)/1000;lastTime=time;if(dt>0.05)dt=0.05;if(dt<=0)dt=0.016;
+  if(!isHost){sendMsg("INPUT",{input:localInput,jump:jumpPressed,boost:boostPressed});jumpPressed=false;boostPressed=false;}
+  if(!gamePaused){
+    if(isHost){physicsUpdate();var now=Date.now();if(now-lastStateSend>STATE_RATE){lastStateSend=now;sendMsg("STATE",{p1:{x:p1.x,y:p1.y,z:p1.z,vx:p1.vx,vy:p1.vy,vz:p1.vz,grounded:p1.grounded,anim:p1.anim,hummus:p1.hummus,alive:p1.alive,garlicTimer:p1.garlicTimer,respawnTimer:p1.respawnTimer},p2:{x:p2.x,y:p2.y,z:p2.z,vx:p2.vx,vy:p2.vy,vz:p2.vz,grounded:p2.grounded,anim:p2.anim,hummus:p2.hummus,alive:p2.alive,garlicTimer:p2.garlicTimer,respawnTimer:p2.respawnTimer},bullies:bullies,pressureStates:pressureStates,crumbleStates:crumbleStates,paused:gamePaused,level:currentLevelIndex});}}
+    animatePlayer(p1Mesh,p1,dt);animatePlayer(p2Mesh,p2,dt);
+    bullies.forEach(function(b){var mesh=bullyMeshes[b.id];if(mesh)mesh.position.set(b.x,b.y,b.z);});
+    if(portalMesh){portalMesh.rotation.y+=dt*2;portalMesh.rotation.x=Math.sin(Date.now()*0.002)*0.3;var s=1+Math.sin(Date.now()*0.003)*0.1;portalMesh.scale.set(s,s,s);}
+    Object.values(spiceMeshes).forEach(function(m){m.material.emissiveIntensity=0.3+Math.sin(Date.now()*0.005)*0.2;});
+    Object.values(garlicMeshes).forEach(function(m){m.material.opacity=0.1+Math.sin(Date.now()*0.003)*0.08;});
+    if(!isHost){
+      platformMeshes.forEach(function(m){var u=m.userData;if(u.type==="moving"){var t=Date.now()*0.001;if(u.moveAxis==="x")m.position.x=u.origX+Math.sin(t*u.moveSpeed*50)*u.moveRange;else if(u.moveAxis==="y")m.position.y=u.origY+Math.sin(t*u.moveSpeed*50)*u.moveRange;else if(u.moveAxis==="z")m.position.z=u.origZ+Math.sin(t*u.moveSpeed*50)*u.moveRange;}if(u.type==="crumbling"){var cs=crumbleStates[u.index];if(cs&&cs.fallen){m.visible=false;m.position.y=-50;}else if(cs&&!cs.fallen){m.visible=true;m.position.y=cs.origY;}}});
+      var lv=LEVELS[currentLevelIndex];if(lv){lv.pressurePairs.forEach(function(pp){var st=pressureStates[pp.pairId];var door=doorMeshes[pp.pairId];if(door&&st){var ty=st.open?pp.door.y+5:pp.door.y;door.position.y+=(ty-door.position.y)*0.08;}});}
+    }
+    updateCamera(dt);updateBubbles();
+  }
+  document.getElementById("hud-p1-hummus").textContent="\uD83E\uDED8\xD7"+p1.hummus;
+  document.getElementById("hud-p2-hummus").textContent="\uD83E\uDED8\xD7"+p2.hummus;
+  if(renderer&&scene&&camera)renderer.render(scene,camera);
+}
 
-        window.cancelJoin = function() {
-            cleanupPeer();
-            joinInput.style.display = '';
-            joinBtn.style.display = '';
-            joinError.style.display = '';
-            // Remove any injected status divs
-            viewJoin.querySelectorAll('.status-msg').forEach(function(el) { el.remove(); });
-            showView(viewMain);
-        };
-    })();
-    </script>
+/* ========== BOOT ========== */
+document.addEventListener("DOMContentLoaded",function(){
+  createStars();
+  ["logo1","logo2","logo3"].forEach(function(id){var c=document.getElementById(id);if(c)drawFalafel(c);});
+  showView("view-main");
+});
+
+})();
+</script>
 </body>
 </html>
