@@ -61,6 +61,17 @@ label.field-label{display:block;font-size:12px;color:#606880;letter-spacing:2px;
 .confetti{position:fixed;width:8px;height:8px;z-index:41;pointer-events:none;border-radius:2px;animation:confettiFall 3s linear forwards}
 @keyframes confettiFall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
 #overlay-respawn{background:rgba(200,0,0,.3)}
+#dialogue-panel{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:min(700px,90vw);background:rgba(10,8,30,0.92);border:2px solid rgba(244,208,63,0.6);border-radius:16px;padding:20px 28px;z-index:35;pointer-events:none;animation:dlgPop 0.2s cubic-bezier(0.34,1.56,0.64,1) both}
+#dialogue-panel.hidden{display:none!important}
+#dlg-speaker{font-size:13px;font-weight:700;color:#f4d03f;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+#dlg-text{font-size:16px;color:rgba(255,255,255,0.88);line-height:1.7}
+#dlg-hint{font-size:11px;color:rgba(255,255,255,0.25);margin-top:14px;text-align:right;letter-spacing:1px}
+@keyframes dlgPop{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.npc-indicator{position:fixed;z-index:31;pointer-events:none;font-size:18px;color:#f4d03f;font-weight:bold;text-shadow:0 0 8px rgba(244,208,63,0.6);transform:translate(-50%,-100%);animation:npcPulse 1.2s ease-in-out infinite}
+@keyframes npcPulse{0%,100%{opacity:1;transform:translate(-50%,-100%) scale(1)}50%{opacity:0.7;transform:translate(-50%,-100%) scale(1.2)}}
+.player-tag{position:fixed;z-index:31;pointer-events:none;font-size:11px;font-weight:700;letter-spacing:1px;text-shadow:0 1px 4px #000;transform:translate(-50%,-100%);white-space:nowrap}
+.player-tag.p1{color:#f4d03f}
+.player-tag.p2{color:#2ecc71}
 </style>
 </head>
 <body>
@@ -121,6 +132,11 @@ label.field-label{display:block;font-size:12px;color:#606880;letter-spacing:2px;
   </div>
   <div class="overlay" id="overlay-respawn"><h2>RESPAWNING&#8230;</h2></div>
   <div class="overlay" id="overlay-pause"><h2>PAUSED</h2><p>Press P to resume</p></div>
+  <div id="dialogue-panel" class="hidden">
+    <div id="dlg-speaker"></div>
+    <div id="dlg-text"></div>
+    <div id="dlg-hint">[ SPACE ] Next &nbsp;&middot;&nbsp; [ ESC ] Close</div>
+  </div>
   <div class="overlay" id="overlay-disconnect">
     <h2>DISCONNECTED</h2>
     <p id="dc-reason">Connection lost.</p>
@@ -167,14 +183,159 @@ var cameraShake=0;
 var speechBubbles=[];
 var chatMessages=[];
 var lastTime=0;
+var npcMeshes={},npcIndicators={};
+var dialogueActive=false,dialogueNpc=null,dialogueLineIdx=0;
+var p1Target={x:0,y:2,z:0},p2Target={x:0,y:2,z:0};
+var p1Tag=null,p2Tag=null;
 
 /* ========== LEVEL DATA ========== */
 var LEVELS=[
-{id:1,name:"The Chickpea Fields",subtitle:"Tutorial",bgColor:"#1a2a1a",fogColor:"#1a2a1a",fogDensity:0.02,spawnP1:{x:0,y:2,z:0},spawnP2:{x:1.5,y:2,z:0},platforms:[{x:10,y:-0.15,z:0,w:28,h:0.3,d:8,color:0x4a7c2e,type:"static"},{x:5,y:0.4,z:-2.5,w:2.5,h:0.5,d:2.5,color:0x8B7355,type:"static"},{x:5,y:0.4,z:2.5,w:2.5,h:0.5,d:2.5,color:0x8B7355,type:"static"},{x:9,y:1.5,z:-3,w:0.5,h:3,d:3,color:0x888888,type:"static"},{x:9,y:1.5,z:3,w:0.5,h:3,d:3,color:0x888888,type:"static"},{x:13,y:0.5,z:0,w:3,h:0.6,d:3,color:0x8B7355,type:"static"},{x:17,y:1.2,z:0,w:3,h:0.6,d:3,color:0x8B7355,type:"static"},{x:21,y:2.0,z:0,w:4,h:0.6,d:4,color:0xD2B48C,type:"static"}],bullies:[{id:"L1_B1",x:14,y:0.15,z:0,waypoints:[{x:12,y:0.15,z:0},{x:18,y:0.15,z:0}],speed:0.03,isBoss:false}],pressurePairs:[{pairId:"L1_A",plates:[{x:5,y:0.65,z:-2.5},{x:5,y:0.65,z:2.5}],door:{x:9,y:0.8,z:0},timedDuration:null}],spiceTraps:[],garlicZones:[],conveyors:[],exitPortal:{x:21,y:3.5,z:0},hints:["Stand on both gold plates to open the door!","Jump with Space \u2014 move with WASD or Arrow Keys!"]},
-{id:2,name:"The Spice Market",subtitle:"Hot Oil Atmosphere",bgColor:"#2a1a0a",fogColor:"#3a2010",fogDensity:0.03,spawnP1:{x:0,y:2,z:0},spawnP2:{x:1.5,y:2,z:0},platforms:[{x:0,y:-0.15,z:0,w:6,h:0.3,d:5,color:0xD2B48C,type:"static"},{x:5,y:0,z:0,w:3,h:0.3,d:2,color:0x7a5230,type:"static"},{x:9.5,y:0.3,z:0,w:5,h:0.4,d:6,color:0xD2B48C,type:"static"},{x:9.5,y:0.6,z:-3,w:2.5,h:0.3,d:2,color:0x8B7355,type:"static"},{x:9.5,y:0.6,z:3,w:2.5,h:0.3,d:2,color:0x8B7355,type:"static"},{x:13,y:1.2,z:-2.5,w:0.4,h:2.5,d:2,color:0x888888,type:"static"},{x:13,y:1.2,z:2.5,w:0.4,h:2.5,d:2,color:0x888888,type:"static"},{x:16,y:0.5,z:0,w:3,h:0.3,d:2,color:0x7a5230,type:"static"},{x:19,y:0.9,z:0,w:2,h:0.3,d:2,color:0x7a5230,type:"static"},{x:25,y:0.7,z:0,w:5,h:0.4,d:5,color:0xD2B48C,type:"static"},{x:29,y:0.9,z:0,w:4,h:0.4,d:6,color:0xD2B48C,type:"static"},{x:29,y:1.2,z:-3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:29,y:1.2,z:3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:32,y:1.5,z:-2,w:0.4,h:2.5,d:2,color:0x888888,type:"static"},{x:32,y:1.5,z:2,w:0.4,h:2.5,d:2,color:0x888888,type:"static"},{x:35,y:0.5,z:0,w:4,h:0.4,d:4,color:0xD2B48C,type:"static"}],bullies:[{id:"L2_B1",x:16,y:0.65,z:0,waypoints:[{x:15,y:0.65,z:0},{x:19,y:0.65,z:0}],speed:0.05,isBoss:false},{id:"L2_B2",x:27,y:0.9,z:0,waypoints:[{x:25,y:0.9,z:0},{x:29,y:0.9,z:0}],speed:0.05,isBoss:false}],pressurePairs:[{pairId:"L2_A",plates:[{x:9.5,y:0.75,z:-3},{x:9.5,y:0.75,z:3}],door:{x:13,y:0.5,z:0},timedDuration:null},{pairId:"L2_B",plates:[{x:29,y:1.35,z:-3},{x:29,y:1.35,z:3}],door:{x:32,y:0.8,z:0},timedDuration:null}],spiceTraps:[{id:"L2_S1",x:5,y:0.15,z:0},{id:"L2_S2",x:16,y:0.65,z:0.5},{id:"L2_S3",x:19,y:1.05,z:0},{id:"L2_S4",x:25,y:0.9,z:1}],garlicZones:[],conveyors:[],exitPortal:{x:35,y:2,z:0},hints:["Use E near your partner to launch them across!","Spice traps launch you skyward \u2014 time your jumps!"]},
-{id:3,name:"The Bully Bazaar",subtitle:"Market Mayhem",bgColor:"#1a1a2a",fogColor:"#1a1a2a",fogDensity:0.02,spawnP1:{x:0,y:2,z:0},spawnP2:{x:1.5,y:2,z:0},platforms:[{x:0,y:-0.15,z:0,w:8,h:0.3,d:8,color:0x888888,type:"static"},{x:6,y:1,z:-3.5,w:5,h:0.5,d:3,color:0x7a5230,type:"static"},{x:6,y:1,z:3.5,w:5,h:0.5,d:3,color:0x7a5230,type:"static"},{x:10,y:0,z:0,w:8,h:0.3,d:3,color:0x888888,type:"static"},{x:16,y:1.8,z:0,w:4,h:0.5,d:4,color:0x7a5230,type:"static"},{x:14,y:0.9,z:-2.5,w:2,h:0.4,d:2,color:0x8B7355,type:"static"},{x:14,y:0.9,z:2.5,w:2,h:0.4,d:2,color:0x8B7355,type:"static"},{x:20,y:1.8,z:0,w:2.5,h:0.3,d:2.5,color:0xF4A832,type:"moving",moveAxis:"x",moveSpeed:0.04,moveRange:4},{x:26,y:1.8,z:0,w:5,h:0.5,d:5,color:0x888888,type:"static"},{x:28,y:2.2,z:-3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:28,y:2.2,z:3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:31,y:3,z:-2,w:0.4,h:3,d:2,color:0x888888,type:"static"},{x:31,y:3,z:2,w:0.4,h:3,d:2,color:0x888888,type:"static"},{x:34,y:1.5,z:0,w:4,h:0.5,d:4,color:0xD2B48C,type:"static"}],bullies:[{id:"L3_B1",x:8,y:0.15,z:0,waypoints:[{x:7,y:0.15,z:0},{x:13,y:0.15,z:0}],speed:0.05,isBoss:false},{id:"L3_B2",x:11,y:0.15,z:1,waypoints:[{x:7,y:0.15,z:1},{x:13,y:0.15,z:1}],speed:0.04,isBoss:false},{id:"L3_B3",x:6,y:1.25,z:-3.5,waypoints:[{x:4,y:1.25,z:-3.5},{x:8,y:1.25,z:-3.5}],speed:0.04,isBoss:false},{id:"L3_B4",x:26,y:2.05,z:0,waypoints:[{x:24,y:2.05,z:-2},{x:28,y:2.05,z:2}],speed:0.05,isBoss:false}],pressurePairs:[{pairId:"L3_A",plates:[{x:28,y:2.5,z:-3},{x:28,y:2.5,z:3}],door:{x:31,y:1.8,z:0},timedDuration:null}],spiceTraps:[],garlicZones:[{id:"L3_G1",x:10,y:0.15,z:0,width:3,depth:2},{id:"L3_G2",x:26,y:2.05,z:-2,width:2,depth:2}],conveyors:[],exitPortal:{x:34,y:3,z:0},hints:["Get close to a bully together to confuse it!","Green garlic clouds reverse your controls \u2014 be careful!"]},
-{id:4,name:"The Falafel Factory",subtitle:"Industrial Grind",bgColor:"#0a0a0f",fogColor:"#0a0a12",fogDensity:0.025,spawnP1:{x:0,y:2,z:0},spawnP2:{x:1.5,y:2,z:0},platforms:[{x:0,y:-0.15,z:0,w:7,h:0.3,d:6,color:0x3a3f4a,type:"static"},{x:6.5,y:0,z:0,w:6,h:0.25,d:3,color:0x607080,type:"static"},{x:12,y:0.3,z:0,w:5,h:0.4,d:6,color:0x3a3f4a,type:"static"},{x:12,y:0.6,z:-3,w:2,h:0.3,d:2,color:0x607080,type:"static"},{x:12,y:0.6,z:3,w:2,h:0.3,d:2,color:0x607080,type:"static"},{x:15.5,y:1.5,z:-2.5,w:0.5,h:3,d:2,color:0x3a3f4a,type:"static"},{x:15.5,y:1.5,z:2.5,w:0.5,h:3,d:2,color:0x3a3f4a,type:"static"},{x:19,y:0,z:0,w:5,h:0.3,d:6,color:0x3a3f4a,type:"static"},{x:18,y:1,z:-1.5,w:2,h:0.3,d:2,color:0xF4A832,type:"moving",moveAxis:"y",moveSpeed:0.03,moveRange:2},{x:20,y:2,z:1.5,w:2,h:0.3,d:2,color:0xF4A832,type:"moving",moveAxis:"y",moveSpeed:0.03,moveRange:2},{x:22,y:3,z:0,w:4,h:0.4,d:4,color:0x607080,type:"static"},{x:26,y:3,z:0,w:5,h:0.4,d:6,color:0x3a3f4a,type:"static"},{x:26,y:3.3,z:-3,w:2,h:0.3,d:2,color:0x607080,type:"static"},{x:26,y:3.3,z:3,w:2,h:0.3,d:2,color:0x607080,type:"static"},{x:29.5,y:4.2,z:-2,w:0.4,h:3,d:2,color:0x3a3f4a,type:"static"},{x:29.5,y:4.2,z:2,w:0.4,h:3,d:2,color:0x3a3f4a,type:"static"},{x:33,y:2.8,z:0,w:6,h:0.25,d:3,color:0x607080,type:"static"},{x:37,y:2.5,z:0,w:4,h:0.4,d:5,color:0x3a3f4a,type:"static"},{x:37,y:2.8,z:-2,w:2,h:0.3,d:2,color:0xC0392B,type:"static"},{x:44,y:2.5,z:0,w:5,h:0.4,d:5,color:0x3a3f4a,type:"static"},{x:48,y:2.5,z:0,w:4,h:0.4,d:4,color:0x607080,type:"static"}],bullies:[{id:"L4_B1",x:12,y:0.5,z:0,waypoints:[{x:10,y:0.5,z:-1},{x:14,y:0.5,z:1}],speed:0.06,isBoss:false},{id:"L4_B2",x:26,y:3.2,z:0,waypoints:[{x:24,y:3.2,z:0},{x:28,y:3.2,z:0}],speed:0.06,isBoss:false},{id:"L4_B3",x:44,y:2.7,z:0,waypoints:[{x:42,y:2.7,z:-1},{x:46,y:2.7,z:1}],speed:0.04,isBoss:false}],pressurePairs:[{pairId:"L4_A",plates:[{x:12,y:0.7,z:-3},{x:12,y:0.7,z:3}],door:{x:15.5,y:0.5,z:0},timedDuration:null},{pairId:"L4_B",plates:[{x:26,y:3.5,z:-3},{x:26,y:3.5,z:3}],door:{x:29.5,y:3,z:0},timedDuration:null},{pairId:"L4_CANNON",plates:[{x:37,y:3.1,z:-2},{x:37,y:2.7,z:1.5}],door:{x:44,y:5,z:0},timedDuration:null}],spiceTraps:[],garlicZones:[],conveyors:[{id:"L4_C1",x:6.5,y:0.13,z:0,length:5,direction:"x+"},{id:"L4_C2",x:33,y:2.93,z:0,length:5,direction:"x+"}],exitPortal:{x:48,y:4,z:0},hints:["Conveyor belts push you \u2014 use them to gain speed!","The Falafel Cannon: P1 stands on the red plate while P2 boosts off the edge!"]},
-{id:5,name:"The Tahini Tower",subtitle:"Final Ascent",bgColor:"#0f0a1a",fogColor:"#0f0a1a",fogDensity:0.015,spawnP1:{x:0,y:2,z:0},spawnP2:{x:1.5,y:2,z:0},platforms:[{x:0,y:-0.15,z:0,w:10,h:0.3,d:8,color:0xC8AD7F,type:"static"},{x:4,y:0.8,z:0,w:3,h:0.4,d:3,color:0x888888,type:"static"},{x:2,y:1.8,z:0,w:3,h:0.4,d:3,color:0x888888,type:"static"},{x:-1,y:3,z:0,w:8,h:0.4,d:6,color:0xC8AD7F,type:"static"},{x:5.5,y:3,z:0,w:5,h:0.3,d:2,color:0x7a5230,type:"static"},{x:5.5,y:3,z:3,w:3,h:0.3,d:2,color:0xD2B48C,type:"crumbling"},{x:10,y:3.3,z:0,w:5,h:0.4,d:6,color:0xC8AD7F,type:"static"},{x:10,y:3.6,z:-3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:10,y:3.6,z:3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:13.5,y:4.5,z:-2,w:0.4,h:3,d:2,color:0x888888,type:"static"},{x:13.5,y:4.5,z:2,w:0.4,h:3,d:2,color:0x888888,type:"static"},{x:15,y:4.5,z:0,w:3,h:0.4,d:3,color:0x888888,type:"static"},{x:13,y:5.5,z:0,w:3,h:0.4,d:3,color:0x888888,type:"static"},{x:8,y:6.5,z:0,w:12,h:0.4,d:8,color:0xC8AD7F,type:"static"},{x:3,y:7,z:0,w:2.5,h:0.3,d:2.5,color:0xF4A832,type:"moving",moveAxis:"y",moveSpeed:0.03,moveRange:3},{x:0,y:10,z:0,w:10,h:0.4,d:8,color:0xC8AD7F,type:"static"},{x:-2,y:10.3,z:-3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:4,y:10.3,z:3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:6,y:11.5,z:-2,w:0.4,h:3,d:2,color:0x888888,type:"static"},{x:6,y:11.5,z:2,w:0.4,h:3,d:2,color:0x888888,type:"static"},{x:8,y:10,z:0,w:5,h:0.25,d:3,color:0x607080,type:"static"},{x:13,y:10,z:0,w:2.5,h:0.3,d:2.5,color:0xF4A832,type:"moving",moveAxis:"x",moveSpeed:0.04,moveRange:3},{x:18,y:13,z:0,w:14,h:0.5,d:10,color:0x6a4c93,type:"static"},{x:13,y:14.5,z:-4,w:1.5,h:3,d:1.5,color:0x888888,type:"static"},{x:13,y:14.5,z:4,w:1.5,h:3,d:1.5,color:0x888888,type:"static"},{x:23,y:14.5,z:-4,w:1.5,h:3,d:1.5,color:0x888888,type:"static"},{x:23,y:14.5,z:4,w:1.5,h:3,d:1.5,color:0x888888,type:"static"},{x:23,y:13.4,z:-3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:23,y:13.4,z:3,w:2,h:0.3,d:2,color:0x8B7355,type:"static"},{x:25.5,y:14.5,z:-2,w:0.5,h:3,d:2,color:0x888888,type:"static"},{x:25.5,y:14.5,z:2,w:0.5,h:3,d:2,color:0x888888,type:"static"},{x:28,y:13.5,z:0,w:4,h:0.6,d:4,color:0xF4A832,type:"static"}],bullies:[{id:"L5_B1",x:5,y:3.15,z:0,waypoints:[{x:3,y:3.15,z:0},{x:8,y:3.15,z:0}],speed:0.05,isBoss:false},{id:"L5_B2",x:8,y:6.7,z:-2,waypoints:[{x:4,y:6.7,z:-2},{x:12,y:6.7,z:-2}],speed:0.05,isBoss:false},{id:"L5_B3",x:8,y:6.7,z:2,waypoints:[{x:4,y:6.7,z:2},{x:12,y:6.7,z:2}],speed:0.04,isBoss:false},{id:"L5_B4",x:2,y:10.2,z:0,waypoints:[{x:-2,y:10.2,z:0},{x:4,y:10.2,z:0}],speed:0.05,isBoss:false},{id:"L5_BOSS",x:18,y:13.25,z:0,waypoints:[{x:15,y:13.25,z:-3},{x:21,y:13.25,z:3},{x:18,y:13.25,z:0}],speed:0.04,isBoss:true}],pressurePairs:[{pairId:"L5_A",plates:[{x:10,y:3.75,z:-3},{x:10,y:3.75,z:3}],door:{x:13.5,y:3.5,z:0},timedDuration:null},{pairId:"L5_B",plates:[{x:-2,y:10.6,z:-3},{x:4,y:10.6,z:3}],door:{x:6,y:10.2,z:0},timedDuration:180},{pairId:"L5_C",plates:[{x:23,y:13.7,z:-3},{x:23,y:13.7,z:3}],door:{x:25.5,y:13.2,z:0},timedDuration:null}],spiceTraps:[{id:"L5_S1",x:5.5,y:3.15,z:0},{id:"L5_S2",x:7,y:3.15,z:0},{id:"L5_S3",x:8,y:10.13,z:1}],garlicZones:[{id:"L5_G1",x:8,y:6.7,z:0,width:4,depth:3},{id:"L5_G2",x:0,y:10.2,z:2,width:3,depth:2}],conveyors:[{id:"L5_CV1",x:8,y:10.13,z:0,length:4,direction:"x+"}],exitPortal:{x:28,y:15.5,z:0},hints:["The Boss Bully is huge \u2014 both of you must get within 3 units to stun it!","Timed plates only stay active for 3 seconds \u2014 hurry!","Use every trick you have learned to climb the tower!"]}
+{id:1,name:"The Chickpea Fields",subtitle:"Tutorial",bgColor:"#1a2a1a",fogColor:"#1a2a1a",fogDensity:0.02,
+spawnP1:{x:-1,y:2,z:1},spawnP2:{x:1,y:2,z:1},
+platforms:[
+  {x:0,y:0,z:0,w:8,h:0.3,d:8,color:0x4a7c2e,type:"static"},
+  {x:3,y:0.8,z:-6,w:3,h:0.3,d:3,color:0x5a8c3e,type:"static"},
+  {x:-3,y:1.2,z:-9,w:3,h:0.3,d:3,color:0x4a7c2e,type:"static"},
+  {x:0,y:1.5,z:-13,w:10,h:0.3,d:4,color:0x6a9c4e,type:"static"},
+  {x:4,y:0,z:-18,w:3,h:0.3,d:3,color:0x8B7355,type:"plate"},
+  {x:-4,y:0,z:-18,w:3,h:0.3,d:3,color:0x8B7355,type:"plate"},
+  {x:0,y:0,z:-24,w:8,h:0.3,d:8,color:0x4a7c2e,type:"static"},
+  {x:2,y:1.5,z:-30,w:3,h:0.3,d:3,color:0xD2B48C,type:"static"},
+  {x:-2,y:2,z:-34,w:4,h:0.3,d:4,color:0xD2B48C,type:"static"}
+],
+bullies:[{id:"L1_B1",x:0,y:1.65,z:-13,waypoints:[{x:-3,y:1.65,z:-13},{x:3,y:1.65,z:-13}],speed:0.03,isBoss:false}],
+pressurePairs:[{pairId:"L1_A",plates:[{x:4,y:0.35,z:-18},{x:-4,y:0.35,z:-18}],door:{x:0,y:0,z:-22},timedDuration:null}],
+spiceTraps:[],garlicZones:[],conveyors:[],
+exitPortal:{x:0,y:3,z:-34},
+npcs:[
+  {id:"pebble",x:2,y:0.8,z:-3,name:"\uD83E\uDDC6 Pebble",lines:["Two of you came! Gary said one was enough. Gary was wrong. Gary is a rock.","The bully stole our hummus. Hummus is feelings. Stand on both gold plates to open the door."]},
+  {id:"crispy",x:-2,y:0.8,z:-8,name:"\uD83E\uDDC6 Crispy",lines:["If you both walk toward the bully at the same time, it gets confused and spins. Very useful. A little sad."]}
+],
+hints:["Stand on both gold plates to open the door!","Jump with Space \u2014 move with WASD!"]},
+
+{id:2,name:"The Spice Market",subtitle:"Hot Oil Atmosphere",bgColor:"#2a1a0a",fogColor:"#3a2010",fogDensity:0.03,
+spawnP1:{x:-1,y:2,z:1},spawnP2:{x:1,y:2,z:1},
+platforms:[
+  {x:0,y:0,z:0,w:8,h:0.3,d:6,color:0xD2B48C,type:"static"},
+  {x:3,y:0.5,z:-5,w:3,h:0.3,d:3,color:0x7a5230,type:"static"},
+  {x:-3,y:1,z:-8,w:3,h:0.3,d:3,color:0x7a5230,type:"static"},
+  {x:0,y:1.5,z:-12,w:10,h:0.3,d:5,color:0xD2B48C,type:"static"},
+  {x:4,y:1.5,z:-16,w:3,h:0.3,d:2,color:0x8B7355,type:"plate"},
+  {x:-4,y:1.5,z:-16,w:3,h:0.3,d:2,color:0x8B7355,type:"plate"},
+  {x:0,y:0.5,z:-20,w:6,h:0.3,d:4,color:0x7a5230,type:"static"},
+  {x:3,y:1.2,z:-25,w:3,h:0.3,d:3,color:0xD2B48C,type:"static"},
+  {x:-2,y:1.8,z:-28,w:3,h:0.3,d:3,color:0xD2B48C,type:"static"},
+  {x:0,y:2.2,z:-32,w:8,h:0.3,d:6,color:0xD2B48C,type:"static"},
+  {x:0,y:2.8,z:-37,w:5,h:0.3,d:5,color:0xD2B48C,type:"static"}
+],
+bullies:[
+  {id:"L2_B1",x:0,y:1.65,z:-12,waypoints:[{x:-3,y:1.65,z:-12},{x:3,y:1.65,z:-12}],speed:0.05,isBoss:false},
+  {id:"L2_B2",x:0,y:2.35,z:-32,waypoints:[{x:-3,y:2.35,z:-32},{x:3,y:2.35,z:-32}],speed:0.05,isBoss:false}
+],
+pressurePairs:[{pairId:"L2_A",plates:[{x:4,y:1.85,z:-16},{x:-4,y:1.85,z:-16}],door:{x:0,y:0.5,z:-19},timedDuration:null}],
+spiceTraps:[{id:"L2_S1",x:3,y:0.65,z:-5},{id:"L2_S2",x:-2,y:1.95,z:-28}],
+garlicZones:[],conveyors:[],
+exitPortal:{x:0,y:4,z:-37},
+npcs:[
+  {id:"mochi",x:2,y:0.8,z:-3,name:"\uD83E\uDDC6 Mochi",lines:["The spice traps are the red spiky ones. They launch you upward. Plan accordingly.","Press E near your partner to boost them. Make sure they know first. Communication is key."]},
+  {id:"glob",x:0,y:2.5,z:-22,name:"\uD83E\uDDC6 Glob",lines:["You survived the Spice Market! The two bullies ahead get confused if you both charge them.","Last pair who came through tried to fight them separately. Still up there somewhere."]}
+],
+hints:["Use E near your partner to launch them across!","Spice traps launch you skyward!"]},
+
+{id:3,name:"The Bully Bazaar",subtitle:"Market Mayhem",bgColor:"#1a1a2a",fogColor:"#1a1a2a",fogDensity:0.02,
+spawnP1:{x:-1,y:2,z:1},spawnP2:{x:1,y:2,z:1},
+platforms:[
+  {x:0,y:0,z:0,w:8,h:0.3,d:8,color:0x888888,type:"static"},
+  {x:3,y:1,z:-6,w:4,h:0.3,d:3,color:0x7a5230,type:"static"},
+  {x:-3,y:1,z:-9,w:4,h:0.3,d:3,color:0x7a5230,type:"static"},
+  {x:0,y:1.8,z:-14,w:8,h:0.3,d:5,color:0x888888,type:"static"},
+  {x:0,y:2.5,z:-19,w:3,h:0.3,d:3,color:0xF4A832,type:"moving",moveAxis:"x",moveSpeed:0.04,moveRange:4},
+  {x:0,y:2.5,z:-24,w:8,h:0.3,d:6,color:0x888888,type:"static"},
+  {x:4,y:2.5,z:-29,w:3,h:0.3,d:3,color:0x8B7355,type:"plate"},
+  {x:-4,y:2.5,z:-29,w:3,h:0.3,d:3,color:0x8B7355,type:"plate"},
+  {x:0,y:1.5,z:-34,w:6,h:0.3,d:4,color:0xD2B48C,type:"static"},
+  {x:0,y:2,z:-38,w:5,h:0.3,d:5,color:0xD2B48C,type:"static"}
+],
+bullies:[
+  {id:"L3_B1",x:0,y:0.15,z:-3,waypoints:[{x:-3,y:0.15,z:-3},{x:3,y:0.15,z:-3}],speed:0.05,isBoss:false},
+  {id:"L3_B2",x:0,y:1.95,z:-14,waypoints:[{x:-3,y:1.95,z:-14},{x:3,y:1.95,z:-14}],speed:0.04,isBoss:false},
+  {id:"L3_B3",x:0,y:2.65,z:-24,waypoints:[{x:-3,y:2.65,z:-24},{x:3,y:2.65,z:24}],speed:0.05,isBoss:false}
+],
+pressurePairs:[{pairId:"L3_A",plates:[{x:4,y:2.85,z:-29},{x:-4,y:2.85,z:-29}],door:{x:0,y:1.5,z:-32},timedDuration:null}],
+spiceTraps:[],
+garlicZones:[{id:"L3_G1",x:0,y:1.95,z:-14,width:4,depth:3}],
+conveyors:[],
+exitPortal:{x:0,y:3,z:-38},
+npcs:[
+  {id:"kiki",x:0,y:0.8,z:-3,name:"\uD83E\uDDC6 Kiki",lines:["Green floor is garlic. Reverses your controls. Your brain will say left but your legs go right.","Go through garlic zones together. You will both be confused equally. It is fairer."]},
+  {id:"blinky",x:0,y:3,z:-24,name:"\uD83E\uDDC6 Blinky",lines:["The moving platform ahead swings. Jump at the same moment or one of you goes into the void.","I\u2019ve been on this platform for three days. I thought it was the exit. Still figuring that out."]}
+],
+hints:["Get close to a bully together to confuse it!","Green garlic clouds reverse your controls!"]},
+
+{id:4,name:"The Falafel Factory",subtitle:"Industrial Grind",bgColor:"#0a0a0f",fogColor:"#0a0a12",fogDensity:0.025,
+spawnP1:{x:-1,y:2,z:1},spawnP2:{x:1,y:2,z:1},
+platforms:[
+  {x:0,y:0,z:0,w:8,h:0.3,d:6,color:0x3a3f4a,type:"static"},
+  {x:0,y:0.3,z:-6,w:6,h:0.25,d:3,color:0x607080,type:"static"},
+  {x:0,y:0.8,z:-11,w:10,h:0.3,d:5,color:0x3a3f4a,type:"static"},
+  {x:4,y:0.8,z:-15,w:3,h:0.3,d:2,color:0x607080,type:"plate"},
+  {x:-4,y:0.8,z:-15,w:3,h:0.3,d:2,color:0x607080,type:"plate"},
+  {x:0,y:1.5,z:-20,w:6,h:0.3,d:4,color:0x3a3f4a,type:"static"},
+  {x:-2,y:2.5,z:-24,w:2,h:0.3,d:2,color:0xF4A832,type:"moving",moveAxis:"y",moveSpeed:0.03,moveRange:2},
+  {x:2,y:3.5,z:-27,w:2,h:0.3,d:2,color:0xF4A832,type:"moving",moveAxis:"y",moveSpeed:0.03,moveRange:2},
+  {x:0,y:4,z:-31,w:8,h:0.3,d:5,color:0x607080,type:"static"},
+  {x:3,y:4,z:-35,w:3,h:0.3,d:3,color:0xC0392B,type:"static"},
+  {x:0,y:3.5,z:-39,w:5,h:0.3,d:5,color:0x3a3f4a,type:"static"}
+],
+bullies:[
+  {id:"L4_B1",x:0,y:0.95,z:-11,waypoints:[{x:-3,y:0.95,z:-11},{x:3,y:0.95,z:-11}],speed:0.06,isBoss:false},
+  {id:"L4_B2",x:0,y:4.15,z:-31,waypoints:[{x:-3,y:4.15,z:-31},{x:3,y:4.15,z:-31}],speed:0.06,isBoss:false}
+],
+pressurePairs:[{pairId:"L4_A",plates:[{x:4,y:1.1,z:-15},{x:-4,y:1.1,z:-15}],door:{x:0,y:1.5,z:-18},timedDuration:null}],
+spiceTraps:[],garlicZones:[],
+conveyors:[{id:"L4_C1",x:0,y:0.43,z:-6,length:5,direction:"z-"}],
+exitPortal:{x:0,y:5,z:-39},
+npcs:[
+  {id:"nubs",x:0,y:0.8,z:-3,name:"\uD83E\uDDC6 Nubs",lines:["Conveyor belts push you forward. This is good. Stand sideways to slow down if needed.","Pistons go up and down. Ride them up. Do not stand under them. This seems obvious."]},
+  {id:"pumpi",x:0,y:3.5,z:-28,name:"\uD83E\uDDC6 Pumpi",lines:["The Falafel Cannon! One stands on the red plate. The other stands clear. Press E.","The one who flies should know they are flying. Check with your partner before pressing E. Please."]}
+],
+hints:["Conveyor belts push you \u2014 use them to gain speed!","The Falafel Cannon: P1 stands on the red plate!"]},
+
+{id:5,name:"The Tahini Tower",subtitle:"Final Ascent",bgColor:"#0f0a1a",fogColor:"#0f0a1a",fogDensity:0.015,
+spawnP1:{x:-1,y:2,z:1},spawnP2:{x:1,y:2,z:1},
+platforms:[
+  {x:0,y:0,z:0,w:10,h:0.3,d:8,color:0xC8AD7F,type:"static"},
+  {x:3,y:1,z:-5,w:3,h:0.3,d:3,color:0x888888,type:"static"},
+  {x:-3,y:1.8,z:-8,w:3,h:0.3,d:3,color:0x888888,type:"static"},
+  {x:0,y:2.5,z:-12,w:10,h:0.3,d:5,color:0xC8AD7F,type:"static"},
+  {x:4,y:2.5,z:-16,w:3,h:0.3,d:2,color:0x8B7355,type:"plate"},
+  {x:-4,y:2.5,z:-16,w:3,h:0.3,d:2,color:0x8B7355,type:"plate"},
+  {x:0,y:3,z:-20,w:6,h:0.3,d:4,color:0xC8AD7F,type:"static"},
+  {x:3,y:4,z:-24,w:3,h:0.3,d:3,color:0x888888,type:"crumbling"},
+  {x:-2,y:5,z:-28,w:3,h:0.3,d:3,color:0x888888,type:"static"},
+  {x:0,y:6,z:-32,w:12,h:0.3,d:8,color:0xC8AD7F,type:"static"},
+  {x:4,y:6,z:-36,w:3,h:0.3,d:2,color:0x8B7355,type:"plate"},
+  {x:-4,y:6,z:-36,w:3,h:0.3,d:2,color:0x8B7355,type:"plate"},
+  {x:0,y:7,z:-40,w:8,h:0.3,d:6,color:0x6a4c93,type:"static"}
+],
+bullies:[
+  {id:"L5_B1",x:0,y:2.65,z:-12,waypoints:[{x:-3,y:2.65,z:-12},{x:3,y:2.65,z:-12}],speed:0.05,isBoss:false},
+  {id:"L5_B2",x:0,y:6.15,z:-32,waypoints:[{x:-4,y:6.15,z:-32},{x:4,y:6.15,z:-32}],speed:0.05,isBoss:false},
+  {id:"L5_BOSS",x:0,y:7.15,z:-40,waypoints:[{x:-3,y:7.15,z:-40},{x:3,y:7.15,z:-40},{x:0,y:7.15,z:-38}],speed:0.04,isBoss:true}
+],
+pressurePairs:[
+  {pairId:"L5_A",plates:[{x:4,y:2.85,z:-16},{x:-4,y:2.85,z:-16}],door:{x:0,y:3,z:-19},timedDuration:null},
+  {pairId:"L5_B",plates:[{x:4,y:6.35,z:-36},{x:-4,y:6.35,z:-36}],door:{x:0,y:7,z:-39},timedDuration:180}
+],
+spiceTraps:[{id:"L5_S1",x:3,y:1.15,z:-5},{id:"L5_S2",x:-2,y:5.15,z:-28}],
+garlicZones:[{id:"L5_G1",x:0,y:6.15,z:-32,width:4,depth:3}],
+conveyors:[],
+exitPortal:{x:0,y:9,z:-40},
+npcs:[
+  {id:"bloop",x:0,y:0.8,z:-3,name:"\uD83D\uDC51 Queen Bloop",lines:["You have reached the Tahini Tower. I am Queen Bloop. I have been watching your progress.","The Boss Bully at the top requires BOTH of you to stun simultaneously. Alone you will bounce off.","Also: the garlic on floor 2 reverses both players. Go through holding each other\u2019s trajectories in mind."]},
+  {id:"tuffet",x:2,y:4,z:-18,name:"\uD83E\uDDC6 Tuffet",lines:["Floor 3 timed plates. Three seconds each. Split up, both step on yours at the same time.","Do not stop to talk to me right now. Actually do. The boss bully is not going anywhere. It just stands there."]}
+],
+hints:["The Boss Bully is huge \u2014 both of you must get close to stun it!","Timed plates only stay active for 3 seconds!"]}
 ];
 
 /* ========== STARFIELD & LOGO ========== */
@@ -288,7 +449,10 @@ window.backToMenu=function(){
   document.querySelectorAll(".overlay").forEach(function(o){o.classList.remove("active");});
   document.getElementById("screen-game").classList.add("hidden");
   document.getElementById("screen-lobby").classList.remove("hidden");
+  document.getElementById("dialogue-panel").classList.add("hidden");
   showView("view-main");
+  if(p1Tag){p1Tag.remove();p1Tag=null;}if(p2Tag){p2Tag.remove();p2Tag=null;}
+  Object.values(npcIndicators).forEach(function(el){el.remove();});npcIndicators={};
   if(renderer){renderer.dispose();var gc=document.getElementById("game-container");while(gc.firstChild)gc.removeChild(gc.firstChild);}
   renderer=null;scene=null;camera=null;
 };
@@ -303,11 +467,13 @@ function onNetMessage(msg){
     case "INPUT":remoteInput=msg.d.input||remoteInput;if(msg.d.jump)remoteJumpPressed=true;if(msg.d.boost)remoteBoostPressed=true;break;
     case "CHAT":addChatMessage(isHost?"P2":"P1",msg.d.text);showBubble(isHost?"p2":"p1",msg.d.text);break;
     case "EVENT":onEventMsg(msg.d);break;
+    case "NPC_TALK":showNpcDialogue(msg.d.npcId,msg.d.lineIndex);break;
   }
 }
 function onStateMsg(d){
   if(isHost)return;
-  if(d.p1)Object.assign(p1,d.p1);if(d.p2)Object.assign(p2,d.p2);
+  if(d.p1){p1Target.x=d.p1.x;p1Target.y=d.p1.y;p1Target.z=d.p1.z;p1.vx=d.p1.vx;p1.vy=d.p1.vy;p1.vz=d.p1.vz;p1.grounded=d.p1.grounded;p1.anim=d.p1.anim;p1.hummus=d.p1.hummus;p1.alive=d.p1.alive;p1.garlicTimer=d.p1.garlicTimer;p1.respawnTimer=d.p1.respawnTimer;}
+  if(d.p2){p2Target.x=d.p2.x;p2Target.y=d.p2.y;p2Target.z=d.p2.z;p2.vx=d.p2.vx;p2.vy=d.p2.vy;p2.vz=d.p2.vz;p2.grounded=d.p2.grounded;p2.anim=d.p2.anim;p2.hummus=d.p2.hummus;p2.alive=d.p2.alive;p2.garlicTimer=d.p2.garlicTimer;p2.respawnTimer=d.p2.respawnTimer;}
   if(d.bullies)bullies=d.bullies;if(d.pressureStates)pressureStates=d.pressureStates;
   if(d.crumbleStates)crumbleStates=d.crumbleStates;
   if(d.paused!==undefined)gamePaused=d.paused;
@@ -323,23 +489,61 @@ function onEventMsg(d){
   }
 }
 
+/* ========== CANVAS TEXTURE ========== */
+function makeCanvasTexture(color,size){
+  var c=document.createElement("canvas");c.width=64;c.height=64;
+  var ctx=c.getContext("2d");
+  ctx.fillStyle="#"+color.toString(16).padStart(6,"0");ctx.fillRect(0,0,64,64);
+  ctx.fillStyle="rgba(255,255,255,0.15)";ctx.fillRect(0,0,64,8);
+  ctx.fillStyle="rgba(0,0,0,0.2)";ctx.fillRect(0,56,64,8);
+  ctx.strokeStyle="rgba(0,0,0,0.1)";ctx.lineWidth=1;
+  for(var i=0;i<64;i+=16){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,64);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(64,i);ctx.stroke();}
+  var tex=new THREE.CanvasTexture(c);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
+  tex.repeat.set(Math.max(1,Math.round(size/4)),Math.max(1,Math.round(size/4)));
+  return tex;
+}
+function createSkySphere(){
+  var c=document.createElement("canvas");c.width=256;c.height=256;
+  var ctx=c.getContext("2d");
+  var g=ctx.createLinearGradient(0,0,0,256);
+  g.addColorStop(0,"#1a2a5a");g.addColorStop(0.4,"#4a7ab0");g.addColorStop(0.7,"#87CEEB");g.addColorStop(1,"#ffe8c0");
+  ctx.fillStyle=g;ctx.fillRect(0,0,256,256);
+  var tex=new THREE.CanvasTexture(c);
+  var geo=new THREE.SphereGeometry(400,16,16);
+  var mat=new THREE.MeshBasicMaterial({map:tex,side:THREE.BackSide,fog:false});
+  return new THREE.Mesh(geo,mat);
+}
+
 /* ========== THREE.JS INIT ========== */
 function initGame(){
   var container=document.getElementById("game-container");
   scene=new THREE.Scene();
-  camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,200);
-  camera.position.set(0,8,14);
+  camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,1000);
+  camera.position.set(0,7,12);
   renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
   renderer.setSize(window.innerWidth,window.innerHeight);
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-  renderer.setClearColor(0x08080f);container.appendChild(renderer.domElement);
-  var amb=new THREE.AmbientLight(0x404050,0.6);scene.add(amb);
-  var dir=new THREE.DirectionalLight(0xfff5e0,0.8);dir.position.set(10,20,10);dir.castShadow=true;
-  dir.shadow.mapSize.set(1024,1024);dir.shadow.camera.left=-30;dir.shadow.camera.right=50;
-  dir.shadow.camera.top=30;dir.shadow.camera.bottom=-10;dir.shadow.camera.far=80;scene.add(dir);
-  p1Mesh=createPlayerMesh(0xc9a227,"p1");p2Mesh=createPlayerMesh(0x2ecc71,"p2");
+  renderer.setClearColor(0x0a0a12);container.appendChild(renderer.domElement);
+  // Warm ambient
+  scene.add(new THREE.AmbientLight(0xfff4dc,0.6));
+  // Main directional with shadows
+  var sun=new THREE.DirectionalLight(0xfff8e7,1.0);
+  sun.position.set(8,20,10);sun.castShadow=true;
+  sun.shadow.mapSize.width=2048;sun.shadow.mapSize.height=2048;
+  sun.shadow.camera.near=0.5;sun.shadow.camera.far=200;
+  sun.shadow.camera.left=-50;sun.shadow.camera.right=50;
+  sun.shadow.camera.top=50;sun.shadow.camera.bottom=-50;
+  scene.add(sun);
+  // Cool fill
+  var fill=new THREE.DirectionalLight(0x4a90d9,0.3);fill.position.set(-5,5,-5);scene.add(fill);
+  // Sky
+  scene.add(createSkySphere());
+  p1Mesh=createPlayerMesh(0xf4d03f,"p1");p2Mesh=createPlayerMesh(0x2ecc71,"p2");
   scene.add(p1Mesh);scene.add(p2Mesh);
+  // Player name tags
+  p1Tag=document.createElement("div");p1Tag.className="player-tag p1";p1Tag.textContent=isHost?"P1 (YOU)":"P1";document.body.appendChild(p1Tag);
+  p2Tag=document.createElement("div");p2Tag.className="player-tag p2";p2Tag.textContent=isHost?"P2":"P2 (YOU)";document.body.appendChild(p2Tag);
   currentLevelIndex=0;loadLevel(0);gameStarted=true;gamePaused=false;levelStartTime=Date.now();
   window.addEventListener("resize",onResize);
   document.addEventListener("keydown",onKeyDown);document.addEventListener("keyup",onKeyUp);
@@ -350,21 +554,59 @@ function onResize(){if(!camera||!renderer)return;camera.aspect=window.innerWidth
 /* ========== PLAYER MESH ========== */
 function createPlayerMesh(color,name){
   var g=new THREE.Group();g.name=name;
-  var body=new THREE.Mesh(new THREE.SphereGeometry(0.5,16,16),new THREE.MeshLambertMaterial({color:color}));
+  var body=new THREE.Mesh(new THREE.SphereGeometry(0.55,20,20),new THREE.MeshPhongMaterial({color:color,shininess:80}));
   body.castShadow=true;g.add(body);
-  var eyeGeo=new THREE.SphereGeometry(0.08,8,8),eyeMat=new THREE.MeshBasicMaterial({color:0x2c1810});
-  var lE=new THREE.Mesh(eyeGeo,eyeMat);lE.position.set(-0.15,0.1,0.42);g.add(lE);
-  var rE=new THREE.Mesh(eyeGeo,eyeMat);rE.position.set(0.15,0.1,0.42);g.add(rE);
-  var pupGeo=new THREE.SphereGeometry(0.03,6,6),pupMat=new THREE.MeshBasicMaterial({color:0xffffff});
-  var lP=new THREE.Mesh(pupGeo,pupMat);lP.position.set(-0.13,0.12,0.48);g.add(lP);
-  var rP=new THREE.Mesh(pupGeo,pupMat);rP.position.set(0.17,0.12,0.48);g.add(rP);
+  var eyeGeo=new THREE.SphereGeometry(0.09,8,8),eyeMat=new THREE.MeshBasicMaterial({color:0x2c1810});
+  var lE=new THREE.Mesh(eyeGeo,eyeMat);lE.position.set(-0.18,0.1,0.46);g.add(lE);
+  var rE=new THREE.Mesh(eyeGeo,eyeMat);rE.position.set(0.18,0.1,0.46);g.add(rE);
+  var pupGeo=new THREE.SphereGeometry(0.04,6,6),pupMat=new THREE.MeshBasicMaterial({color:0xffffff});
+  var lP=new THREE.Mesh(pupGeo,pupMat);lP.position.set(-0.15,0.14,0.51);g.add(lP);
+  var rP=new THREE.Mesh(pupGeo,pupMat);rP.position.set(0.21,0.14,0.51);g.add(rP);
   var sc=new THREE.EllipseCurve(0,0,0.18,0.12,0.2,Math.PI-0.2,false);
   var sp=sc.getPoints(12);var sg=new THREE.BufferGeometry().setFromPoints(sp);
   var smile=new THREE.Line(sg,new THREE.LineBasicMaterial({color:0x2c1810}));
-  smile.position.set(0,-0.05,0.46);smile.rotation.z=Math.PI;g.add(smile);
-  var bGeo=new THREE.CircleGeometry(0.08,8),bMat=new THREE.MeshBasicMaterial({color:0xff9696,transparent:true,opacity:0.35,side:THREE.DoubleSide});
-  var lB=new THREE.Mesh(bGeo,bMat);lB.position.set(-0.3,-0.05,0.4);g.add(lB);
-  var rB=new THREE.Mesh(bGeo,bMat);rB.position.set(0.3,-0.05,0.4);g.add(rB);
+  smile.position.set(0,-0.06,0.48);smile.rotation.z=Math.PI;g.add(smile);
+  var bGeo=new THREE.CircleGeometry(0.09,8),bMat=new THREE.MeshBasicMaterial({color:0xff9696,transparent:true,opacity:0.35,side:THREE.DoubleSide});
+  var lB=new THREE.Mesh(bGeo,bMat);lB.position.set(-0.32,-0.05,0.42);g.add(lB);
+  var rB=new THREE.Mesh(bGeo,bMat);rB.position.set(0.32,-0.05,0.42);g.add(rB);
+  return g;
+}
+
+/* ========== BULLY MESH ========== */
+function createBullyMesh(isBoss){
+  var sz=isBoss?0.7:0.45;
+  var g=new THREE.Group();
+  var body=new THREE.Mesh(new THREE.SphereGeometry(sz,16,16),new THREE.MeshPhongMaterial({color:0x4a2010,shininess:20}));
+  body.castShadow=true;g.add(body);
+  // Red emissive dot eyes
+  var eGeo=new THREE.SphereGeometry(sz*0.12,6,6);var eMat=new THREE.MeshBasicMaterial({color:0xff0000});
+  var le=new THREE.Mesh(eGeo,eMat);le.position.set(-sz*0.3,sz*0.15,sz*0.8);g.add(le);
+  var re=new THREE.Mesh(eGeo,eMat);re.position.set(sz*0.3,sz*0.15,sz*0.8);g.add(re);
+  // Angry crown spikes
+  var spikeCount=isBoss?6:4;
+  for(var i=0;i<spikeCount;i++){
+    var angle=(i/spikeCount)*Math.PI*2;
+    var spike=new THREE.Mesh(new THREE.ConeGeometry(sz*0.12,sz*0.5,6),new THREE.MeshPhongMaterial({color:0x6a3020,shininess:10}));
+    spike.position.set(Math.cos(angle)*sz*0.5,sz*0.8,Math.sin(angle)*sz*0.5);
+    spike.rotation.z=Math.cos(angle)*0.3;spike.rotation.x=-Math.sin(angle)*0.3;
+    g.add(spike);
+  }
+  return g;
+}
+
+/* ========== NPC MESH ========== */
+function createNpcMesh(npcData){
+  var g=new THREE.Group();
+  var body=new THREE.Mesh(new THREE.SphereGeometry(0.4,16,16),new THREE.MeshPhongMaterial({color:0xD4B48C,shininess:50}));
+  body.castShadow=true;g.add(body);
+  var eyeGeo=new THREE.SphereGeometry(0.06,6,6),eyeMat=new THREE.MeshBasicMaterial({color:0x2c1810});
+  var lE=new THREE.Mesh(eyeGeo,eyeMat);lE.position.set(-0.12,0.08,0.34);g.add(lE);
+  var rE=new THREE.Mesh(eyeGeo,eyeMat);rE.position.set(0.12,0.08,0.34);g.add(rE);
+  var pupGeo=new THREE.SphereGeometry(0.025,6,6),pupMat=new THREE.MeshBasicMaterial({color:0xffffff});
+  var lP=new THREE.Mesh(pupGeo,pupMat);lP.position.set(-0.1,0.1,0.38);g.add(lP);
+  var rP=new THREE.Mesh(pupGeo,pupMat);rP.position.set(0.14,0.1,0.38);g.add(rP);
+  g.position.set(npcData.x,npcData.y,npcData.z);
+  g.userData={npcId:npcData.id,talked:false};
   return g;
 }
 
@@ -373,10 +615,18 @@ function animatePlayer(mesh,state,dt){
   if(!state.alive){mesh.rotation.z+=dt*3;mesh.position.y=state.y-2;return;}
   mesh.position.set(state.x,state.y,state.z);mesh.rotation.z=0;mesh.rotation.x=0;
   var body=mesh.children[0];if(!body)return;
-  if(state.anim==="walk"){mesh.position.y=state.y+Math.sin(t*12)*0.08;mesh.rotation.x=Math.sin(t*10)*0.1;body.scale.set(1,1,1);}
-  else if(state.anim==="jump"){body.scale.set(0.9,1.15,0.9);}
-  else if(state.anim==="fall"){body.scale.set(1.1,0.85,1.1);}
-  else{mesh.position.y=state.y+Math.sin(t*3)*0.04;body.scale.set(1,1,1);}
+  if(state.anim==="walk"){
+    mesh.position.y=state.y+Math.sin(t*12)*0.08;
+    mesh.rotation.x=Math.sin(t*10)*0.15;
+    body.scale.set(1,1,1);
+  } else if(state.anim==="jump"){
+    body.scale.set(0.85,1.2,0.85);
+  } else if(state.anim==="fall"){
+    body.scale.set(1.15,0.8,1.15);
+  } else {
+    mesh.position.y=state.y+Math.sin(t*2)*0.06;
+    body.scale.set(1,1,1);
+  }
   if(state.garlicTimer>0){body.material.emissive=new THREE.Color(0x00ff00);body.material.emissiveIntensity=0.3;}
   else{body.material.emissive=new THREE.Color(0x000000);body.material.emissiveIntensity=0;}
 }
@@ -390,14 +640,20 @@ function loadLevel(idx){
   Object.values(spiceMeshes).forEach(function(m){scene.remove(m);});spiceMeshes={};
   Object.values(garlicMeshes).forEach(function(m){scene.remove(m);});garlicMeshes={};
   Object.values(conveyorMeshes).forEach(function(m){scene.remove(m);});conveyorMeshes={};
+  Object.values(npcMeshes).forEach(function(m){scene.remove(m);});npcMeshes={};
+  Object.values(npcIndicators).forEach(function(el){el.remove();});npcIndicators={};
   if(portalMesh){scene.remove(portalMesh);portalMesh=null;}
+  dismissDialogue();
   var lv=LEVELS[idx];if(!lv)return;
-  scene.background=new THREE.Color(lv.bgColor);scene.fog=new THREE.FogExp2(new THREE.Color(lv.fogColor),lv.fogDensity);renderer.setClearColor(new THREE.Color(lv.bgColor));
+  scene.fog=new THREE.FogExp2(new THREE.Color(lv.fogColor),lv.fogDensity);renderer.setClearColor(new THREE.Color(lv.bgColor));
   p1.x=lv.spawnP1.x;p1.y=lv.spawnP1.y;p1.z=lv.spawnP1.z;p1.vx=0;p1.vy=0;p1.vz=0;p1.grounded=false;p1.anim="idle";p1.hummus=3;p1.alive=true;p1.respawnTimer=0;p1.garlicTimer=0;
   p2.x=lv.spawnP2.x;p2.y=lv.spawnP2.y;p2.z=lv.spawnP2.z;p2.vx=0;p2.vy=0;p2.vz=0;p2.grounded=false;p2.anim="idle";p2.hummus=3;p2.alive=true;p2.respawnTimer=0;p2.garlicTimer=0;
-  // Platforms
+  p1Target.x=p1.x;p1Target.y=p1.y;p1Target.z=p1.z;
+  p2Target.x=p2.x;p2Target.y=p2.y;p2Target.z=p2.z;
+  // Platforms with canvas textures
   lv.platforms.forEach(function(p,i){
-    var geo=new THREE.BoxGeometry(p.w,p.h,p.d);var mat=new THREE.MeshLambertMaterial({color:p.color});
+    var geo=new THREE.BoxGeometry(p.w,p.h,p.d);
+    var mat=new THREE.MeshPhongMaterial({map:makeCanvasTexture(p.color,Math.max(p.w,p.d)),shininess:30});
     var mesh=new THREE.Mesh(geo,mat);mesh.position.set(p.x,p.y,p.z);mesh.receiveShadow=true;mesh.castShadow=true;
     mesh.userData=Object.assign({index:i},p);mesh.userData.origX=p.x;mesh.userData.origY=p.y;mesh.userData.origZ=p.z;
     scene.add(mesh);platformMeshes.push(mesh);
@@ -416,11 +672,7 @@ function loadLevel(idx){
   // Bullies
   bullies=lv.bullies.map(function(b){return{id:b.id,x:b.x,y:b.y,z:b.z,waypoints:b.waypoints,speed:b.speed,isBoss:b.isBoss,wpIndex:0,stunTimer:0,origX:b.x,origY:b.y,origZ:b.z};});
   bullies.forEach(function(b){
-    var sz=b.isBoss?1.5:0.7;var geo=new THREE.BoxGeometry(sz,sz,sz);var mat=new THREE.MeshLambertMaterial({color:0x333333});
-    var mesh=new THREE.Mesh(geo,mat);mesh.castShadow=true;
-    var eGeo=new THREE.SphereGeometry(sz*0.1,6,6);var eMat=new THREE.MeshBasicMaterial({color:0xff0000});
-    var le=new THREE.Mesh(eGeo,eMat);le.position.set(-sz*0.2,sz*0.15,sz*0.5);mesh.add(le);
-    var re=new THREE.Mesh(eGeo,eMat);re.position.set(sz*0.2,sz*0.15,sz*0.5);mesh.add(re);
+    var mesh=createBullyMesh(b.isBoss);
     mesh.position.set(b.x,b.y,b.z);scene.add(mesh);bullyMeshes[b.id]=mesh;
   });
   // Spice traps
@@ -448,6 +700,11 @@ function loadLevel(idx){
   // Exit portal
   var pGeo=new THREE.TorusGeometry(0.8,0.15,8,24);var pMat=new THREE.MeshLambertMaterial({color:0xf4d03f,emissive:0xf4d03f,emissiveIntensity:0.5});
   portalMesh=new THREE.Mesh(pGeo,pMat);portalMesh.position.set(lv.exitPortal.x,lv.exitPortal.y,lv.exitPortal.z);scene.add(portalMesh);
+  // NPCs
+  if(lv.npcs){lv.npcs.forEach(function(npc){
+    var mesh=createNpcMesh(npc);scene.add(mesh);npcMeshes[npc.id]=mesh;
+    var ind=document.createElement("div");ind.className="npc-indicator";ind.textContent="[!]";document.body.appendChild(ind);npcIndicators[npc.id]=ind;
+  });}
   document.getElementById("hud-level").textContent="Level "+lv.id+" \u2014 "+lv.name;
   document.getElementById("hud-hints").innerHTML=lv.hints.map(function(h){return "<div>"+h+"</div>";}).join("");
   levelStartTime=Date.now();hideLevelComplete();
@@ -532,13 +789,13 @@ function checkBoostJump(){
 
 function updateBullies(){
   bullies.forEach(function(b){
-    if(b.stunTimer>0){b.stunTimer--;var mesh=bullyMeshes[b.id];if(mesh){mesh.rotation.y+=0.15;mesh.material.emissive=new THREE.Color(0xffff00);mesh.material.emissiveIntensity=0.3*Math.abs(Math.sin(b.stunTimer*0.2));}return;}
+    if(b.stunTimer>0){b.stunTimer--;var mesh=bullyMeshes[b.id];if(mesh){mesh.rotation.y+=0.15;var bBody=mesh.children[0];if(bBody){bBody.material.emissive=new THREE.Color(0xffff00);bBody.material.emissiveIntensity=0.3*Math.abs(Math.sin(b.stunTimer*0.2));}}return;}
     var d1=dist3(b,p1),d2=dist3(b,p2),stunDist=b.isBoss?3.0:BULLY_DUAL_STUN_DIST;
     if(p1.alive&&p2.alive&&d1<stunDist&&d2<stunDist){b.stunTimer=BULLY_STUN_DURATION;showBubble("p1","\u2B50 GOT EM!");return;}
     var target=null,tDist=Infinity;if(p1.alive&&d1<6){target=p1;tDist=d1;}if(p2.alive&&d2<6&&d2<tDist){target=p2;tDist=d2;}
     if(target&&tDist<6){var spd=BULLY_CHASE_SPEED*(b.isBoss?0.8:1);var dx=target.x-b.x,dz=target.z-b.z,len=Math.sqrt(dx*dx+dz*dz)||1;b.x+=dx/len*spd;b.z+=dz/len*spd;if(p1.alive&&dist3(b,p1)<BULLY_CATCH_DIST)killPlayer(p1,"p1");if(p2.alive&&dist3(b,p2)<BULLY_CATCH_DIST)killPlayer(p2,"p2");}
     else{var wp=b.waypoints[b.wpIndex];var dx=wp.x-b.x,dz=wp.z-b.z,len=Math.sqrt(dx*dx+dz*dz)||1;b.x+=dx/len*BULLY_PATROL_SPEED;b.z+=dz/len*BULLY_PATROL_SPEED;if(len<0.3)b.wpIndex=(b.wpIndex+1)%b.waypoints.length;}
-    var mesh=bullyMeshes[b.id];if(mesh){mesh.position.set(b.x,b.y,b.z);mesh.rotation.y=0;mesh.material.emissive=new THREE.Color(0x000000);}
+    var mesh=bullyMeshes[b.id];if(mesh){mesh.position.set(b.x,b.y,b.z);mesh.rotation.y=0;var bBody=mesh.children[0];if(bBody){bBody.material.emissive=new THREE.Color(0x000000);}}
   });
 }
 
@@ -601,13 +858,80 @@ function addChatMessage(who,text){var log=document.getElementById("hud-chatlog")
 function showBubble(who,text){speechBubbles=speechBubbles.filter(function(b){if(b.who===who){b.el.remove();return false;}return true;});var div=document.createElement("div");div.className="speech-bubble";div.textContent=text;document.body.appendChild(div);speechBubbles.push({who:who,el:div,timer:120});if(isHost)sendMsg("EVENT",{event:"bubble",who:who,text:text});}
 function updateBubbles(){if(!camera||!renderer)return;speechBubbles=speechBubbles.filter(function(b){b.timer--;if(b.timer<=0){b.el.remove();return false;}if(b.timer<30)b.el.style.opacity=b.timer/30;var player=b.who==="p1"?p1:p2;var pos=new THREE.Vector3(player.x,player.y+1.2,player.z);pos.project(camera);var x=(pos.x*0.5+0.5)*window.innerWidth;var y=(-pos.y*0.5+0.5)*window.innerHeight;b.el.style.left=x+"px";b.el.style.top=y+"px";return true;});}
 
+/* ========== NPC DIALOGUE ========== */
+function checkNpcProximity(){
+  var lv=LEVELS[currentLevelIndex];if(!lv||!lv.npcs)return;
+  var myState=isHost?p1:p2;
+  lv.npcs.forEach(function(npc){
+    var mesh=npcMeshes[npc.id];var ind=npcIndicators[npc.id];if(!mesh||!ind)return;
+    var dx=myState.x-npc.x,dy=myState.y-npc.y,dz=myState.z-npc.z;
+    var dist=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if(mesh.userData.talked){ind.style.display="none";return;}
+    if(dist<2.5){
+      var pos=new THREE.Vector3(npc.x,npc.y+1,npc.z);pos.project(camera);
+      var sx=(pos.x*0.5+0.5)*window.innerWidth;var sy=(-pos.y*0.5+0.5)*window.innerHeight;
+      ind.style.left=sx+"px";ind.style.top=(sy-20)+"px";ind.style.display="block";
+    } else{ind.style.display="none";}
+    // Bob NPC
+    mesh.position.y=npc.y+Math.sin(Date.now()*0.002)*0.06;
+  });
+}
+function tryInteractNpc(){
+  var lv=LEVELS[currentLevelIndex];if(!lv||!lv.npcs||dialogueActive)return;
+  var myState=isHost?p1:p2;
+  for(var i=0;i<lv.npcs.length;i++){
+    var npc=lv.npcs[i];var mesh=npcMeshes[npc.id];if(!mesh||mesh.userData.talked)continue;
+    var dx=myState.x-npc.x,dy=myState.y-npc.y,dz=myState.z-npc.z;
+    var dist=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if(dist<2.5){showNpcDialogue(npc.id,0);sendMsg("NPC_TALK",{npcId:npc.id,lineIndex:0});return;}
+  }
+}
+function showNpcDialogue(npcId,lineIdx){
+  var lv=LEVELS[currentLevelIndex];if(!lv||!lv.npcs)return;
+  var npc=null;for(var i=0;i<lv.npcs.length;i++){if(lv.npcs[i].id===npcId){npc=lv.npcs[i];break;}}
+  if(!npc)return;
+  dialogueActive=true;dialogueNpc=npc;dialogueLineIdx=lineIdx;
+  var panel=document.getElementById("dialogue-panel");
+  document.getElementById("dlg-speaker").textContent=npc.name;
+  document.getElementById("dlg-text").textContent=npc.lines[lineIdx]||"";
+  panel.classList.remove("hidden");
+}
+function advanceDialogue(){
+  if(!dialogueActive||!dialogueNpc)return;
+  dialogueLineIdx++;
+  if(dialogueLineIdx>=dialogueNpc.lines.length){dismissDialogue();return;}
+  document.getElementById("dlg-text").textContent=dialogueNpc.lines[dialogueLineIdx]||"";
+  sendMsg("NPC_TALK",{npcId:dialogueNpc.id,lineIndex:dialogueLineIdx});
+}
+function dismissDialogue(){
+  if(dialogueNpc){var mesh=npcMeshes[dialogueNpc.id];if(mesh)mesh.userData.talked=true;}
+  dialogueActive=false;dialogueNpc=null;dialogueLineIdx=0;
+  document.getElementById("dialogue-panel").classList.add("hidden");
+}
+function updatePlayerTags(){
+  if(!camera||!renderer)return;
+  function posTag(tag,state){
+    var pos=new THREE.Vector3(state.x,state.y+1.2,state.z);pos.project(camera);
+    var sx=(pos.x*0.5+0.5)*window.innerWidth;var sy=(-pos.y*0.5+0.5)*window.innerHeight;
+    tag.style.left=sx+"px";tag.style.top=sy+"px";
+  }
+  if(p1Tag)posTag(p1Tag,p1);if(p2Tag)posTag(p2Tag,p2);
+}
+
 /* ========== INPUT ========== */
 function onKeyDown(e){
+  if(dialogueActive){
+    if(e.key===" "||e.key==="Enter"){e.preventDefault();advanceDialogue();}
+    if(e.key==="Escape"){e.preventDefault();dismissDialogue();}
+    return;
+  }
   if(chatOpen){if(e.key==="Enter"){e.preventDefault();sendChat();}if(e.key==="Escape"){e.preventDefault();closeChat();}return;}
   switch(e.key.toLowerCase()){
     case "w":case "arrowup":localInput.forward=true;break;case "s":case "arrowdown":localInput.back=true;break;
     case "a":case "arrowleft":localInput.left=true;break;case "d":case "arrowright":localInput.right=true;break;
-    case " ":localInput.jump=true;jumpPressed=true;e.preventDefault();break;case "e":localInput.boost=true;boostPressed=true;break;
+    case " ":if(!localInput.jump)jumpPressed=true;localInput.jump=true;e.preventDefault();break;
+    case "e":if(!localInput.boost)boostPressed=true;localInput.boost=true;break;
+    case "f":tryInteractNpc();break;
     case "t":e.preventDefault();openChat();break;
     case "p":if(isHost){gamePaused=!gamePaused;var po=document.getElementById("overlay-pause");if(gamePaused)po.classList.add("active");else po.classList.remove("active");}break;
     case "escape":if(gamePaused&&isHost){gamePaused=false;document.getElementById("overlay-pause").classList.remove("active");}break;
@@ -618,19 +942,27 @@ function onKeyUp(e){if(chatOpen)return;switch(e.key.toLowerCase()){case "w":case
 /* ========== CAMERA ========== */
 function updateCamera(dt){
   var midX=(p1.x+p2.x)/2,midY=(p1.y+p2.y)/2,midZ=(p1.z+p2.z)/2;
-  var tx=midX,ty=midY+8,tz=midZ+14,lerpF=1-Math.pow(0.05,dt);
-  camera.position.x+=(tx-camera.position.x)*lerpF;camera.position.y+=(ty-camera.position.y)*lerpF;camera.position.z+=(tz-camera.position.z)*lerpF;
+  var tx=midX,ty=midY+7,tz=midZ+12;
+  camera.position.x+=(tx-camera.position.x)*0.08;
+  camera.position.y+=(ty-camera.position.y)*0.08;
+  camera.position.z+=(tz-camera.position.z)*0.08;
   if(cameraShake>0){camera.position.x+=(Math.random()-0.5)*cameraShake;camera.position.y+=(Math.random()-0.5)*cameraShake;cameraShake*=0.9;if(cameraShake<0.01)cameraShake=0;}
-  camera.lookAt(midX,midY,midZ);
+  camera.lookAt(midX,midY+1,midZ);
 }
 
 /* ========== GAME LOOP ========== */
 function gameLoop(time){
   if(!gameStarted)return;requestAnimationFrame(gameLoop);
   var dt=(time-lastTime)/1000;lastTime=time;if(dt>0.05)dt=0.05;if(dt<=0)dt=0.016;
+  // Client sends input every frame with edge-detect for jump/boost
   if(!isHost){sendMsg("INPUT",{input:localInput,jump:jumpPressed,boost:boostPressed});jumpPressed=false;boostPressed=false;}
   if(!gamePaused){
     if(isHost){physicsUpdate();var now=Date.now();if(now-lastStateSend>STATE_RATE){lastStateSend=now;sendMsg("STATE",{p1:{x:p1.x,y:p1.y,z:p1.z,vx:p1.vx,vy:p1.vy,vz:p1.vz,grounded:p1.grounded,anim:p1.anim,hummus:p1.hummus,alive:p1.alive,garlicTimer:p1.garlicTimer,respawnTimer:p1.respawnTimer},p2:{x:p2.x,y:p2.y,z:p2.z,vx:p2.vx,vy:p2.vy,vz:p2.vz,grounded:p2.grounded,anim:p2.anim,hummus:p2.hummus,alive:p2.alive,garlicTimer:p2.garlicTimer,respawnTimer:p2.respawnTimer},bullies:bullies,pressureStates:pressureStates,crumbleStates:crumbleStates,paused:gamePaused,level:currentLevelIndex});}}
+    // Client-side interpolation
+    if(!isHost){
+      p1.x+=(p1Target.x-p1.x)*0.3;p1.y+=(p1Target.y-p1.y)*0.3;p1.z+=(p1Target.z-p1.z)*0.3;
+      p2.x+=(p2Target.x-p2.x)*0.3;p2.y+=(p2Target.y-p2.y)*0.3;p2.z+=(p2Target.z-p2.z)*0.3;
+    }
     animatePlayer(p1Mesh,p1,dt);animatePlayer(p2Mesh,p2,dt);
     bullies.forEach(function(b){var mesh=bullyMeshes[b.id];if(mesh)mesh.position.set(b.x,b.y,b.z);});
     if(portalMesh){portalMesh.rotation.y+=dt*2;portalMesh.rotation.x=Math.sin(Date.now()*0.002)*0.3;var s=1+Math.sin(Date.now()*0.003)*0.1;portalMesh.scale.set(s,s,s);}
@@ -640,7 +972,7 @@ function gameLoop(time){
       platformMeshes.forEach(function(m){var u=m.userData;if(u.type==="moving"){var t=Date.now()*0.001;if(u.moveAxis==="x")m.position.x=u.origX+Math.sin(t*u.moveSpeed*50)*u.moveRange;else if(u.moveAxis==="y")m.position.y=u.origY+Math.sin(t*u.moveSpeed*50)*u.moveRange;else if(u.moveAxis==="z")m.position.z=u.origZ+Math.sin(t*u.moveSpeed*50)*u.moveRange;}if(u.type==="crumbling"){var cs=crumbleStates[u.index];if(cs&&cs.fallen){m.visible=false;m.position.y=-50;}else if(cs&&!cs.fallen){m.visible=true;m.position.y=cs.origY;}}});
       var lv=LEVELS[currentLevelIndex];if(lv){lv.pressurePairs.forEach(function(pp){var st=pressureStates[pp.pairId];var door=doorMeshes[pp.pairId];if(door&&st){var ty=st.open?pp.door.y+5:pp.door.y;door.position.y+=(ty-door.position.y)*0.08;}});}
     }
-    updateCamera(dt);updateBubbles();
+    checkNpcProximity();updateCamera(dt);updateBubbles();updatePlayerTags();
   }
   document.getElementById("hud-p1-hummus").textContent="\uD83E\uDED8\xD7"+p1.hummus;
   document.getElementById("hud-p2-hummus").textContent="\uD83E\uDED8\xD7"+p2.hummus;
