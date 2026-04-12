@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
     <title>Falafel Kingdom — Co-op Lobby</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -10,7 +11,7 @@
             margin: 0;
             overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(180deg, #0a0a12 0%, #12162a 50%, #1a1f35 100%);
+            background: linear-gradient(180deg, #08080f 0%, #0d1020 40%, #141828 100%) !important;
             color: #fff;
             user-select: none;
         }
@@ -35,12 +36,17 @@
 
         /* Typography */
         h1 {
-            font-size: 56px; color: #fff; margin: 0 0 10px 0;
-            text-transform: uppercase; letter-spacing: 6px; font-weight: 300;
+            font-size: 64px; color: #fff; margin: 0 0 10px 0;
+            text-transform: uppercase; letter-spacing: 12px; font-weight: 200;
+            text-shadow: 0 0 30px rgba(201, 162, 39, 0.4), 0 0 60px rgba(201, 162, 39, 0.15);
         }
         .subtitle {
-            font-size: 22px; color: #c9a227; margin: 0 0 40px 0;
-            font-weight: 300; letter-spacing: 4px; text-transform: uppercase;
+            font-size: 22px; color: #c9a227; margin: 0 0 20px 0;
+            font-weight: 300; letter-spacing: 6px; text-transform: uppercase;
+        }
+        .divider {
+            width: 120px; height: 1px; margin: 0 0 30px 0;
+            background: linear-gradient(90deg, transparent, #c9a227, transparent);
         }
         .label {
             font-size: 14px; color: rgba(255,255,255,0.5); text-transform: uppercase;
@@ -112,10 +118,10 @@
 
         /* Room code display */
         .room-code {
-            font-size: 56px;
+            font-size: 64px;
             font-family: 'Courier New', monospace;
             color: #f4d03f;
-            letter-spacing: 14px;
+            letter-spacing: 16px;
             margin: 8px 0 6px 0;
             cursor: pointer;
             padding: 8px 20px;
@@ -228,7 +234,7 @@
         .fade-in { animation: fadeInUp 0.4s ease-out both; }
     </style>
 </head>
-<body>
+<body style="background: linear-gradient(180deg, #08080f 0%, #0d1020 40%, #141828 100%);">
     <!-- Stars background -->
     <div class="menu-stars" id="menu-stars"></div>
 
@@ -239,6 +245,7 @@
             <canvas id="falafel-logo" class="menu-logo" width="120" height="120"></canvas>
             <h1>Falafel Kingdom</h1>
             <div class="subtitle">Co-op Adventure</div>
+            <div class="divider"></div>
             <button class="primary" onclick="showHost()">Host Game</button>
             <button class="secondary" onclick="showJoin()">Join Game</button>
             <a href="singleplayer.html" class="sp-link">&larr; Single Player</a>

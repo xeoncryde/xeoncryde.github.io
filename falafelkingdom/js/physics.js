@@ -632,28 +632,30 @@
     // ── State Snapshot ───────────────────────────────────
 
     getState: function () {
+      var _p1 = this.p1 || makePlayer();
+      var _p2 = this.p2 || makePlayer();
       return {
         p1: {
-          x: this.p1.x, y: this.p1.y, z: this.p1.z,
-          vx: this.p1.vx, vy: this.p1.vy, vz: this.p1.vz,
-          grounded: this.p1.grounded,
-          anim: this.p1.anim,
-          hummus: this.p1.hummus,
-          alive: this.p1.alive,
-          respawnTimer: this.p1.respawnTimer
+          x: _p1.x, y: _p1.y, z: _p1.z,
+          vx: _p1.vx, vy: _p1.vy, vz: _p1.vz,
+          grounded: _p1.grounded,
+          anim: _p1.anim,
+          hummus: _p1.hummus,
+          alive: _p1.alive,
+          respawnTimer: _p1.respawnTimer
         },
         p2: {
-          x: this.p2.x, y: this.p2.y, z: this.p2.z,
-          vx: this.p2.vx, vy: this.p2.vy, vz: this.p2.vz,
-          grounded: this.p2.grounded,
-          anim: this.p2.anim,
-          hummus: this.p2.hummus,
-          alive: this.p2.alive,
-          respawnTimer: this.p2.respawnTimer
+          x: _p2.x, y: _p2.y, z: _p2.z,
+          vx: _p2.vx, vy: _p2.vy, vz: _p2.vz,
+          grounded: _p2.grounded,
+          anim: _p2.anim,
+          hummus: _p2.hummus,
+          alive: _p2.alive,
+          respawnTimer: _p2.respawnTimer
         },
-        objects: levelData ? levelData.objects : [],
-        bullies: levelData ? levelData.bullies : [],
-        plates:  levelData ? levelData.plates  : []
+        objects: (levelData && levelData.objects) ? levelData.objects : [],
+        bullies: (levelData && levelData.bullies) ? levelData.bullies : [],
+        plates:  (levelData && levelData.plates)  ? levelData.plates  : []
       };
     }
   };
