@@ -92,6 +92,60 @@
       });
     },
 
+    // ── Host (reconnect in game.html) ────────────────────────
+
+    reconnectAsHost: function (code) {
+      var self = this;
+      this.role = 'host';
+      this.roomCode = code.toUpperCase();
+      this.seq = 0;
+
+      return new Promise(function (resolve, reject) {
+        // Destroy any old peer first
+        if (self.peer) {
+          try { self.peer.destroy(); } catch (e) {}
+          self.peer = null;
+        }
+
+        var peer = new Peer(self._peerId(self.roomCode));
+        self.peer = peer;
+
+        peer.on('open', function () {
+          resolve(self.roomCode);
+        });
+
+        peer.on('connection', function (conn) {
+          self._bindConnection(conn);
+        });
+
+        peer.on('error', function (err) {
+          if (err.type === 'unavailable-id') {
+            peer.destroy();
+            // Try with a suffix if original ID is still taken
+            var peer2 = new Peer(self._peerId(self.roomCode) + '-2');
+            self.peer = peer2;
+            peer2.on('open', function () { resolve(self.roomCode); });
+            peer2.on('connection', function (conn) { self._bindConnection(conn); });
+            peer2.on('error', function (e) { self._handleError(e); reject(e); });
+            peer2.on('disconnected', function () {
+              self.stopSyncLoop();
+              self.connected = false;
+              if (self.onDisconnect) self.onDisconnect();
+            });
+          } else {
+            self._handleError(err);
+            reject(err);
+          }
+        });
+
+        peer.on('disconnected', function () {
+          self.stopSyncLoop();
+          self.connected = false;
+          if (self.onDisconnect) self.onDisconnect();
+        });
+      });
+    },
+
     // ── Host ────────────────────────────────────────────────
 
     hostGame: function () {

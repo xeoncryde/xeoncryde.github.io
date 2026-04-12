@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
     <title>Falafel Kingdom - Co-op Adventure</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #08080f;
+            background: linear-gradient(180deg, #0a0a12 0%, #12162a 100%) !important;
             color: #fff;
             user-select: none;
         }
@@ -82,7 +83,7 @@
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: linear-gradient(180deg, #0a0a12 0%, #12162a 50%, #1a1f35 100%);
+            background: linear-gradient(180deg, #0a0a12 0%, #12162a 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -106,6 +107,27 @@
             content: '';
             animation: dots 1.5s steps(4, end) infinite;
         }
+        .fk-loading .error-msg {
+            color: #e07070;
+            font-size: 18px;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .fk-loading .back-link {
+            color: #c9a227;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-decoration: none;
+            border: 1px solid rgba(201, 162, 39, 0.3);
+            padding: 10px 24px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        .fk-loading .back-link:hover {
+            background: rgba(201, 162, 39, 0.1);
+            border-color: rgba(201, 162, 39, 0.6);
+        }
         @keyframes dots {
             0%  { content: ''; }
             25% { content: '.'; }
@@ -114,7 +136,7 @@
         }
     </style>
 </head>
-<body>
+<body style="background: linear-gradient(180deg, #0a0a12 0%, #12162a 100%);">
     <div id="game-container"></div>
 
     <div class="fk-loading" id="loading-screen">

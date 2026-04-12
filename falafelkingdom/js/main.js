@@ -67,7 +67,21 @@
     // 1. Read room info
     var raw = sessionStorage.getItem('fk_room');
     if (!raw) {
-      window.location.href = 'index.html';
+      // Show friendly error instead of silent redirect
+      var loadingScreen = document.getElementById('loading-screen');
+      if (loadingScreen) {
+        var loadingText = document.getElementById('loading-text');
+        if (loadingText) loadingText.style.display = 'none';
+        var errorMsg = document.createElement('div');
+        errorMsg.className = 'error-msg';
+        errorMsg.textContent = 'No room found — please join from the lobby first.';
+        var backLink = document.createElement('a');
+        backLink.className = 'back-link';
+        backLink.href = 'index.html';
+        backLink.textContent = '← BACK TO LOBBY';
+        loadingScreen.appendChild(errorMsg);
+        loadingScreen.appendChild(backLink);
+      }
       return;
     }
     var room = JSON.parse(raw);
@@ -125,18 +139,35 @@
     FKNetwork.onEventReceived = onEventReceived;
 
     // 8. Connect
+    updateLoadingStatus('Initializing network...');
     FKUI.showWaitingForPlayer();
 
     if (role === 'host') {
-      FKNetwork.hostGame().then(function (code) {
+      updateLoadingStatus('Creating room...');
+      FKNetwork.reconnectAsHost(roomCode).then(function (code) {
         roomCode = code;
         FKUI.updateRoomCode(code);
+        updateLoadingStatus('Waiting for player 2...');
+      }).catch(function () {
+        updateLoadingStatus('Failed to create room. Retrying...');
+        // Retry once
+        setTimeout(function () {
+          FKNetwork.reconnectAsHost(roomCode).then(function (code) {
+            roomCode = code;
+            FKUI.updateRoomCode(code);
+            updateLoadingStatus('Waiting for player 2...');
+          }).catch(function () {
+            FKUI.showDisconnected('Could not create room. Please go back to lobby and try again.');
+          });
+        }, 2000);
       });
     } else {
+      updateLoadingStatus('Connecting to host...');
       // Client: retry connection with delay in case host hasn't created peer yet
       (function retryJoin(attempts) {
         FKNetwork.joinGame(roomCode).catch(function () {
           if (attempts > 0) {
+            updateLoadingStatus('Retrying connection... (' + attempts + ' attempts left)');
             setTimeout(function () { retryJoin(attempts - 1); }, 1500);
           } else {
             FKUI.showDisconnected('Could not connect to host. Please try again.');
@@ -162,11 +193,22 @@
     FKMain.remoteKeys = remoteKeys;
   }
 
+  // ── Loading screen status helper ──────────────────────────
+  function updateLoadingStatus(text) {
+    var loadingText = document.getElementById('loading-text');
+    if (loadingText) loadingText.textContent = text;
+  }
+
   // ── Network callbacks ─────────────────────────────────────
   function onConnect() {
-    // Hide loading screen
-    var loadingScreen = document.getElementById('loading-screen');
-    if (loadingScreen) loadingScreen.style.display = 'none';
+    // Update loading screen status
+    updateLoadingStatus('Connected! Loading level...');
+
+    // Hide loading screen after brief delay
+    setTimeout(function () {
+      var loadingScreen = document.getElementById('loading-screen');
+      if (loadingScreen) loadingScreen.style.display = 'none';
+    }, 500);
 
     FKUI.hideWaitingForPlayer();
     if (role === 'host') {
@@ -559,20 +601,21 @@
       }
       // Doors linked to plates
       if (builtLevel.doors && levelData.pressurePairs) {
+        var flatPlateIdx = 0;
         for (var pi = 0; pi < levelData.pressurePairs.length; pi++) {
           var pair = levelData.pressurePairs[pi];
           var allPressed = true;
-          if (pair.plates) {
-            for (var pj = 0; pj < pair.plates.length; pj++) {
-              var plateIdx = pair.plates[pj];
-              if (st.plates && st.plates[plateIdx] && !st.plates[plateIdx].pressed) {
-                allPressed = false;
-              }
+          var numPlatesInPair = pair.plates ? pair.plates.length : 0;
+          for (var pj = 0; pj < numPlatesInPair; pj++) {
+            var idx = flatPlateIdx + pj;
+            if (st.plates && st.plates[idx] && !st.plates[idx].pressed) {
+              allPressed = false;
             }
           }
           if (builtLevel.doors[pi]) {
             FKObjects.updateDoor(builtLevel.doors[pi], allPressed);
           }
+          flatPlateIdx += numPlatesInPair;
         }
       }
     }
@@ -583,7 +626,14 @@
       if (bState.bullies) {
         for (var bi = 0; bi < bState.bullies.length; bi++) {
           if (builtLevel.bullies[bi]) {
-            FKObjects.updateBully(builtLevel.bullies[bi], bState.bullies[bi].state || 'patrol');
+            var bData = bState.bullies[bi];
+            FKObjects.updateBully(builtLevel.bullies[bi], {
+              x: bData.x,
+              y: bData.y,
+              z: bData.z,
+              stunned: bData.state === 'stunned',
+              chasing: bData.state === 'chase'
+            });
           }
         }
       }
@@ -605,25 +655,34 @@
     if (state.bullies && builtLevel.bullies) {
       for (var bi = 0; bi < state.bullies.length; bi++) {
         if (builtLevel.bullies[bi]) {
-          FKObjects.updateBully(builtLevel.bullies[bi], state.bullies[bi].state || 'patrol');
+          var bData = state.bullies[bi];
+          FKObjects.updateBully(builtLevel.bullies[bi], {
+            x: bData.x,
+            y: bData.y,
+            z: bData.z,
+            stunned: bData.state === 'stunned',
+            chasing: bData.state === 'chase'
+          });
         }
       }
     }
 
     if (builtLevel.doors && levelData && levelData.pressurePairs && state.plates) {
+      var flatPlateIdx = 0;
       for (var pi = 0; pi < levelData.pressurePairs.length; pi++) {
         var pair = levelData.pressurePairs[pi];
         var allPressed = true;
-        if (pair.plates) {
-          for (var pj = 0; pj < pair.plates.length; pj++) {
-            if (state.plates[pair.plates[pj]] && !state.plates[pair.plates[pj]].pressed) {
-              allPressed = false;
-            }
+        var numPlatesInPair = pair.plates ? pair.plates.length : 0;
+        for (var pj = 0; pj < numPlatesInPair; pj++) {
+          var idx = flatPlateIdx + pj;
+          if (state.plates[idx] && !state.plates[idx].pressed) {
+            allPressed = false;
           }
         }
         if (builtLevel.doors[pi]) {
           FKObjects.updateDoor(builtLevel.doors[pi], allPressed);
         }
+        flatPlateIdx += numPlatesInPair;
       }
     }
   }
