@@ -133,7 +133,16 @@
         FKUI.updateRoomCode(code);
       });
     } else {
-      FKNetwork.joinGame(roomCode);
+      // Client: retry connection with delay in case host hasn't created peer yet
+      (function retryJoin(attempts) {
+        FKNetwork.joinGame(roomCode).catch(function () {
+          if (attempts > 0) {
+            setTimeout(function () { retryJoin(attempts - 1); }, 1500);
+          } else {
+            FKUI.showDisconnected('Could not connect to host. Please try again.');
+          }
+        });
+      })(5);
     }
 
     // 9. Input listeners
@@ -155,8 +164,16 @@
 
   // ── Network callbacks ─────────────────────────────────────
   function onConnect() {
+    // Hide loading screen
+    var loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) loadingScreen.style.display = 'none';
+
     FKUI.hideWaitingForPlayer();
     if (role === 'host') {
+      loadLevel(1);
+      startGame();
+    } else {
+      // Client: load level 1 visuals and start render loop
       loadLevel(1);
       startGame();
     }
@@ -222,7 +239,7 @@
     FKMain.currentLevel = levelId;
 
     // Clear previous level
-    FKObjects.clearAll();
+    FKObjects.clearAll(scene);
     FKLevels.clearLevel(scene);
 
     // Get level definition
@@ -246,9 +263,10 @@
     }
 
     // Place players at spawn
-    var spawn = levelData.spawn || { x: 0, y: 2, z: 0 };
-    p1Group.position.set(spawn.x, spawn.y, spawn.z);
-    p2Group.position.set(spawn.x + 1.5, spawn.y, spawn.z);
+    var spawnP1 = levelData.spawnP1 || levelData.spawn || { x: 0, y: 2, z: 0 };
+    var spawnP2 = levelData.spawnP2 || { x: (spawnP1.x || 0) + 1.5, y: spawnP1.y || 2, z: spawnP1.z || 0 };
+    p1Group.position.set(spawnP1.x || 0, spawnP1.y || 2, spawnP1.z || 0);
+    p2Group.position.set(spawnP2.x || 1.5, spawnP2.y || 2, spawnP2.z || 0);
 
     // UI
     FKUI.updateLevel(levelId, levelData.name || null);

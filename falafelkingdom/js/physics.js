@@ -79,11 +79,11 @@
     };
   }
 
-  /** Build an AABB from a platform { x,y,z, sx,sy,sz }. */
+  /** Build an AABB from a platform { x,y,z, sx,sy,sz } or { x,y,z, w,h,d }. */
   function platAABB(pl) {
-    var hx = (pl.sx || pl.width  || 1) / 2;
-    var hy = (pl.sy || pl.height || 0.5) / 2;
-    var hz = (pl.sz || pl.depth  || 1) / 2;
+    var hx = (pl.sx || pl.w || pl.width  || 1) / 2;
+    var hy = (pl.sy || pl.h || pl.height || 0.5) / 2;
+    var hz = (pl.sz || pl.d || pl.depth  || 1) / 2;
     return {
       minX: pl.x - hx, maxX: pl.x + hx,
       minY: pl.y - hy, maxY: pl.y + hy,
@@ -105,25 +105,72 @@
 
     init: function (data) {
       levelData = data || {};
-      if (levelData.spawn) {
-        spawnPos = {
-          x: levelData.spawn.x || 0,
-          y: levelData.spawn.y || 2,
-          z: levelData.spawn.z || 0
-        };
-      }
+
+      // Determine spawn positions (levels use spawnP1/spawnP2)
+      var sp1 = levelData.spawnP1 || levelData.spawn || { x: 0, y: 2, z: 0 };
+      var sp2 = levelData.spawnP2 || { x: (sp1.x || 0) + 1.5, y: sp1.y || 2, z: sp1.z || 0 };
+      spawnPos = { x: sp1.x || 0, y: sp1.y || 2, z: sp1.z || 0 };
 
       this.p1 = makePlayer();
       this.p2 = makePlayer();
-      this.p1.x = spawnPos.x;
-      this.p1.y = spawnPos.y;
-      this.p1.z = spawnPos.z;
-      this.p2.x = spawnPos.x + 1;
-      this.p2.y = spawnPos.y;
-      this.p2.z = spawnPos.z;
+      this.p1.x = sp1.x || 0;
+      this.p1.y = sp1.y || 2;
+      this.p1.z = sp1.z || 0;
+      this.p2.x = sp2.x || 1.5;
+      this.p2.y = sp2.y || 2;
+      this.p2.z = sp2.z || 0;
+
+      // Build a flat objects array from level's separate arrays
+      var objects = [];
+      // Moving/crumbling platforms from the platforms array
+      var platforms = levelData.platforms || [];
+      for (var pi = 0; pi < platforms.length; pi++) {
+        var p = platforms[pi];
+        if (p.type === 'moving') {
+          objects.push({ type: 'moving', x: p.x, y: p.y, z: p.z, sx: p.w, sy: p.h, sz: p.d, axis: p.moveAxis || 'x', speed: p.moveSpeed || 0.02, range: p.moveRange || 2, collide: true });
+        }
+        if (p.type === 'crumbling') {
+          objects.push({ type: 'crumble', x: p.x, y: p.y, z: p.z, sx: p.w, sy: p.h, sz: p.d, collide: true, timer: 0, fallen: false, respawnTimer: 0, active: true });
+        }
+      }
+      // Spice traps
+      var spice = levelData.spiceTraps || [];
+      for (var si = 0; si < spice.length; si++) {
+        var s = spice[si];
+        objects.push({ type: 'spiceTrap', id: s.id, x: s.x, y: s.y, z: s.z, sx: 1, sy: 0.15, sz: 1, cooldown: randomInt(SPICE_TRAP_MIN, SPICE_TRAP_MAX), collide: false });
+      }
+      // Garlic zones
+      var garlic = levelData.garlicZones || [];
+      for (var gi = 0; gi < garlic.length; gi++) {
+        var g = garlic[gi];
+        objects.push({ type: 'garlic', id: g.id, x: g.x, y: g.y || 0.05, z: g.z, sx: g.width || 3, sy: 0.1, sz: g.depth || 3, collide: false });
+      }
+      // Conveyors
+      var conveyors = levelData.conveyors || [];
+      for (var ci = 0; ci < conveyors.length; ci++) {
+        var c = conveyors[ci];
+        var dir = 1;
+        var caxis = 'x';
+        if (c.direction === 'x-') dir = -1;
+        if (c.direction === 'z+') { caxis = 'z'; dir = 1; }
+        if (c.direction === 'z-') { caxis = 'z'; dir = -1; }
+        objects.push({ type: 'conveyor', id: c.id, x: c.x, y: c.y, z: c.z, sx: c.length || 4, sy: 0.2, sz: 1, axis: caxis, direction: dir, collide: true });
+      }
+      levelData.objects = objects;
+
+      // Build flat plates array from pressurePairs
+      var plates = [];
+      var pairs = levelData.pressurePairs || [];
+      for (var pri = 0; pri < pairs.length; pri++) {
+        var pair = pairs[pri];
+        var pls = pair.plates || [];
+        for (var pli = 0; pli < pls.length; pli++) {
+          plates.push({ x: pls[pli].x, y: pls[pli].y, z: pls[pli].z, sx: 1.2, sy: 0.1, sz: 1.2, pairId: pair.pairId, pressed: false, requireBoth: false });
+        }
+      }
+      levelData.plates = plates;
 
       // Initialise dynamic object timers
-      var objects = levelData.objects || [];
       for (var i = 0; i < objects.length; i++) {
         var obj = objects[i];
         if (obj.type === 'crumble') {
@@ -134,9 +181,6 @@
         }
         if (obj.type === 'moving') {
           obj.t = obj.t || 0;
-        }
-        if (obj.type === 'spiceTrap') {
-          obj.cooldown = randomInt(SPICE_TRAP_MIN, SPICE_TRAP_MAX);
         }
       }
 

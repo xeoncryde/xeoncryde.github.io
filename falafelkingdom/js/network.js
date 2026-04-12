@@ -133,6 +133,12 @@
       this.roomCode = code.toUpperCase();
       this.seq = 0;
 
+      // Clean up any previous peer before creating new one
+      if (this.peer) {
+        try { this.peer.destroy(); } catch (e) {}
+        this.peer = null;
+      }
+
       return new Promise(function (resolve, reject) {
         var peer = new Peer();
         self.peer = peer;
