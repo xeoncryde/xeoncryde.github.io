@@ -156,24 +156,55 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'DM Sans',sans-seri
 .ov-stat-l{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-top:2px;}
 
 /* ══ CHAT ══════════════════════════════════════════════════════════════ */
-#chat{position:fixed;bottom:14px;left:14px;z-index:30;width:295px;display:none;}
-#clog{display:flex;flex-direction:column;gap:4px;margin-bottom:6px;}
-.cm{display:inline-flex;padding:6px 11px;border-radius:8px;font-size:11.5px;
-  background:rgba(4,8,22,.85);backdrop-filter:blur(8px);border-left:2.5px solid;
-  animation:smsg .15s ease;max-width:295px;word-break:break-word;line-height:1.4;}
-.cm.c1{border-color:#e67814;}.cm.c2{border-color:#2884ff;}
-.cm.sys{border-color:rgba(255,255,255,.28);color:rgba(255,255,255,.52);}
-@keyframes smsg{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-#cbox{display:none;gap:6px;}#cbox.show{display:flex;}
-#cin{flex:1;background:rgba(4,8,22,.92);border:1px solid rgba(255,255,255,.18);
-  border-radius:8px;padding:8px 11px;color:#fff;font-size:11.5px;
-  font-family:'DM Sans',sans-serif;outline:none;}
-#cin::placeholder{color:rgba(255,255,255,.2);}
-#csnd{background:rgba(244,208,63,.12);border:1px solid rgba(244,208,63,.3);color:#f4d03f;
-  border-radius:8px;padding:8px 12px;cursor:pointer;font-size:9.5px;
-  font-family:'DM Sans',sans-serif;white-space:nowrap;transition:background .2s;}
-#csnd:hover{background:rgba(244,208,63,.24);}
-.ctip{color:rgba(255,255,255,.14);font-size:9px;margin-top:4px;}
+#chat{position:fixed;bottom:14px;left:14px;z-index:30;width:310px;display:none;}
+#clog{display:flex;flex-direction:column;gap:5px;margin-bottom:8px;}
+.cm{
+  display:flex;padding:8px 13px;border-radius:10px;font-size:12px;
+  background:rgba(6,12,30,.96);
+  border:1px solid rgba(255,255,255,.12);
+  border-left:3px solid;
+  box-shadow:0 4px 18px rgba(0,0,0,.55);
+  animation:smsg .18s ease;max-width:310px;word-break:break-word;line-height:1.5;
+  color:#fff;}
+.cm.c1{border-left-color:#e67814;background:rgba(12,8,4,.96);}
+.cm.c2{border-left-color:#2884ff;background:rgba(4,8,18,.96);}
+.cm.sys{border-left-color:rgba(255,255,255,.35);color:rgba(255,255,255,.65);}
+.cm-name{font-weight:700;margin-right:6px;white-space:nowrap;}
+.cm.c1 .cm-name{color:#e67814;}.cm.c2 .cm-name{color:#5ea8ff;}
+@keyframes smsg{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Chat input box */
+#cbox{display:none;gap:6px;flex-direction:column;}
+#cbox.show{display:flex;}
+#cbox-inner{display:flex;gap:6px;}
+#chat-label{
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(244,208,63,.7);
+  font-family:'Syne',sans-serif;font-weight:700;margin-bottom:2px;}
+#cin{
+  flex:1;
+  background:rgba(6,12,30,.98);
+  border:1.5px solid rgba(244,208,63,.45);
+  border-radius:9px;padding:10px 13px;color:#fff;font-size:12.5px;
+  font-family:'DM Sans',sans-serif;outline:none;
+  box-shadow:0 0 0 3px rgba(244,208,63,.08),0 4px 20px rgba(0,0,0,.5);
+  transition:border-color .15s,box-shadow .15s;}
+#cin:focus{border-color:rgba(244,208,63,.75);box-shadow:0 0 0 3px rgba(244,208,63,.15),0 4px 20px rgba(0,0,0,.5);}
+#cin::placeholder{color:rgba(255,255,255,.25);}
+#csnd{
+  background:rgba(244,208,63,.18);border:1.5px solid rgba(244,208,63,.5);color:#f4d03f;
+  border-radius:9px;padding:10px 14px;cursor:pointer;font-size:10px;
+  font-family:'DM Sans',sans-serif;font-weight:700;white-space:nowrap;
+  transition:all .15s;letter-spacing:.5px;}
+#csnd:hover{background:rgba(244,208,63,.35);transform:translateY(-1px);}
+.cmds-hint{font-size:9px;color:rgba(255,255,255,.22);margin-top:4px;line-height:1.6;}
+.ctip{
+  display:inline-flex;align-items:center;gap:6px;
+  color:rgba(255,255,255,.38);font-size:9.5px;margin-top:4px;
+  background:rgba(6,12,30,.7);border-radius:6px;padding:5px 10px;
+  border:1px solid rgba(255,255,255,.08);}
+.ctip kbd{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  border-radius:4px;padding:1px 6px;font-size:9px;font-family:monospace;color:#fff;}
 .ctrl{position:fixed;bottom:14px;right:14px;z-index:10;pointer-events:none;
   text-align:right;line-height:2.2;color:rgba(255,255,255,.18);font-size:9px;}
 
@@ -197,7 +228,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'DM Sans',sans-seri
     <button class="btn" onclick="show('s-join')">Join Room</button>
     <div class="sep"></div>
     <div class="sttxt" style="font-size:9.5px;opacity:.4;text-align:center;max-width:280px;line-height:1.9">
-      i hope this works<br>im so bad at this - Works on GitHub Pages
+      Peer-to-peer WebRTC via PeerJS<br>No servers needed · Works on GitHub Pages
     </div>
   </div>
 </div>
@@ -287,10 +318,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'DM Sans',sans-seri
 <div id="chat">
   <div id="clog"></div>
   <div id="cbox">
-    <input id="cin" type="text" maxlength="80" placeholder="Chat… /hug /blame /gg /go /help /rip"/>
-    <button id="csnd" onclick="sendChat()">Send</button>
+    <div id="chat-label">💬 Chat — Escape to close</div>
+    <div id="cbox-inner">
+      <input id="cin" type="text" maxlength="80" placeholder="Type a message or /hug /blame /gg…"/>
+      <button id="csnd" onclick="sendChat()">Send</button>
+    </div>
+    <div class="cmds-hint">Commands: /hug /wave /gg /blame /go /help /rip /nice /wait /lol /pog</div>
   </div>
-  <div class="ctip" id="ctip">Press <b>T</b> to chat</div>
+  <div class="ctip" id="ctip"><kbd>T</kbd> to chat</div>
 </div>
 
 <div class="ctrl">
@@ -519,6 +554,100 @@ const snd={
   bounce: ()=>{playTone(440,0.05,'sine',0.08); setTimeout(()=>playTone(660,0.1,'sine',0.07),50);},
   checkpoint:()=>{playTone(784,0.08,'sine',0.1); setTimeout(()=>playTone(988,0.12,'sine',0.1),100);},
 };
+
+// ══════════════════════════════════════════════════════════════════════
+// BACKGROUND MUSIC  (Web Audio synthesiser — no files needed)
+// ══════════════════════════════════════════════════════════════════════
+let musicOn=false, musicNodes=[];
+
+function startMusic(){
+  if(musicOn||!audioCtx)return;
+  musicOn=true;
+  const ac=audioCtx;
+  const master=ac.createGain(); master.gain.value=0;
+  master.connect(ac.destination);
+  // Fade in
+  master.gain.linearRampToValueAtTime(0.28, ac.currentTime+3.0);
+  musicNodes.push(master);
+
+  // ── Layer 1: Deep drone pad (two slightly detuned saws for warmth) ──
+  [110, 110.6].forEach(f=>{
+    const o=ac.createOscillator();
+    const g=ac.createGain(); g.gain.value=0.18;
+    const filt=ac.createBiquadFilter();
+    filt.type='lowpass'; filt.frequency.value=800; filt.Q.value=1.5;
+    o.type='sawtooth'; o.frequency.value=f;
+    o.connect(filt); filt.connect(g); g.connect(master);
+    o.start(); musicNodes.push(o,g,filt);
+  });
+
+  // ── Layer 2: Warm mid pad (sine sub + triangle mid) ──
+  [220, 330, 440].forEach((f,i)=>{
+    const o=ac.createOscillator();
+    const g=ac.createGain(); g.gain.value=[0.10,0.07,0.05][i];
+    const filt=ac.createBiquadFilter();
+    filt.type='lowpass'; filt.frequency.value=1200; filt.Q.value=0.8;
+    o.type='triangle'; o.frequency.value=f;
+    // Slow tremolo via LFO
+    const lfo=ac.createOscillator(); const lfoG=ac.createGain();
+    lfo.frequency.value=0.18+i*0.06; lfoG.gain.value=0.025;
+    lfo.connect(lfoG); lfoG.connect(g.gain);
+    o.connect(filt); filt.connect(g); g.connect(master);
+    o.start(); lfo.start(); musicNodes.push(o,g,filt,lfo,lfoG);
+  });
+
+  // ── Layer 3: Gentle arpeggio melody (pentatonic loop) ──
+  const scale=[220,247,277,330,370,440,494,554,659,740]; // A minor pentatonic-ish
+  const pattern=[0,2,4,2,5,4,7,4,2,0,3,2,0,4,2,1]; // melody pattern indices
+  let step=0;
+  function arpTick(){
+    if(!musicOn)return;
+    const note=scale[pattern[step%pattern.length]];
+    const o=ac.createOscillator();
+    const g=ac.createGain(); g.gain.value=0;
+    const filt=ac.createBiquadFilter();
+    filt.type='bandpass'; filt.frequency.value=note*2; filt.Q.value=2;
+    o.type='sine'; o.frequency.value=note;
+    o.connect(filt); filt.connect(g); g.connect(master);
+    const now=ac.currentTime;
+    g.gain.linearRampToValueAtTime(0.09, now+0.04);
+    g.gain.exponentialRampToValueAtTime(0.001, now+0.55);
+    o.start(now); o.stop(now+0.6);
+    step++;
+    const interval=step%4===0?900:step%2===0?600:480; // rhythmic variation
+    setTimeout(arpTick, interval);
+  }
+  setTimeout(arpTick, 2500); // slight delay before melody starts
+
+  // ── Layer 4: Soft percussion (low sine thump every 2 beats) ──
+  function beat(){
+    if(!musicOn)return;
+    const o=ac.createOscillator();
+    const g=ac.createGain(); g.gain.value=0.15;
+    o.type='sine'; o.frequency.value=55;
+    o.frequency.exponentialRampToValueAtTime(30, ac.currentTime+0.18);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+0.25);
+    o.connect(g); g.connect(master);
+    o.start(); o.stop(ac.currentTime+0.3);
+    setTimeout(beat, 960);
+  }
+  setTimeout(beat, 4000);
+}
+
+function stopMusic(){
+  if(!musicOn)return;
+  musicOn=false;
+  // Find master gain and fade out
+  musicNodes.forEach(n=>{
+    try{
+      if(n instanceof GainNode){n.gain.linearRampToValueAtTime(0,audioCtx.currentTime+1.5);}
+    }catch(e){}
+  });
+  setTimeout(()=>{
+    musicNodes.forEach(n=>{try{n.disconnect();}catch(e){}});
+    musicNodes=[];
+  },2000);
+}
 
 // ══════════════════════════════════════════════════════════════════════
 // PARTICLES
@@ -1559,6 +1688,7 @@ function beginGame(){
   if(isHost){$('p1-st').textContent='You!';$('p2-st').textContent='Partner';}
   else{$('p1-st').textContent='Partner';$('p2-st').textContent='You!';}
   showLvlCard(lvlIdx,()=>buildLevel(lvlIdx));
+  startMusic();
 }
 
 function hostStart(){
@@ -1673,11 +1803,18 @@ function addChat(who,msg){
   const d=document.createElement('div');
   const cls=who===0?'c1':who===1?'c2':'sys';
   d.className='cm '+cls;
-  const name=who===0?'🧆 Fry':who===1?'🧊 Freeze':'';
-  d.textContent=(name?name+': ':'')+msg;
+  if(who>=0){
+    const nameEl=document.createElement('span');
+    nameEl.className='cm-name';
+    nameEl.textContent=who===0?'🧆 Fry':'🧊 Freeze';
+    d.appendChild(nameEl);
+    d.appendChild(document.createTextNode(msg));
+  } else {
+    d.textContent=msg;
+  }
   log.appendChild(d);
-  while(log.children.length>7)log.removeChild(log.firstChild);
-  if(who>=0)bubbles.push({text:msg.slice(0,34),who,t:Date.now(),maxT:3200});
+  while(log.children.length>6)log.removeChild(log.firstChild);
+  if(who>=0)bubbles.push({text:msg.slice(0,30),who,t:Date.now(),maxT:3500});
 }
 
 function sendChat(){
@@ -1694,10 +1831,18 @@ function sendChat(){
 
 let chatOpen=false;
 function toggleChat(f){
-  chatOpen=(f===undefined)?!chatOpen:f;
-  $('cbox').classList.toggle('show',chatOpen);
-  $('ctip').style.display=chatOpen?'none':'block';
-  if(chatOpen){$('cin').focus();$('cin').value='';}
+  const open=(f===undefined)?!chatOpen:f;
+  chatOpen=open;
+  $('cbox').classList.toggle('show',open);
+  $('ctip').style.display=open?'none':'block';
+  if(open){
+    setTimeout(()=>{$('cin').focus();},30); // slight delay so T key doesn't land in input
+  } else {
+    $('cin').blur();
+    // Clear all movement keys so nothing stays stuck after closing chat
+    keys1={};
+    if(!isHost) netSend({t:M.K,k:keys1});
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════
@@ -1896,7 +2041,7 @@ function applyKey(k,e,down){
 }
 
 document.addEventListener('keydown',e=>{
-  if(e.key==='t'||e.key==='T'){if(gameOn){toggleChat();return;}}
+  if(e.key==='t'||e.key==='T'){if(gameOn&&!chatOpen){toggleChat(true);return;}}
   if(e.key==='Escape'){toggleChat(false);return;}
   if(e.key==='Enter'&&chatOpen){sendChat();return;}
   if(e.key==='r'||e.key==='R'){
@@ -1998,6 +2143,12 @@ animate();
 
 // Enter key on join input
 $('join-in').addEventListener('keydown',e=>{if(e.key==='Enter')doJoin();});
+// Stop ALL chat input keystrokes from reaching the game keydown handler
+$('cin').addEventListener('keydown',e=>{
+  e.stopPropagation(); // never reaches document keydown → no movement, no T-close
+  if(e.key==='Enter'){e.preventDefault();sendChat();}
+  if(e.key==='Escape'){e.preventDefault();toggleChat(false);}
+});
 </script>
 </body>
 </html>
