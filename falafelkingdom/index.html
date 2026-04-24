@@ -1103,56 +1103,8 @@ const BULLY_Q=[
   'I JUST WORK HERE','BOSS SAID TO','NOTHING PERSONAL BYE','YEET','🤜 BONK'
 ];
 
-// ── CLIENT-SIDE PREDICTION for Guest (P2) ───────────────────────────
-// Guest runs their own physics locally for instant response.
-// Host position received via network is used for reconciliation only.
-function stepGuestPhysics(){
-  const p=phy.p2;
-  const k=keys1; // guest's local keys
-  if(k.fwd)  p.vz-=SPD;
-  if(k.back) p.vz+=SPD;
-  if(k.left) p.vx-=SPD;
-  if(k.right)p.vx+=SPD;
-  if(k.jump&&p.gr){p.vy=JV;p.gr=false;sq2.vy=-0.32;}
-  p.vy-=G;
-  p.x+=p.vx; p.y+=p.vy; p.z+=p.vz;
-  p.vx*=FRIC; p.vz*=FRIC; p.gr=false; p.ice=false;
-  platforms.forEach(pl=>{
-    if(pl.isCP) return;
-    if(pl.isGate&&gates.find(g=>g.blk===pl.m&&g.open)) return;
-    resolveAABB(p,pl);
-  });
-  movPlats.forEach(mp=>{ if(resolveAABBm(p,mp)){p.x+=mp.m.position.x-mp.px;p.z+=mp.m.position.z-mp.pz;} });
-  p.x=Math.max(-34,Math.min(34,p.x)); p.z=Math.min(8,p.z);
-  if(p.y<-15){
-    const sp=checkpointSaved[1]||LEVELS[lvlIdx].spawns[1];
-    p.x=sp[0];p.y=sp[1]+0.5;p.z=sp[2];p.vx=p.vy=p.vz=0;
-  }
-  // Boost: guest boosts host player
-  boostCd2=Math.max(0,boostCd2-16.67);
-  if(k.boost&&boostCd2===0){
-    // Request boost from host (host will apply to p1 and confirm)
-    netSend({t:M.E,ev:'guestBoost'});
-    boostCd2=BOOST_CD;
-    $('bbar2').style.width='0%';
-    $('bbar2-lbl').textContent='BOOST CHARGING…';
-  }
-  $('bbar2').style.width=(1-boostCd2/BOOST_CD)*100+'%';
-  $('bbar2-lbl').textContent=boostCd2>0?'BOOST CHARGING…':'BOOST READY';
-  // Move moving platforms (needed for guest physics)
-  const t=performance.now()*0.001;
-  movPlats.forEach(mp=>{
-    mp.px=mp.m.position.x; mp.pz=mp.m.position.z;
-    const amp=(mp.max-mp.min)/2;
-    if(mp.axis==='x') mp.m.position.x=mp.ox+Math.sin(t*mp.spd*50+mp.phase)*amp;
-    else              mp.m.position.z=mp.oz+Math.sin(t*mp.spd*50+mp.phase)*amp;
-  });
-}
-
 function stepPhysics(){
-  if(!gameOn)return;
-  if(!isHost){ stepGuestPhysics(); return; }
-  const dt=1; // fixed step
+  if(!gameOn||!isHost)return;
   boostCd1=Math.max(0,boostCd1-16.67);
   boostCd2=Math.max(0,boostCd2-16.67);
   const t=performance.now()*0.001;
@@ -1266,12 +1218,11 @@ function stepPhysics(){
       snd.boost();
     }
   }
-  // Update boost bars (host side — P1 is host's player)
+  // Update boost bars — host always updates both (it owns both cooldowns)
   $('bbar1').style.width=(1-boostCd1/BOOST_CD)*100+'%';
-  $('bbar1-lbl').textContent=boostCd1>0?'BOOST CHARGING…':'BOOST READY';
-  // P2 bar: sent to guest via broadcastState, but keep host display in sync
+  $('bbar1-lbl').textContent=boostCd1>0?'CHARGING…':'READY';
   $('bbar2').style.width=(1-boostCd2/BOOST_CD)*100+'%';
-  $('bbar2-lbl').textContent=boostCd2>0?'BOOST CHARGING…':'BOOST READY';
+  $('bbar2-lbl').textContent=boostCd2>0?'CHARGING…':'READY';
 
   checkPlates();
   checkFalafels();
@@ -1535,18 +1486,14 @@ function openGateClient(gi){
 }
 
 function applyState(d){
-  if(d.p1)Object.assign(dsp.p1,d.p1);
+  if(d.p1){
+    dsp.p1.x=d.p1.x; dsp.p1.y=d.p1.y; dsp.p1.z=d.p1.z;
+    if(d.p1.vx!=null){ dsp.p1.vx=d.p1.vx; dsp.p1.vz=d.p1.vz; }
+  }
   if(d.p2){
-    // For guest: reconcile local P2 with host-authoritative position
-    if(!isHost){
-      const err=Math.sqrt((d.p2.x-phy.p2.x)**2+(d.p2.y-phy.p2.y)**2+(d.p2.z-phy.p2.z)**2);
-      if(err>2.8){
-        // Positions diverged too far — snap to host position
-        phy.p2.x=d.p2.x; phy.p2.y=d.p2.y; phy.p2.z=d.p2.z;
-        phy.p2.vx=0; phy.p2.vy=0; phy.p2.vz=0;
-      }
-    }
-    Object.assign(dsp.p2,d.p2);
+    // Host is authoritative — just update display targets directly
+    dsp.p2.x=d.p2.x; dsp.p2.y=d.p2.y; dsp.p2.z=d.p2.z;
+    if(d.p2.vx!=null){ dsp.p2.vx=d.p2.vx; dsp.p2.vz=d.p2.vz; }
   }
   if(d.plates)d.plates.forEach((on,i)=>{
     if(!plates[i])return;
@@ -1575,11 +1522,12 @@ function applyState(d){
       movPlats[i].m.position.z=pos.z;
     }
   });
-  if(d.boost){
+  if(d.boost&&!isHost){
+    // Guest sees: bbar1=host player (P1), bbar2=their own player (P2)
     $('bbar1').style.width=(1-d.boost[0]/BOOST_CD)*100+'%';
     $('bbar2').style.width=(1-d.boost[1]/BOOST_CD)*100+'%';
-    $('bbar1-lbl').textContent=d.boost[0]>0?'BOOST CHARGING…':'BOOST READY';
-    $('bbar2-lbl').textContent=d.boost[1]>0?'BOOST CHARGING…':'BOOST READY';
+    $('bbar1-lbl').textContent=d.boost[0]>0?'CHARGING…':'READY';
+    $('bbar2-lbl').textContent=d.boost[1]>0?'CHARGING…':'READY';
   }
 }
 
@@ -1587,8 +1535,8 @@ function broadcastState(){
   if(!isHost||!conn||!conn.open)return;
   netSend({
     t:M.S,
-    p1:{x:phy.p1.x,y:phy.p1.y,z:phy.p1.z},
-    p2:{x:phy.p2.x,y:phy.p2.y,z:phy.p2.z},
+    p1:{x:phy.p1.x,y:phy.p1.y,z:phy.p1.z,vx:phy.p1.vx,vz:phy.p1.vz},
+    p2:{x:phy.p2.x,y:phy.p2.y,z:phy.p2.z,vx:phy.p2.vx,vz:phy.p2.vz},
     plates:plates.map(p=>p.on),
     gates:gates.map(g=>g.open),
     falafels:falafels.map(f=>f.got),
@@ -1880,23 +1828,22 @@ function updateCam(){
 // ══════════════════════════════════════════════════════════════════════
 function lerpMesh(id,mesh,sb,sq){
   const d=dsp[id];
+  // Host: copy physics positions directly into dsp for both players
+  // Guest: dsp is filled by applyState from host broadcasts — just lerp to it
   if(isHost){
-    d.x=phy[id].x;d.y=phy[id].y;d.z=phy[id].z;
-  } else if(id==='p2'){
-    // Guest uses their own local physics for P2 (instant response)
-    d.x=phy.p2.x;d.y=phy.p2.y;d.z=phy.p2.z;
+    d.x=phy[id].x; d.y=phy[id].y; d.z=phy[id].z;
+    d.vx=phy[id].vx; d.vz=phy[id].vz;
   }
-  // Guest's P1 (dsp.p1) is updated by applyState from host broadcasts
-  const lr=(isHost||(id==='p2'))?0.9:0.25;
+  // Lerp rate: host snaps (same frame), guest smooths over network gap
+  const lr = isHost ? 1.0 : 0.22;
   mesh.position.x+=(d.x-mesh.position.x)*lr;
   mesh.position.y+=(d.y-mesh.position.y)*lr;
   mesh.position.z+=(d.z-mesh.position.z)*lr;
   tickSq(sq);
   mesh.scale.set(1/sq.sy,sq.sy,1/sq.sy);
-  // Face movement direction
-  const src=isHost?phy[id]:d;
-  const vx=src.vx||0, vz=src.vz||0;
-  if(Math.abs(vx)>0.015||Math.abs(vz)>0.015)
+  // Face movement direction — use stored velocity on host, delta on guest
+  const vx=d.vx||0, vz=d.vz||0;
+  if(Math.abs(vx)>0.01||Math.abs(vz)>0.01)
     mesh.rotation.y=Math.atan2(vx,vz);
   // Shadow blob
   sb.position.set(mesh.position.x,mesh.position.y-PR+0.04,mesh.position.z);
